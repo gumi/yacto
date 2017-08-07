@@ -132,6 +132,9 @@ defmodule Yacto.XA do
   def transaction([_, _ | _] = repos, fun, opts) do
     # XA transaction
 
+    # resolve duplication
+    repos = repos |> Enum.sort() |> Enum.dedup()
+
     for repo <- repos do
       if in_xa_transaction?(repo) do
         raise "repo #{repo} is already in XA transaction."
