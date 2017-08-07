@@ -35,7 +35,7 @@ defmodule MigratorTest do
              CREATE TABLE `migrator_player3` (
                `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                `value` varchar(255) DEFAULT NULL,
-               `name3` varchar(255) NOT NULL,
+               `name3` varchar(100) NOT NULL,
                PRIMARY KEY (`id`),
                UNIQUE KEY `id` (`id`),
                UNIQUE KEY `migrator_player3_name3_value_index` (`name3`,`value`),

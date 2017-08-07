@@ -23,7 +23,7 @@ defmodule GenMigrationTest do
                              value: :string}},
              primary_key: [del: [:id], ins: [:id2]],
              autogenerate_id: {:changed, {:id, :id}, {:id2, :binary_id}},
-             meta: %{nulls: %{del: %{}, ins: %{}},
+             meta: %{attrs: %{del: %{}, ins: %{}},
                      indices: %{del: %{}, ins: %{}}}} == diff
     assert Yacto.Migration.Structure.apply(structure_from, diff) == structure_to
   end
@@ -94,7 +94,7 @@ defmodule GenMigrationTest do
                 rename table(String.to_atom("player2")), to: table(String.to_atom("gen_migration_player3"))
                 alter table(String.to_atom("gen_migration_player3")), do: remove(:name2)
                 alter table(String.to_atom("gen_migration_player3")), do: add(:name3, :string, [])
-                alter table(String.to_atom("gen_migration_player3")), do: modify(:name3, :string, null: false)
+                alter table(String.to_atom("gen_migration_player3")), do: modify(:name3, :string, [null: false, size: 100])
                 create index(String.to_atom("gen_migration_player3"), [:name3, :value], [unique: true])
                 create index(String.to_atom("gen_migration_player3"), [:value, :name3], [])
               end
@@ -105,7 +105,7 @@ defmodule GenMigrationTest do
 
               def __migration_structures__() do
                 [
-                  %Yacto.Migration.Structure{fields: [:id, :name3, :value], meta: %{indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}, nulls: %{name3: false}}, source: "gen_migration_player3", types: %{id: :id, name3: :string, value: :string}},
+                  %Yacto.Migration.Structure{fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "gen_migration_player3", types: %{id: :id, name3: :string, value: :string}},
                 ]
               end
 

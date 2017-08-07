@@ -8,7 +8,7 @@ defmodule Yacto.Migration.Structure do
              embeds: [],
              read_after_writes: [],
              autogenerate_id: {:id, :id},
-             meta: %{nulls: %{},
+             meta: %{attrs: %{},
                      indices: %{}}]
 
   # undocumented keys:
@@ -67,7 +67,7 @@ defmodule Yacto.Migration.Structure do
       primary_key: List.myers_difference(structure_from.primary_key, structure_to.primary_key),
       autogenerate_id: once_difference(structure_from.autogenerate_id, structure_to.autogenerate_id),
       types: map_difference(structure_from.types, structure_to.types),
-      meta: %{nulls: map_difference(structure_from.meta.nulls, structure_to.meta.nulls),
+      meta: %{attrs: map_difference(structure_from.meta.attrs, structure_to.meta.attrs),
               indices: map_difference(structure_from.meta.indices, structure_to.meta.indices)}}
   end
 
@@ -93,7 +93,7 @@ defmodule Yacto.Migration.Structure do
     structure_to = %{structure_to | autogenerate_id: apply_once_difference(structure_to.autogenerate_id, patch.autogenerate_id)}
     structure_to = %{structure_to | fields: Yacto.Migration.Util.apply_myers_difference(structure_to.fields, patch.fields)}
     structure_to = %{structure_to | types: apply_map_difference(structure_to.types, patch.types)}
-    structure_to = put_in(structure_to.meta.nulls, apply_map_difference(structure_to.meta.nulls, patch.meta.nulls))
+    structure_to = put_in(structure_to.meta.attrs, apply_map_difference(structure_to.meta.attrs, patch.meta.attrs))
     structure_to = put_in(structure_to.meta.indices, apply_map_difference(structure_to.meta.indices, patch.meta.indices))
     structure_to
   end

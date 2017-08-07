@@ -28,16 +28,20 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
-  def generate_nulls(nulls, structure_to) do
-    xs = for {changetype, changes} <- nulls do
+  def generate_attrs(attrs, structure_to) do
+    xs = for {changetype, changes} <- attrs do
            case changetype do
              :del ->
                for {field, _value} <- changes do
-                 "alter table(String.to_atom(#{inspect structure_to.source})), do: modify(:#{field}, :#{structure_to.types[field]}, null: true)"
+                 # modify to default
+                 type = Map.fetch!(structure_to.types, field)
+                 "alter table(String.to_atom(#{inspect structure_to.source})), do: modify(:#{field}, :#{type})"
                end
              :ins ->
                for {field, value} <- changes do
-                 "alter table(String.to_atom(#{inspect structure_to.source})), do: modify(:#{field}, :#{structure_to.types[field]}, null: #{value})"
+                 keyword = Map.to_list(value)
+                 type = Map.fetch!(structure_to.types, field)
+                 "alter table(String.to_atom(#{inspect structure_to.source})), do: modify(:#{field}, :#{type}, #{inspect keyword})"
                end
            end
          end
@@ -54,6 +58,24 @@ defmodule Yacto.Migration.GenMigration do
              :ins ->
                for {{fields, opts}, value} <- changes, value do
                  "create index(String.to_atom(#{inspect structure_to.source}), #{inspect fields}, #{inspect opts})"
+               end
+           end
+         end
+    List.flatten(xs)
+  end
+
+  def generate_sizes(sizes, structure_to) do
+    xs = for {changetype, changes} <- sizes do
+           case changetype do
+             :del ->
+               for {field, _value} <- changes do
+                 type = Map.fetch!(structure_to.types, field)
+                 "alter table(String.to_atom(#{inspect structure_to.source})), do: modify(:#{field}, :#{type}, size: 255)"
+               end
+             :ins ->
+               for {field, value} <- changes do
+                 type = Map.fetch!(structure_to.types, field)
+                 "alter table(String.to_atom(#{inspect structure_to.source})), do: modify(:#{field}, :#{type}, size: #{value})"
                end
            end
          end
@@ -162,7 +184,7 @@ defmodule Yacto.Migration.GenMigration do
               {:delete, _} -> lines
               _ -> lines ++
                    generate_fields(diff.types, structure_to) ++
-                   generate_nulls(diff.meta.nulls, structure_to) ++
+                   generate_attrs(diff.meta.attrs, structure_to) ++
                    generate_indices(diff.meta.indices, structure_to)
             end
     lines

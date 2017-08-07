@@ -18,31 +18,23 @@ defmodule Migrator.Player2 do
 end
 
 defmodule Migrator.Player3 do
-  use Yacto.Migration.Schema
+  use Yacto.Schema
 
   schema @auto_source do
-    field :name3
+    field :name3, :string, meta: [null: false, size: 100]
     field :value, :string
-  end
-
-  schema_meta do
-    field :name3, null: false
     index [:value, :name3]
     index [:name3, :value], unique: true
   end
 end
 
 defmodule Migrator.Item do
-  use Yacto.Migration.Schema
+  use Yacto.Schema
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
   schema @auto_source do
-    field :name
-  end
-
-  schema_meta do
-    field :name, null: false
+    field :name, :string, meta: [null: false]
   end
 end
 
