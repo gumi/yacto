@@ -22,4 +22,8 @@ mods = for n <- 0..1 do
 
 config :sharding, ecto_repos: [Sharding.Repo.Default] ++ mods
 
-config :sharding, :migration_routers, [Yacto.Shard.Router]
+config :yacto, :databases,
+  %{default: %{module: Yacto.DB.Single,
+               repo: Sharding.Repo.Default},
+    player: %{module: Yacto.DB.Shard,
+              repos: [Sharding.Repo.Player0, Sharding.Repo.Player1]}}

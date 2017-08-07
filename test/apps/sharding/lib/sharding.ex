@@ -9,12 +9,10 @@ for n <- 0..1 do
   end
 end
 
-defmodule Sharding.Repo.Player do
-  use Yacto.Shard.Repo, repos: for n <- 0..1, do: Module.concat(Sharding.Repo, "Player#{n}")
-end
-
 defmodule Sharding.Schema.Item do
-  use Yacto.Migration.Schema
+  use Yacto.Schema
+
+  def dbname(), do: :default
 
   schema @auto_source do
     field :name, :string
@@ -22,7 +20,9 @@ defmodule Sharding.Schema.Item do
 end
 
 defmodule Sharding.Schema.Player do
-  use Yacto.Shard.Schema, shard_repo: Sharding.Repo.Player
+  use Yacto.Schema
+
+  def dbname(), do: :player
 
   schema @auto_source do
     field :name, :string

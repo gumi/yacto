@@ -1,11 +1,10 @@
-
 defmodule Yacto.Schema do
   @moduledoc """
   ```
   defmodule MyApp.Schema.Item do
     use Yacto.Schema
 
-    def repo(), do: :default
+    def dbname(), do: :default
 
     schema @auto_source do
       field :name, :string, meta: [null: false, size: 16, index: true]
@@ -15,7 +14,7 @@ defmodule Yacto.Schema do
   defmodule MyApp.Schema.Player do
     use Yacto.Schema
 
-    def repo(), do: :player
+    def dbname(), do: :player
 
     schema @auto_source do
       field :name, :string, meta: [null: false, size: 16, index: true]
@@ -23,8 +22,13 @@ defmodule Yacto.Schema do
   end
   ```
   """
+
+  @callback dbname() :: atom
+
   defmacro __using__(_opts) do
     quote do
+      @behaviour Yacto.Schema
+
       @auto_source __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
 
       import Yacto.Schema, only: [schema: 2]
@@ -73,6 +77,12 @@ defmodule Yacto.Schema do
     fields = List.wrap(field_or_fields)
     quote do
       @yacto_indices Map.put(@yacto_indices, {unquote(fields), unquote(opts)}, true)
+    end
+  end
+
+  defmacro timestamps(opts \\ []) do
+    quote bind_quoted: [opts: opts] do
+      @yacto_orig_calls [{Ecto.Schema, :timestamps, [opts]} | @yacto_orig_calls]
     end
   end
 

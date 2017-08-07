@@ -5,7 +5,7 @@ config :migrator, :ecto_repos, [Migrator.Repo0,
 
 config :migrator, Migrator.Repo0,
        adapter: Ecto.Adapters.MySQL,
-       database: "ecto_migration_repo0",
+       database: "migrator_repo0",
        username: "root",
        password: "",
        hostname: "localhost",
@@ -13,11 +13,14 @@ config :migrator, Migrator.Repo0,
 
 config :migrator, Migrator.Repo1,
        adapter: Ecto.Adapters.MySQL,
-       database: "ecto_migration_repo1",
+       database: "migrator_repo1",
        username: "root",
        password: "",
        hostname: "localhost",
        port: "3306"
 
-config :migrator, :migration_routers, [Migrator.Router1,
-                                       Migrator.Router2]
+config :yacto, :databases,
+  %{default: %{module: Yacto.DB.Single,
+               repo: Migrator.Repo1},
+    player: %{module: Yacto.DB.Shard,
+              repos: [Migrator.Repo0, Migrator.Repo1]}}

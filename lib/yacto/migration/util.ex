@@ -71,4 +71,15 @@ defmodule Yacto.Migration.Util do
       module
     end
   end
+
+  def allow_migrate?(schema, repo) do
+    Code.ensure_loaded(schema)
+    if function_exported?(schema, :dbname, 0) do
+      dbname = schema.dbname()
+      repos = Yacto.DB.repos(dbname)
+      repo in repos
+    else
+      false
+    end
+  end
 end

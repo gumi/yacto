@@ -25,7 +25,7 @@ defmodule Yacto.Migration.Migrator do
   """
   def up(app, repo, schemas, migrations, opts \\ []) do
     for schema <- schemas do
-      if Yacto.Migration.Routers.allow_migrate(app, schema, repo, schemas: schemas) do
+      if Yacto.Migration.Util.allow_migrate?(schema, repo) do
         versions = migrated_versions(repo, app, schema)
         need_migrations = difference_migration(migrations, versions)
         for migration <- need_migrations do
