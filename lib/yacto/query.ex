@@ -39,17 +39,17 @@ defmodule Yacto.Query do
             |> Ecto.Query.where(^lookup)
     case repo.one(query, opts) do
       nil ->
-        struct(schema, Keyword.merge(lookup, defaults))
+        {struct(schema, Keyword.merge(lookup, defaults)), true}
       schema ->
-        schema
+        {schema, false}
     end
   end
 
   # # 作成（既に有れば例外、ロック有り）
-  # player = Gscx.Query.insert(Gscx.Player.Shcema.Player, Gscx.Repo.get_player(player_id), player_id: player_id)
+  # player = Gscx.Query.create(Gscx.Player.Shcema.Player, Gscx.Repo.get_player(player_id), player_id: player_id)
 
   # # 作成（既に有れば更新、ロック有り）
-  # player = Gscx.Query.insert_or_update(Gscx.Player.Shcema.Player, Gscx.Repo.get_player(player_id), lookup: [player_id: player_id], set: [name: name])
+  # player = Gscx.Query.update_or_create(Gscx.Player.Shcema.Player, Gscx.Repo.get_player(player_id), lookup: [player_id: player_id], defaults: [name: name])
 
   # # 更新
   # player = %{name: "foo" | player}

@@ -1,13 +1,23 @@
 defmodule Yacto.Schema.Query do
-  defmacro __using__(opts) do
-    quote bind_quoted: [opts: opts] do
-      def _get(dbkey, kwargs) do
-        Yacto.Query.get(__MODULE__, Yacto.DB.repo(__MODULE__.dbname(), dbkey), kwargs)
-      end
+  defmacro __using__(_) do
+    quote do
+      @before_compile Yacto.Schema.Query
+    end
+  end
+  defmacro __before_compile__(env) do
+    code =
+      quote do
+        def get(dbkey, kwargs) do
+          Yacto.Query.get(unquote(env.module), Yacto.DB.repo(unquote(env.module).dbname(), dbkey), kwargs)
+        end
 
-      def _get_or_new(dbkey, kwargs) do
-        Yacto.Query.get_or_new(__MODULE__, Yacto.DB.repo(__MODULE__.dbname(), dbkey), kwargs)
+        def get_or_new(dbkey, kwargs) do
+          Yacto.Query.get_or_new(unquote(env.module), Yacto.DB.repo(unquote(env.module).dbname(), dbkey), kwargs)
+        end
       end
+    Module.create(Module.concat(env.module, Query), code, Macro.Env.location(env))
+
+    quote do
     end
   end
 end

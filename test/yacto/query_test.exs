@@ -29,34 +29,34 @@ defmodule Yacto.QueryTest do
     assert obj.value == 1000
   end
 
-  test "Yacto.Schema.Query._get" do
-    obj = Yacto.QueryTest.Item._get(nil, lock: false, lookup: [name: "foo"])
+  test "Yacto.Schema.Query.get" do
+    obj = Yacto.QueryTest.Item.Query.get(nil, lock: false, lookup: [name: "foo"])
     assert obj.name == "foo"
     assert obj.quantity == 100
-    obj = Yacto.QueryTest.Item._get(nil, lock: true, lookup: [quantity: 100])
+    obj = Yacto.QueryTest.Item.Query.get(nil, lock: true, lookup: [quantity: 100])
     assert obj.name == "foo"
     assert obj.quantity == 100
 
-    obj = Yacto.QueryTest.Player._get(@player_id, lock: false, lookup: [name: "player"])
+    obj = Yacto.QueryTest.Player.Query.get(@player_id, lock: false, lookup: [name: "player"])
     assert obj.name == "player"
     assert obj.value == 1000
   end
 
   test "Yacto.Query.get_or_new" do
-    obj = Yacto.Query.get_or_new(Yacto.QueryTest.Item, Yacto.DB.repo(:default), lookup: [name: "foo"], defaults: [quantity: 1000])
+    {obj, false} = Yacto.Query.get_or_new(Yacto.QueryTest.Item, Yacto.DB.repo(:default), lookup: [name: "foo"], defaults: [quantity: 1000])
     assert obj.name == "foo"
     assert obj.quantity == 100
-    obj = Yacto.Query.get_or_new(Yacto.QueryTest.Item, Yacto.DB.repo(:default), lookup: [name: "bar"], defaults: [quantity: 1000])
+    {obj, true} = Yacto.Query.get_or_new(Yacto.QueryTest.Item, Yacto.DB.repo(:default), lookup: [name: "bar"], defaults: [quantity: 1000])
     assert obj.name == "bar"
     assert obj.quantity == 1000
 
-    obj = Yacto.Query.get_or_new(Yacto.QueryTest.Player, Yacto.DB.repo(:player, @player_id), lookup: [name: "player"], defaults: [value: 999])
+    {obj, false} = Yacto.Query.get_or_new(Yacto.QueryTest.Player, Yacto.DB.repo(:player, @player_id), lookup: [name: "player"], defaults: [value: 999])
     assert obj.name == "player"
     assert obj.value == 1000
     assert obj.updated_at != nil
     assert obj.inserted_at != nil
 
-    obj = Yacto.Query.get_or_new(Yacto.QueryTest.Player, Yacto.DB.repo(:player, @player_id), lookup: [name: "not player"], defaults: [value: 999])
+    {obj, true} = Yacto.Query.get_or_new(Yacto.QueryTest.Player, Yacto.DB.repo(:player, @player_id), lookup: [name: "not player"], defaults: [value: 999])
     assert obj.name == "not player"
     assert obj.value == 999
     assert obj.updated_at == nil
