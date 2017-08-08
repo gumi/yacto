@@ -161,3 +161,41 @@ end
 ```
 
 If the migration file is not what you want, change `change(MyApp.Player)` or `change(MyApp.VersionInfo)`.
+
+In order to migrate, execute the following command:
+
+```
+mix yacto.migrate
+```
+
+## Sharding
+
+In order to shard databases, set `Yacto.DB.Shard` in configuration.
+
+```
+config :yacto, :databases,
+  %{player: %{module: Yacto.DB.Shard,
+              repos: [MyApp.Repo.Player0,
+                      MyApp.Repo.Player1]}}
+```
+
+Then, a sharding schema implements `dbname/0` function that return `:player`.
+
+```
+defmodule MyApp.Player do
+  use Yacto.Schema
+
+  def dbname(), do: :player
+
+  schema @auto_source do
+    ...
+  end
+end
+```
+
+Following query is sharded by `player_id`.
+
+```
+# player_id is the sharding key
+MyApp.Player.Query.get(player_id, lock: true, lookup: [player_id: player_id])
+```
