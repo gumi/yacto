@@ -1,9 +1,12 @@
 defmodule Yacto.Schema do
   @moduledoc """
+  example:
+
   ```
   defmodule MyApp.Schema.Item do
     use Yacto.Schema
 
+    @impl Yacto.Schema
     def dbname(), do: :default
 
     schema @auto_source do
@@ -14,6 +17,7 @@ defmodule Yacto.Schema do
   defmodule MyApp.Schema.Player do
     use Yacto.Schema
 
+    @impl Yacto.Schema
     def dbname(), do: :player
 
     schema @auto_source do
@@ -32,6 +36,7 @@ defmodule Yacto.Schema do
       @auto_source __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
 
       import Yacto.Schema, only: [schema: 2]
+      use Yacto.Schema.Query
 
       @primary_key nil
       @timestamps_opts []

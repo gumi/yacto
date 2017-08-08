@@ -13,10 +13,10 @@ defmodule Yacto.DB do
     mod.repos(config)
   end
 
-  def repo(dbname, info \\ nil) do
+  def repo(dbname, dbkey \\ nil) do
     config = get_config(dbname)
     mod = config.module
-    mod.repo(config, info)
+    mod.repo(config, dbkey)
   end
 
   def all_repos() do
