@@ -28,30 +28,75 @@ defmodule Yacto.Query do
     query |> repo.one!(opts)
   end
 
-  def get_or_new(schema, repo, kwargs) do
-    {lookup, kwargs} = pop!(kwargs, :lookup)
-    {defaults, kwargs} = Keyword.pop(kwargs, :defaults, [])
+  def create(schema, repo, kwargs) do
+    {fields, kwargs} = pop!(kwargs, :fields)
+    {opts, kwargs} = Keyword.pop(kwargs, :opts, [])
     ensure_empty(kwargs)
 
-    opts = Keyword.get(kwargs, :opts, [])
+    schema
+    |> struct(fields)
+    |> repo.insert!(opts)
+  end
 
-    query = schema
-            |> Ecto.Query.where(^lookup)
-    case repo.one(query, opts) do
-      nil ->
-        {struct(schema, Keyword.merge(lookup, defaults)), true}
-      schema ->
-        {schema, false}
+  def get_or_new(schema, repo, kwargs) do
+    {lock, kwargs} = pop!(kwargs, :lock)
+    {lookup, kwargs} = pop!(kwargs, :lookup)
+    {defaults, kwargs} = Keyword.pop(kwargs, :defaults, [])
+    {opts, kwargs} = Keyword.pop(kwargs, :opts, [])
+    ensure_empty(kwargs)
+
+    if lock do
+      query = schema
+              |> Ecto.Query.where(^lookup)
+      case repo.one(query, opts) do
+        nil ->
+          # insert
+          record = struct(schema, Keyword.merge(lookup, defaults))
+          try do
+            repo.insert!(record)
+          else
+            record -> {record, true}
+          rescue
+            _ in Ecto.ConstraintError ->
+              # duplicate key
+              query = schema
+                      |> Ecto.Query.where(^lookup)
+                      |> Ecto.Query.lock("FOR UPDATE")
+              record = repo.one!(query)
+              {record, false}
+          end
+        _ ->
+          # retry SELECT with FOR UPDATE
+          query = schema
+                  |> Ecto.Query.where(^lookup)
+                  |> Ecto.Query.lock("FOR UPDATE")
+          record = repo.one!(query)
+          {record, false}
+      end
+    else
+      query = schema
+              |> Ecto.Query.where(^lookup)
+      case repo.one(query, opts) do
+        nil ->
+          {struct(schema, Keyword.merge(lookup, defaults)), true}
+        record ->
+          {record, false}
+      end
     end
   end
 
-  # # 作成（既に有れば例外、ロック有り）
-  # player = Gscx.Query.create(Gscx.Player.Shcema.Player, Gscx.Repo.get_player(player_id), player_id: player_id)
+  def save(repo, kwargs) do
+    {record, kwargs} = pop!(kwargs, :record)
+    {opts, kwargs} = Keyword.pop(kwargs, :opts, [])
+    ensure_empty(kwargs)
 
-  # # 作成（既に有れば更新、ロック有り）
-  # player = Gscx.Query.update_or_create(Gscx.Player.Shcema.Player, Gscx.Repo.get_player(player_id), lookup: [player_id: player_id], defaults: [name: name])
+    schema = record.__struct__
+    set = record |> Map.drop([:__meta__]) |> Map.from_struct() |> Map.to_list()
 
-  # # 更新
-  # player = %{name: "foo" | player}
-  # player = Gscx.Query.update(player, Gscx.Repo.get_player(player_id))
+    {1, _} = schema
+             |> Ecto.Query.where(id: ^record.id)
+             |> Ecto.Query.update(set: ^set)
+             |> repo.update_all([], opts)
+    record
+  end
 end
