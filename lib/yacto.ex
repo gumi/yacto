@@ -1,18 +1,10 @@
 defmodule Yacto do
-  @moduledoc """
-  Documentation for Yacto.
-  """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Yacto.hello
-      :world
-
-  """
-  def hello do
-    :world
+  def transaction(databases, fun, opts \\ []) do
+    f = fn
+          {dbname, dbkey} -> Yacto.DB.repo(dbname, dbkey)
+          dbname -> Yacto.DB.repo(dbname)
+        end
+    repos = Enum.map(databases, f)
+    Yacto.XA.transaction(repos, fun, opts)
   end
 end
