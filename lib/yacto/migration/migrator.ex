@@ -54,7 +54,7 @@ defmodule Yacto.Migration.Migrator do
     {:ok, runner} = Supervisor.start_child(Ecto.Migration.Supervisor, args)
     Ecto.Migration.Runner.metadata(runner, opts)
 
-    log(level, "== Running #{inspect migration}.#{operation}/1 #{direction}")
+    log(level, "== Running #{inspect migration}.#{operation}(#{inspect schema}) #{direction} to [#{inspect repo}]")
     {time1, _} = :timer.tc(migration, operation, [schema])
     {time2, _} = :timer.tc(&Ecto.Migration.Runner.flush/0, [])
     time = time1 + time2
