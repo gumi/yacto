@@ -15,7 +15,7 @@ SCRIPT = \
 	done
 
 deps.get:
-	COMMAND="mix deps.get" bash -c '$(SCRIPT)'
+	COMMAND="mix deps.get" && $(SCRIPT)
 
 test:
-	COMMAND="mix test" bash -c '$(SCRIPT)'
+	COMMAND="mix test" && $(SCRIPT)
