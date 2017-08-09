@@ -26,6 +26,7 @@ defmodule Yacto.Migration.SchemaMigration do
     |> Ecto.Query.select([:version])
     |> Ecto.Query.order_by([:version])
     |> repo.all(@opts)
+    |> Enum.map(fn u -> u.version end)
   end
 
   def up(repo, app, schema, version) when is_atom(app) and is_atom(schema) do

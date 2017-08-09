@@ -99,5 +99,8 @@ defmodule MigratorTest do
     item = %Migrator.Item{name: "item"}
     item = Migrator.Repo1.insert!(item)
     assert [item] == Migrator.Repo1.all(Migrator.Item)
+
+    # nothing is migrated
+    Mix.Task.rerun "yacto.migrate", ["--repo", "Migrator.Repo1"]
   end
 end
