@@ -82,7 +82,7 @@ defmodule MigratorTest do
 
     _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:migrator))
 
-    Mix.Task.rerun "yacto.gen.migration", ["--app", "migrator"]
+    Mix.Task.rerun "yacto.gen.migration", []
     Mix.Task.rerun "yacto.migrate", ["--repo", "Migrator.Repo0", "--app", "migrator"]
 
     player = %Migrator.Player{name: "foo", value: 100}
@@ -90,7 +90,7 @@ defmodule MigratorTest do
     player = Map.drop(player, [:inserted_at, :updated_at])
     assert [player] == Enum.map(Migrator.Repo0.all(Migrator.Player), &Map.drop(&1, [:inserted_at, :updated_at]))
 
-    Mix.Task.rerun "yacto.migrate", ["--repo", "Migrator.Repo1", "--app", "migrator"]
+    Mix.Task.rerun "yacto.migrate", ["--repo", "Migrator.Repo1"]
 
     player2 = %Migrator.Player2{name2: "foo", value: "bar"}
     player2 = Migrator.Repo1.insert!(player2)

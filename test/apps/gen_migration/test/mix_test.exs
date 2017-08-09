@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
 
     path = Yacto.Migration.Util.get_migration_path(:gen_migration, @migration_version)
 
-    Mix.Task.run "yacto.gen.migration", ["--app", "gen_migration", "--version", Integer.to_string(@migration_version)]
+    Mix.Task.run "yacto.gen.migration", ["--version", Integer.to_string(@migration_version)]
 
     source = File.read!(path)
     v1 = [{GenMigration.Player, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Player)},

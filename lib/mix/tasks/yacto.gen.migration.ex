@@ -3,22 +3,14 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
 
   @shortdoc "Generate migration file"
 
-  @switches [app: :string,
-             version: :integer]
+  @switches [version: :integer]
 
   def run(args) do
     Mix.Task.run "loadpaths", args
     Mix.Task.run "app.start", args
     case OptionParser.parse(args, switches: @switches) do
       {opts, [], _} ->
-        app = if Keyword.has_key?(opts, :app) do
-                String.to_existing_atom(Keyword.get(opts, :app))
-              else
-                Mix.Project.config[:app]
-              end
-        if app == nil do
-          Mix.raise "unspecified --app"
-        end
+        app = Keyword.fetch!(Mix.Project.config(), :app)
         version = Keyword.get(opts, :version)
 
         _ = Application.load(app)

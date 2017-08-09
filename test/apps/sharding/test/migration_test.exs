@@ -6,8 +6,8 @@ defmodule Sharding.MigrationTest do
     _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:sharding))
     Mix.Task.rerun "ecto.drop"
     Mix.Task.rerun "ecto.create"
-    Mix.Task.rerun "yacto.gen.migration", ["--app", "sharding"]
-    Mix.Task.rerun "yacto.migrate", ["--app", "sharding"]
+    Mix.Task.rerun "yacto.gen.migration", []
+    Mix.Task.rerun "yacto.migrate", []
 
     item = %Sharding.Schema.Item{name: "item"}
     item = Yacto.DB.repo(:default).insert!(item)
