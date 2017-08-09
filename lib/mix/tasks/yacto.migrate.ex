@@ -26,7 +26,10 @@ defmodule Mix.Tasks.Yacto.Migrate do
 
         _ = Application.load(app)
         for repo <- repos do
-          {:ok, _} = repo.start_link()
+          case repo.start_link() do
+            {:ok, _} -> :ok
+            {:error, {:already_started, _}} -> :ok
+          end
         end
 
         schemas = Yacto.Migration.Util.get_all_schema(app)
