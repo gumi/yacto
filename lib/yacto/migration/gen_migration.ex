@@ -96,8 +96,8 @@ defmodule Yacto.Migration.GenMigration do
       end
 
       def __migration_structures__() do
-        [<%= for structure <- @structures do %>
-          <%= Yacto.Migration.Structure.to_string structure %>,<% end %>
+        [<%= for {schema, structure} <- @structures do %>
+          {<%= inspect schema %>, <%= Yacto.Migration.Structure.to_string structure %>},<% end %>
         ]
       end
 
@@ -128,6 +128,7 @@ defmodule Yacto.Migration.GenMigration do
     migration = get_latest_migration(app, migration_dir)
     structures = if migration != nil do
                    migration.__migration_structures__()
+                   |> Enum.into(%{})
                  else
                    nil
                  end
@@ -169,7 +170,7 @@ defmodule Yacto.Migration.GenMigration do
                      %{schema: schema,
                        lines: generate_lines(from, to)}
                    end
-    structures = structure_infos |> Enum.map(fn {_schema, _from, to} -> to end)
+    structures = structure_infos |> Enum.map(fn {schema, _from, to} -> {schema, to} end)
     EEx.eval_string(get_template(), assigns: [migration_name: migration_name,
                                               schema_infos: schema_infos,
                                               structures: structures,
