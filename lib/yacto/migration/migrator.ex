@@ -47,8 +47,8 @@ defmodule Yacto.Migration.Migrator do
 
   defp run(repo, schema, migration, direction, operation, migrator_direction, opts) do
     level = Keyword.get(opts, :log, :info)
-    # sql = Keyword.get(opts, :log_sql, false)
-    log = level # %{level: level, sql: sql}
+    sql = Keyword.get(opts, :log_sql, false)
+    log = %{level: level, sql: sql}
     args  = [self(), repo, direction, migrator_direction, log]
 
     {:ok, runner} = Supervisor.start_child(Ecto.Migration.Supervisor, args)

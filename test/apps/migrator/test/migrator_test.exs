@@ -37,7 +37,6 @@ defmodule MigratorTest do
                `value` varchar(255) DEFAULT NULL,
                `name3` varchar(100) NOT NULL,
                PRIMARY KEY (`id`),
-               UNIQUE KEY `id` (`id`),
                UNIQUE KEY `migrator_player3_name3_value_index` (`name3`,`value`),
                KEY `migrator_player3_value_name3_index` (`value`,`name3`)
              ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8

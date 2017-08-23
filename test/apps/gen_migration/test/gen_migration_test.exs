@@ -8,7 +8,7 @@ defmodule GenMigrationTest do
                        types: %{id: :id, name: :string, value: :integer}
                      }
     structure_to = %Yacto.Migration.Structure{
-                     autogenerate_id: {:id2, :binary_id},
+                     autogenerate_id: {:id2, :id2, :binary_id},
                      fields: [:id, :name2, :value],
                      primary_key: [:id2],
                      source: "player",
@@ -22,7 +22,7 @@ defmodule GenMigrationTest do
                       ins: %{name2: :string,
                              value: :string}},
              primary_key: [del: [:id], ins: [:id2]],
-             autogenerate_id: {:changed, {:id, :id}, {:id2, :binary_id}},
+             autogenerate_id: {:changed, {:id, :id, :id}, {:id2, :id2, :binary_id}},
              meta: %{attrs: %{del: %{}, ins: %{}},
                      indices: %{del: %{}, ins: %{}}}} == diff
     assert Yacto.Migration.Structure.apply(structure_from, diff) == structure_to
@@ -173,7 +173,7 @@ defmodule GenMigrationTest do
 
               def __migration_structures__() do
                 [
-                  {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :binary_id}, fields: [:id, :name], source: "gen_migration_item", types: %{id: :binary_id, name: :string}}},
+                  {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :binary_id}, fields: [:id, :name], source: "gen_migration_item", types: %{id: :binary_id, name: :string}}},
                 ]
               end
 

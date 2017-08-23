@@ -7,7 +7,7 @@ defmodule Yacto.Migration.Structure do
              associations: [],
              embeds: [],
              read_after_writes: [],
-             autogenerate_id: {:id, :id},
+             autogenerate_id: {:id, :id, :id},
              meta: %{attrs: %{},
                      indices: %{}}]
 
@@ -53,7 +53,7 @@ defmodule Yacto.Migration.Structure do
   def diff(structure_from, structure_to) do
     # %Yacto.Migration.Structure{
     #   associations: [],
-    #   autogenerate_id: {:id, :id},
+    #   autogenerate_id: {:id, :id, :id},
     #   embeds: [],
     #   fields: [:id, :name, :value],
     #   prefix: nil,
@@ -99,8 +99,14 @@ defmodule Yacto.Migration.Structure do
   end
 
   def from_schema(schema) do
-    keys = struct(__MODULE__) |> Map.drop([:__struct__, :meta]) |> Map.keys()
+    keys = struct(__MODULE__) |> Map.drop([:__struct__, :meta, :types]) |> Map.keys()
     fields = keys |> Enum.map(fn key -> {key, schema.__schema__(key)} end)
+    # get types
+    types = for field <- schema.__schema__(:fields), into: %{} do
+              {field, schema.__schema__(:type, field)}
+            end
+    fields = [{:types, types} | fields]
+
     st = struct(__MODULE__, fields)
     if function_exported?(schema, :__meta__, 1) do
       meta_keys = Map.keys(struct(__MODULE__).meta)

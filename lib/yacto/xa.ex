@@ -4,7 +4,7 @@ defmodule Yacto.XA do
   end
 
   defp run_multi([repo | repos], fun, opts, conns) do
-    {pool, default_opts} = repo.__pool__
+    {_repo_mod, pool, default_opts} = Ecto.Registry.lookup(repo)
     DBConnection.run(
       pool,
       fn conn ->
@@ -105,7 +105,7 @@ defmodule Yacto.XA do
   end
 
   def in_xa_transaction?(repo) do
-    {pool, _} = repo.__pool__
+    {_, pool, _} = Ecto.Registry.lookup(repo)
     case Process.get(adapter_key(pool)) do
       nil -> false
       conn ->
