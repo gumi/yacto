@@ -1,4 +1,6 @@
 defmodule Yacto.Migration.GenMigration do
+  require Logger
+
   defp generate_table(source) do
     case source do
       :not_changed -> []
@@ -125,6 +127,10 @@ defmodule Yacto.Migration.GenMigration do
   end
 
   def generate_migration(app, schemas, delete_schemas \\ [], migration_version \\ nil, migration_dir \\ nil) do
+    if migration_version != nil do
+      Yacto.Migration.Util.validate_version(migration_version)
+    end
+
     migration = get_latest_migration(app, migration_dir)
     structures = if migration != nil do
                    migration.__migration_structures__()
@@ -150,12 +156,17 @@ defmodule Yacto.Migration.GenMigration do
 
     app_prefix = app |> Atom.to_string() |> Macro.camelize() |> String.to_atom()
     source = generate_source(app_prefix, structure_infos, migration_version)
+    if source == :not_changed do
+      Logger.info "All schemas are not changed. A migration file is not generated."
+    else
+      dir = Yacto.Migration.Util.get_migration_dir(app, migration_dir)
+      :ok = File.mkdir_p!(dir)
 
-    dir = Yacto.Migration.Util.get_migration_dir(app, migration_dir)
-    :ok = File.mkdir_p!(dir)
+      path = Yacto.Migration.Util.get_migration_path(app, migration_version, migration_dir)
+      File.write!(path, source)
 
-    path = Yacto.Migration.Util.get_migration_path(app, migration_version, migration_dir)
-    File.write!(path, source)
+      Logger.info "Successful! Generated a migration file: #{path}"
+    end
   end
 
   def generate_source(app_prefix, structure_infos, migration_version) do
@@ -167,28 +178,42 @@ defmodule Yacto.Migration.GenMigration do
                      |> String.replace_prefix("Elixir.", "")
 
     schema_infos = for {schema, from, to} <- structure_infos do
-                     %{schema: schema,
-                       lines: generate_lines(from, to)}
+                     case generate_lines(from, to) do
+                       :not_changed -> :not_changed
+                        lines -> %{schema: schema,
+                                   lines: lines}
+                     end
                    end
-    structures = structure_infos |> Enum.map(fn {schema, _from, to} -> {schema, to} end)
-    EEx.eval_string(get_template(), assigns: [migration_name: migration_name,
-                                              schema_infos: schema_infos,
-                                              structures: structures,
-                                              version: migration_version])
+    structures = structure_infos
+                 |> Enum.filter(fn :not_changed -> false
+                                   _ -> true end)
+                 |> Enum.map(fn {schema, _from, to} -> {schema, to} end)
+    if length(structures) == 0 do
+      :not_changed
+    else
+      EEx.eval_string(get_template(), assigns: [migration_name: migration_name,
+                                                schema_infos: schema_infos,
+                                                structures: structures,
+                                                version: migration_version])
+    end
   end
   defp generate_lines(structure_from, structure_to) do
     diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
-
-    lines = []
-    lines = lines ++ generate_table(diff.source)
-    lines = case diff.source do
-              {:delete, _} -> lines
-              _ -> lines ++
-                   generate_fields(diff.types, structure_to) ++
-                   generate_attrs(diff.meta.attrs, structure_to) ++
-                   generate_indices(diff.meta.indices, structure_to)
-            end
-    lines
+    rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
+    if diff == rdiff do
+      :not_changed
+    else
+      lines = []
+      lines = lines ++ generate_table(diff.source)
+      lines = case diff.source do
+                {:delete, _} -> lines
+                _ -> lines ++
+                     generate_fields(diff.types, structure_to) ++
+                     generate_attrs(diff.meta.attrs, structure_to) ++
+                     generate_indices(diff.meta.indices, structure_to)
+              end
+      lines
+    end
   end
 
   defp timestamp() do

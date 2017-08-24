@@ -36,9 +36,25 @@ defmodule Yacto.Migration.Util do
     Path.wildcard(Path.join(dir, '*.exs'))
   end
 
+  def validate_version(migration_version) do
+    # YYYYMMDDhhmmss
+    if String.length(Integer.to_string(migration_version)) != 14 do
+      raise "Migration version must be specified format YYYYMMDDhhmmss"
+    end
+  end
+
   def get_migration_path(app, migration_version, migration_dir \\ nil) do
     dir = get_migration_dir(app, migration_dir)
-    filename = "#{migration_version}_#{app}.exs"
+    validate_version(migration_version)
+    strmig = Integer.to_string(migration_version)
+    year = String.slice(strmig, 0..3)
+    month = String.slice(strmig, 4..5)
+    day = String.slice(strmig, 6..7)
+    hour = String.slice(strmig, 8..9)
+    minute = String.slice(strmig, 10..11)
+    second = String.slice(strmig, 12..13)
+
+    filename = "#{year}-#{month}-#{day}T#{hour}:#{minute}:#{second}_#{app}.exs"
     Path.join(dir, filename)
   end
 

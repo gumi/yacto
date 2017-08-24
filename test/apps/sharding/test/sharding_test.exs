@@ -4,6 +4,8 @@ defmodule ShardingTest do
   test "config" do
     assert [otp_app: :sharding,
             repo: Sharding.Repo.Player0,
+            timeout: 15000,
+            pool_timeout: 5000,
             adapter: Ecto.Adapters.MySQL,
             database: "sharding_repo_player0",
             username: "root",
@@ -12,6 +14,8 @@ defmodule ShardingTest do
             port: "3306"] == Sharding.Repo.Player0.config()
     assert [otp_app: :sharding,
             repo: Sharding.Repo.Player1,
+            timeout: 15000,
+            pool_timeout: 5000,
             adapter: Ecto.Adapters.MySQL,
             database: "sharding_repo_player1",
             username: "root",
@@ -20,6 +24,8 @@ defmodule ShardingTest do
             port: "3306"] == Sharding.Repo.Player1.config()
     assert [otp_app: :sharding,
             repo: Sharding.Repo.Default,
+            timeout: 15000,
+            pool_timeout: 5000,
             adapter: Ecto.Adapters.MySQL,
             database: "sharding_default",
             username: "root",

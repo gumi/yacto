@@ -22,14 +22,14 @@ defmodule Yacto.Migration.UtilTest do
     dir = Yacto.Migration.Util.get_migration_dir(:yacto)
     _ = File.rm_rf(dir)
     assert [] == Yacto.Migration.Util.get_migration_files(:yacto)
-    path1 = Path.join(dir, "1234_yacto.exs")
-    path2 = Path.join(dir, "5678_yacto.exs")
+    path1 = Path.join(dir, "1234-12-34T12:34:56_yacto.exs")
+    path2 = Path.join(dir, "5678-56-78T56:78:90_yacto.exs")
     _ = File.mkdir_p!(dir)
     _ = File.write(path1, "test1")
     _ = File.write(path2, "test2")
     assert [path1, path2] == Yacto.Migration.Util.get_migration_files(:yacto)
-    assert path1 == Yacto.Migration.Util.get_migration_path(:yacto, 1234)
-    assert path2 == Yacto.Migration.Util.get_migration_path(:yacto, 5678)
+    assert path1 == Yacto.Migration.Util.get_migration_path(:yacto, 12341234123456)
+    assert path2 == Yacto.Migration.Util.get_migration_path(:yacto, 56785678567890)
     _ = File.rm_rf(dir)
   end
 
