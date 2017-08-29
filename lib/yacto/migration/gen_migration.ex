@@ -117,8 +117,8 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
-  def get_latest_migration(app, migration_dir \\ nil) do
-    dir = Yacto.Migration.Util.get_migration_dir(app, migration_dir)
+  def get_latest_migration(migration_dir \\ nil) do
+    dir = Yacto.Migration.Util.get_migration_dir_for_gen(migration_dir)
     paths = Path.wildcard(Path.join(dir, '*.exs'))
     mods = paths
            |> Enum.map(&extract_modules/1)
@@ -131,7 +131,7 @@ defmodule Yacto.Migration.GenMigration do
       Yacto.Migration.Util.validate_version(migration_version)
     end
 
-    migration = get_latest_migration(app, migration_dir)
+    migration = get_latest_migration(migration_dir)
     structures = if migration != nil do
                    migration.__migration_structures__()
                    |> Enum.into(%{})
@@ -159,10 +159,10 @@ defmodule Yacto.Migration.GenMigration do
     if source == :not_changed do
       Logger.info "All schemas are not changed. A migration file is not generated."
     else
-      dir = Yacto.Migration.Util.get_migration_dir(app, migration_dir)
+      dir = Yacto.Migration.Util.get_migration_dir_for_gen(migration_dir)
       :ok = File.mkdir_p!(dir)
 
-      path = Yacto.Migration.Util.get_migration_path(app, migration_version, migration_dir)
+      path = Yacto.Migration.Util.get_migration_path_for_gen(app, migration_version, migration_dir)
       File.write!(path, source)
 
       Logger.info "Successful! Generated a migration file: #{path}"

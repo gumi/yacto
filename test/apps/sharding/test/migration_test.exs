@@ -4,9 +4,11 @@ defmodule Sharding.MigrationTest do
 
   test "migration" do
     _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:sharding))
+    _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
     Mix.Task.rerun "ecto.drop"
     Mix.Task.rerun "ecto.create"
     Mix.Task.rerun "yacto.gen.migration", []
+    File.cp_r!("priv", Application.app_dir(:sharding, "priv"))
     Mix.Task.rerun "yacto.migrate", []
 
     item = %Sharding.Schema.Item{name: "item"}

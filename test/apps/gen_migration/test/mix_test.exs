@@ -4,10 +4,10 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
   @migration_version 20170424155528
 
   test "mix yacto.gen.migration single" do
-    dir = Yacto.Migration.Util.get_migration_dir(:gen_migration)
+    dir = Yacto.Migration.Util.get_migration_dir_for_gen()
     _ = File.rm_rf(dir)
 
-    path = Yacto.Migration.Util.get_migration_path(:gen_migration, @migration_version)
+    path = Yacto.Migration.Util.get_migration_path_for_gen(:gen_migration, @migration_version)
 
     Mix.Task.run "yacto.gen.migration", ["--version", Integer.to_string(@migration_version)]
 

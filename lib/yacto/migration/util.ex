@@ -27,6 +27,10 @@ defmodule Yacto.Migration.Util do
     apply_myers_difference(list, diff, [])
   end
 
+  def get_migration_dir_for_gen(migration_dir \\ nil) do
+    migration_dir || "priv/migrations"
+  end
+
   def get_migration_dir(app, migration_dir \\ nil) do
     migration_dir || Application.app_dir(app, "priv/migrations")
   end
@@ -43,8 +47,7 @@ defmodule Yacto.Migration.Util do
     end
   end
 
-  def get_migration_path(app, migration_version, migration_dir \\ nil) do
-    dir = get_migration_dir(app, migration_dir)
+  def get_migration_filename(app, migration_version) do
     validate_version(migration_version)
     strmig = Integer.to_string(migration_version)
     year = String.slice(strmig, 0..3)
@@ -54,7 +57,18 @@ defmodule Yacto.Migration.Util do
     minute = String.slice(strmig, 10..11)
     second = String.slice(strmig, 12..13)
 
-    filename = "#{year}-#{month}-#{day}T#{hour}:#{minute}:#{second}_#{app}.exs"
+    "#{year}-#{month}-#{day}T#{hour}:#{minute}:#{second}_#{app}.exs"
+  end
+
+  def get_migration_path_for_gen(app, migration_version, migration_dir \\ nil) do
+    dir = get_migration_dir_for_gen(migration_dir)
+    filename = get_migration_filename(app, migration_version)
+    Path.join(dir, filename)
+  end
+
+  def get_migration_path(app, migration_version, migration_dir \\ nil) do
+    dir = get_migration_dir(app, migration_dir)
+    filename = get_migration_filename(app, migration_version)
     Path.join(dir, filename)
   end
 
