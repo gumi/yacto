@@ -33,11 +33,14 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                create table(String.to_atom("player"))
-                alter table(String.to_atom("player")), do: add(:inserted_at, :naive_datetime, [])
-                alter table(String.to_atom("player")), do: add(:name, :string, [])
-                alter table(String.to_atom("player")), do: add(:updated_at, :naive_datetime, [])
-                alter table(String.to_atom("player")), do: add(:value, :integer, [])
+                tablename = String.to_atom("player")
+                create table(tablename)
+                alter table(tablename) do
+                  add(:inserted_at, :naive_datetime, [])
+                  add(:name, :string, [])
+                  add(:updated_at, :naive_datetime, [])
+                  add(:value, :integer, [])
+                end
               end
 
               def change(_other) do
@@ -61,13 +64,16 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                rename table(String.to_atom("player")), to: table(String.to_atom("player2"))
-                alter table(String.to_atom("player2")), do: remove(:inserted_at)
-                alter table(String.to_atom("player2")), do: remove(:name)
-                alter table(String.to_atom("player2")), do: remove(:updated_at)
-                alter table(String.to_atom("player2")), do: remove(:value)
-                alter table(String.to_atom("player2")), do: add(:name2, :string, [])
-                alter table(String.to_atom("player2")), do: add(:value, :string, [])
+                tablename = String.to_atom("player2")
+                rename table(String.to_atom("player")), to: table(tablename)
+                alter table(tablename) do
+                  remove(:inserted_at)
+                  remove(:name)
+                  add(:name2, :string, [])
+                  remove(:updated_at)
+                  remove(:value)
+                  add(:value, :string, [])
+                end
               end
 
               def change(_other) do
@@ -91,10 +97,12 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                rename table(String.to_atom("player2")), to: table(String.to_atom("gen_migration_player3"))
-                alter table(String.to_atom("gen_migration_player3")), do: remove(:name2)
-                alter table(String.to_atom("gen_migration_player3")), do: add(:name3, :string, [])
-                alter table(String.to_atom("gen_migration_player3")), do: modify(:name3, :string, [null: false, size: 100])
+                tablename = String.to_atom("gen_migration_player3")
+                rename table(String.to_atom("player2")), to: table(tablename)
+                alter table(tablename) do
+                  remove(:name2)
+                  add(:name3, :string, [null: false, size: 100])
+                end
                 create index(String.to_atom("gen_migration_player3"), [:name3, :value], [unique: true])
                 create index(String.to_atom("gen_migration_player3"), [:value, :name3], [])
               end
@@ -159,12 +167,17 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Item) do
-                create table(String.to_atom("gen_migration_item"))
-                alter table(String.to_atom("gen_migration_item")), do: add(:_gen_migration_dummy, :integer, [])
-                alter table(String.to_atom("gen_migration_item")), do: remove(:id)
-                alter table(String.to_atom("gen_migration_item")), do: add(:id, :binary_id, [primary_key: true, autogenerate: true])
-                alter table(String.to_atom("gen_migration_item")), do: add(:name, :string, [])
-                alter table(String.to_atom("gen_migration_item")), do: remove(:_gen_migration_dummy)
+                tablename = String.to_atom("gen_migration_item")
+                create table(tablename)
+                alter table(tablename) do
+                  add(:_gen_migration_dummy, :integer, [])
+                  remove(:id)
+                end
+                alter table(tablename) do
+                  remove(:_gen_migration_dummy)
+                  add(:id, :binary_id, [primary_key: true, autogenerate: true])
+                  add(:name, :string, [])
+                end
               end
 
               def change(_other) do
@@ -182,6 +195,7 @@ defmodule GenMigrationTest do
               end
             end
             """
+     
 
   test "Yacto.Migration.GenMigrationgenerate_source with dummy." do
     v1 = [{GenMigration.Item, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Item)}]
