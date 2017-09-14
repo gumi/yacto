@@ -16,7 +16,8 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
     v1 = [{GenMigration.Player, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Player)},
           {GenMigration.Player2, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Player2)},
           {GenMigration.Player3, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Player3)},
-          {GenMigration.Item, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Item)}]
+          {GenMigration.Item, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Item)},
+          {GenMigration.Coin, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Coin)}]
     expected = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, @migration_version)
     assert expected == source
 

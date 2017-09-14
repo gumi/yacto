@@ -103,7 +103,9 @@ defmodule Yacto.Migration.Structure do
     fields = keys |> Enum.map(fn key -> {key, schema.__schema__(key)} end)
     # get types
     types = for field <- schema.__schema__(:fields), into: %{} do
-              {field, schema.__schema__(:type, field)}
+              type = schema.__schema__(:type, field)
+              type = Ecto.Type.type(type)
+              {field, type}
             end
     fields = [{:types, types} | fields]
 
