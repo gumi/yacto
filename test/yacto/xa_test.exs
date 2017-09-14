@@ -3,6 +3,10 @@ defmodule Yacto.XATest do
   doctest Yacto.XA
   require Ecto.Query
 
+  test "Single Transaction" do
+    :result = Yacto.XA.transaction([Yacto.XATest.Repo1], fn -> :result end)
+  end
+
   test "XA Transaction" do
     Yacto.XA.transaction([Yacto.XATest.Repo0, Yacto.XATest.Repo1],
                          fn ->

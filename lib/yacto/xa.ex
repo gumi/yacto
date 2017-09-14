@@ -125,7 +125,8 @@ defmodule Yacto.XA do
     end
 
     # single transaction
-    repo.transaction(fun, opts)
+    {:ok, result} = repo.transaction(fun, opts)
+    result
   end
 
   # two or more repos
