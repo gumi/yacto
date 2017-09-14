@@ -207,11 +207,12 @@ defmodule Yacto.Migration.GenMigration do
                                    lines: lines}
                      end
                    end
+    schema_infos = schema_infos
+                   |> Enum.filter(fn :not_changed -> false
+                                     _ -> true end)
     structures = structure_infos
-                 |> Enum.filter(fn :not_changed -> false
-                                   _ -> true end)
                  |> Enum.map(fn {schema, _from, to} -> {schema, to} end)
-    if length(structures) == 0 do
+    if length(schema_infos) == 0 do
       :not_changed
     else
       EEx.eval_string(get_template(), assigns: [migration_name: migration_name,

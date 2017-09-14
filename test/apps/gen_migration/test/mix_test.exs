@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
   use PowerAssert
 
   @migration_version 20170424155528
+  @migration_version2 20170424155529
 
   test "mix yacto.gen.migration single" do
     dir = Yacto.Migration.Util.get_migration_dir_for_gen()
@@ -9,7 +10,7 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
 
     path = Yacto.Migration.Util.get_migration_path_for_gen(:gen_migration, @migration_version)
 
-    Mix.Task.run "yacto.gen.migration", ["--version", Integer.to_string(@migration_version)]
+    Mix.Task.rerun "yacto.gen.migration", ["--version", Integer.to_string(@migration_version)]
 
     source = File.read!(path)
     v1 = [{GenMigration.Player, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Player)},
@@ -18,6 +19,10 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
           {GenMigration.Item, %Yacto.Migration.Structure{}, Yacto.Migration.Structure.from_schema(GenMigration.Item)}]
     expected = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, @migration_version)
     assert expected == source
-    _ = File.rm(path)
+
+    # if all schemas are not changed, a migration file is not generated
+    path = Yacto.Migration.Util.get_migration_path_for_gen(:gen_migration, @migration_version2)
+    Mix.Task.rerun "yacto.gen.migration", ["--version", Integer.to_string(@migration_version2)]
+    assert !File.exists?(path)
   end
 end
