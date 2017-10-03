@@ -48,8 +48,6 @@ defmodule Yacto.Schema do
       @yacto_orig_calls []
       @yacto_attrs %{}
       @yacto_indices %{}
-
-      @before_compile Yacto.Schema
     end
   end
 
@@ -58,7 +56,32 @@ defmodule Yacto.Schema do
       import Yacto.Schema
       unquote(block)
 
-      @yacto_orig_source unquote(source)
+      @yacto_primary_key @primary_key
+      @yacto_timestamps_opts @timestamps_opts
+      @yacto_foreign_key_type @foreign_key_type
+      @yacto_schema_prefix @schema_prefix
+
+      use Ecto.Schema
+
+      @primary_key @yacto_primary_key
+      @timestamps_opts @yacto_timestamps_opts
+      @foreign_key_type @yacto_foreign_key_type
+      @schema_prefix @yacto_schema_prefix
+
+      yacto_orig_calls = Enum.reverse(@yacto_orig_calls)
+      Ecto.Schema.schema unquote(source) do
+        for {m, f, a} <- yacto_orig_calls do
+          Code.eval_quoted(quote(do: unquote(m).unquote(f)(unquote_splicing(a))), [], __ENV__)
+        end
+      end
+
+      def __meta__(:attrs) do
+        @yacto_attrs
+      end
+
+      def __meta__(:indices) do
+        @yacto_indices
+      end
     end
   end
 
@@ -88,37 +111,6 @@ defmodule Yacto.Schema do
   defmacro timestamps(opts \\ []) do
     quote bind_quoted: [opts: opts] do
       @yacto_orig_calls [{Ecto.Schema, :timestamps, [opts]} | @yacto_orig_calls]
-    end
-  end
-
-  defmacro __before_compile__(_) do
-    quote location: :keep do
-      @yacto_primary_key @primary_key
-      @yacto_timestamps_opts @timestamps_opts
-      @yacto_foreign_key_type @foreign_key_type
-      @yacto_schema_prefix @schema_prefix
-
-      use Ecto.Schema
-
-      @primary_key @yacto_primary_key
-      @timestamps_opts @yacto_timestamps_opts
-      @foreign_key_type @yacto_foreign_key_type
-      @schema_prefix @yacto_schema_prefix
-
-      yacto_orig_calls = Enum.reverse(@yacto_orig_calls)
-      Ecto.Schema.schema @yacto_orig_source do
-        for {m, f, a} <- yacto_orig_calls do
-          Code.eval_quoted(quote(do: unquote(m).unquote(f)(unquote_splicing(a))), [], __ENV__)
-        end
-      end
-
-      def __meta__(:attrs) do
-        @yacto_attrs
-      end
-
-      def __meta__(:indices) do
-        @yacto_indices
-      end
     end
   end
 end
