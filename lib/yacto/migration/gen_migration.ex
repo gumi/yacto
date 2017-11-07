@@ -91,15 +91,35 @@ defmodule Yacto.Migration.GenMigration do
     List.flatten(lines)
   end
 
+  defp create_index_name(fields) do
+    [fields, "index"]
+    |> List.flatten
+    |> Enum.join("_")
+    |> String.replace(~r"[^\w_]", "_")
+    |> String.replace("__", "_")
+  end
+
   def generate_indices(indices, structure_to) do
     xs = for {changetype, changes} <- indices do
            case changetype do
              :del ->
                for {{fields, opts}, value} <- changes, value do
+                 opts =
+                   if Keyword.has_key?(opts, :name) do
+                     opts
+                   else
+                     [{:name, create_index_name(fields)} | opts]
+                   end
                  "drop index(String.to_atom(#{inspect structure_to.source}), #{inspect fields}, #{inspect opts})"
                end
              :ins ->
                for {{fields, opts}, value} <- changes, value do
+                 opts =
+                   if Keyword.has_key?(opts, :name) do
+                     opts
+                   else
+                     [{:name, create_index_name(fields)} | opts]
+                   end
                  "create index(String.to_atom(#{inspect structure_to.source}), #{inspect fields}, #{inspect opts})"
                end
            end

@@ -37,8 +37,8 @@ defmodule MigratorTest do
                `value` varchar(255) DEFAULT NULL,
                `name3` varchar(100) NOT NULL,
                PRIMARY KEY (`id`),
-               UNIQUE KEY `migrator_player3_name3_value_index` (`name3`,`value`),
-               KEY `migrator_player3_value_name3_index` (`value`,`name3`)
+               UNIQUE KEY `name3_value_index` (`name3`,`value`),
+               KEY `value_name3_index` (`value`,`name3`)
              ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8
              """
     actual = Ecto.Adapters.SQL.query!(Migrator.Repo0, "SHOW CREATE TABLE #{Migrator.Player3.__schema__(:source)}", []).rows |> Enum.at(0) |> Enum.at(1)

@@ -103,8 +103,8 @@ defmodule GenMigrationTest do
                   remove(:name2)
                   add(:name3, :string, [null: false, size: 100])
                 end
-                create index(String.to_atom("gen_migration_player3"), [:name3, :value], [unique: true])
-                create index(String.to_atom("gen_migration_player3"), [:value, :name3], [])
+                create index(String.to_atom("gen_migration_player3"), [:name3, :value], [name: "name3_value_index", unique: true])
+                create index(String.to_atom("gen_migration_player3"), [:value, :name3], [name: "value_name3_index"])
               end
 
               def change(_other) do
