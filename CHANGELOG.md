@@ -4,3 +4,4 @@
 
 - Shorten index name for too long name error.
 - Use specified migration type if :type defined in meta
+- Remove illegal character in filename for Windows
