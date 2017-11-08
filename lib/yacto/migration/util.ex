@@ -57,7 +57,7 @@ defmodule Yacto.Migration.Util do
     minute = String.slice(strmig, 10..11)
     second = String.slice(strmig, 12..13)
 
-    "#{year}-#{month}-#{day}T#{hour}:#{minute}:#{second}_#{app}.exs"
+    "#{year}-#{month}-#{day}T#{hour}#{minute}#{second}_#{app}.exs"
   end
 
   def get_migration_path_for_gen(app, migration_version, migration_dir \\ nil) do
