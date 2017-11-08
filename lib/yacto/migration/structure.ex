@@ -102,11 +102,27 @@ defmodule Yacto.Migration.Structure do
     keys = struct(__MODULE__) |> Map.drop([:__struct__, :meta, :types]) |> Map.keys()
     fields = keys |> Enum.map(fn key -> {key, schema.__schema__(key)} end)
     # get types
-    types = for field <- schema.__schema__(:fields), into: %{} do
+    types =
+      for field <- schema.__schema__(:fields), into: %{} do
+        # use specified migration type if :type defined in meta
+        result =
+          if function_exported?(schema, :__meta__, 1) do
+            types = schema.__meta__(:types)
+            Map.fetch(types, field)
+          else
+            :error
+          end
+        type =
+          case result do
+            :error ->
               type = schema.__schema__(:type, field)
               type = Ecto.Type.type(type)
-              {field, type}
-            end
+              type
+            {:ok, type} ->
+              type
+          end
+        {field, type}
+      end
     fields = [{:types, types} | fields]
 
     st = struct(__MODULE__, fields)

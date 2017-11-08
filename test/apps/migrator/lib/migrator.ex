@@ -29,6 +29,7 @@ defmodule Migrator.Player3 do
   schema @auto_source do
     field :name3, :string, meta: [null: false, size: 100]
     field :value, :string
+    field :text, :string, meta: [type: :text, null: false]
     index [:value, :name3]
     index [:name3, :value], unique: true
   end

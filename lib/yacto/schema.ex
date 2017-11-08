@@ -48,6 +48,7 @@ defmodule Yacto.Schema do
       @yacto_orig_calls []
       @yacto_attrs %{}
       @yacto_indices %{}
+      @yacto_types %{}
     end
   end
 
@@ -82,6 +83,10 @@ defmodule Yacto.Schema do
       def __meta__(:indices) do
         @yacto_indices
       end
+
+      def __meta__(:types) do
+        @yacto_types
+      end
     end
   end
 
@@ -95,6 +100,10 @@ defmodule Yacto.Schema do
 
       for {key, value} <- meta, key == :index do
         @yacto_indices Map.put(@yacto_indices, {[name], []}, value)
+      end
+
+      for {key, value} <- meta, key == :type do
+        @yacto_types Map.put(@yacto_types, name, value)
       end
 
       @yacto_orig_calls [{Ecto.Schema, :field, [name, type, opts]} | @yacto_orig_calls]

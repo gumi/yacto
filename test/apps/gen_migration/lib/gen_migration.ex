@@ -78,7 +78,7 @@ defmodule GenMigration.Coin do
   schema @auto_source do
     field :player_id, :string, meta: [null: false]
     field :type_id, GenMigration.CoinType, meta: [null: false]
-    field :platform, :string, meta: [length: 64, null: false]
+    field :platform, :string, meta: [type: :text, length: 64, null: false]
     field :quantity, :integer, default: 0, meta: [null: false]
     timestamps()
 

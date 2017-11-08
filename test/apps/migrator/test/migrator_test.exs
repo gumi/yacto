@@ -26,7 +26,7 @@ defmodule MigratorTest do
       end
     end
 
-    player = %Migrator.Player3{name3: "foo", value: "bar"}
+    player = %Migrator.Player3{name3: "foo", value: "bar", text: ""}
     player = Migrator.Repo0.insert!(player)
 
     assert [player] == Migrator.Repo0.all(Migrator.Player3)
@@ -36,6 +36,7 @@ defmodule MigratorTest do
                `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                `value` varchar(255) DEFAULT NULL,
                `name3` varchar(100) NOT NULL,
+               `text` text NOT NULL,
                PRIMARY KEY (`id`),
                UNIQUE KEY `name3_value_index` (`name3`,`value`),
                KEY `value_name3_index` (`value`,`name3`)
