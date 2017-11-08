@@ -116,7 +116,7 @@ Generate migration file:
 mix yacto.gen.migration
 ```
 
-The command generates a migration file `priv/migrations/20170808100652_my_app.exs`.
+The command generates a migration file `priv/migrations/2017-08-08T100652_my_app.exs`.
 
 ```elixir
 defmodule MyApp.Migration20170808100652 do
