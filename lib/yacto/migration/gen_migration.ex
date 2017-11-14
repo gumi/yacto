@@ -110,7 +110,7 @@ defmodule Yacto.Migration.GenMigration do
                    else
                      [{:name, create_index_name(fields)} | opts]
                    end
-                 "drop index(String.to_atom(#{inspect structure_to.source}), #{inspect fields}, #{inspect opts})"
+                 "drop index(#{inspect structure_to.source}, #{inspect fields}, #{inspect opts})"
                end
              :ins ->
                for {{fields, opts}, value} <- changes, value do
@@ -120,7 +120,7 @@ defmodule Yacto.Migration.GenMigration do
                    else
                      [{:name, create_index_name(fields)} | opts]
                    end
-                 "create index(String.to_atom(#{inspect structure_to.source}), #{inspect fields}, #{inspect opts})"
+                 "create index(#{inspect structure_to.source}, #{inspect fields}, #{inspect opts})"
                end
            end
          end
@@ -250,14 +250,14 @@ defmodule Yacto.Migration.GenMigration do
       lines =
         case diff.source do
           :not_changed ->
-            ["tablename = String.to_atom(#{inspect structure_to.source})"]
+            ["tablename = #{inspect structure_to.source}"]
           {:changed, from_value, _to_value} ->
-            ["tablename = String.to_atom(#{inspect structure_to.source})",
-             "rename table(String.to_atom(#{inspect from_value})), to: table(tablename)"]
+            ["tablename = #{inspect structure_to.source}",
+             "rename table(#{inspect from_value}), to: table(tablename)"]
           {:delete, from_value} ->
-            ["drop table(String.to_atom(#{inspect from_value}))"]
+            ["drop table(#{inspect from_value})"]
           {:create, _to_value} ->
-            ["tablename = String.to_atom(#{inspect structure_to.source})",
+            ["tablename = #{inspect structure_to.source}",
              "create table(tablename)"]
         end
 

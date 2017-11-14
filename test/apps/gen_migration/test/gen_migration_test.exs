@@ -33,7 +33,7 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                tablename = String.to_atom("player")
+                tablename = "player"
                 create table(tablename)
                 alter table(tablename) do
                   add(:inserted_at, :naive_datetime, [])
@@ -64,8 +64,8 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                tablename = String.to_atom("player2")
-                rename table(String.to_atom("player")), to: table(tablename)
+                tablename = "player2"
+                rename table("player"), to: table(tablename)
                 alter table(tablename) do
                   remove(:inserted_at)
                   remove(:name)
@@ -97,14 +97,14 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                tablename = String.to_atom("gen_migration_player3")
-                rename table(String.to_atom("player2")), to: table(tablename)
+                tablename = "gen_migration_player3"
+                rename table("player2"), to: table(tablename)
                 alter table(tablename) do
                   remove(:name2)
                   add(:name3, :string, [null: false, size: 100])
                 end
-                create index(String.to_atom("gen_migration_player3"), [:name3, :value], [name: "name3_value_index", unique: true])
-                create index(String.to_atom("gen_migration_player3"), [:value, :name3], [name: "value_name3_index"])
+                create index("gen_migration_player3", [:name3, :value], [name: "name3_value_index", unique: true])
+                create index("gen_migration_player3", [:value, :name3], [name: "value_name3_index"])
               end
 
               def change(_other) do
@@ -128,7 +128,7 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                drop table(String.to_atom("gen_migration_player3"))
+                drop table("gen_migration_player3")
               end
 
               def change(_other) do
@@ -167,7 +167,7 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Item) do
-                tablename = String.to_atom("gen_migration_item")
+                tablename = "gen_migration_item"
                 create table(tablename)
                 alter table(tablename) do
                   add(:_gen_migration_dummy, :integer, [])
