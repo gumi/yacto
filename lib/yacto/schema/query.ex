@@ -1,4 +1,7 @@
 defmodule Yacto.Schema.Query do
+  # under constructing
+  @moduledoc false
+
   defmacro __using__(_) do
     quote do
       @before_compile Yacto.Schema.Query

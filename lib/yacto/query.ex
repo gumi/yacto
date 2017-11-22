@@ -1,4 +1,7 @@
 defmodule Yacto.Query do
+  # under constructing
+  @moduledoc false
+
   require Ecto.Query
 
   defp pop!(kwargs, key) do
