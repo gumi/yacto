@@ -1,78 +1,34 @@
 # Yacto
 
-Yet another Ecto library.
+Ecto is a very handy library handling databases.
+However, since there were some inconvenient parts to use on our own, I made a library called Yacto.
 
-The library provides below features:
+- [日本語版はこちら](TODO)
 
-- Schema first migration
-- Sharding databases
-- Transactions across multiple databases (XA transaction)
+## About Yacto
 
-Here is an example:
+Yacto is a library to support parts that were difficult to use with Ecto.
+It has the following features.
+
+- Automatic generation of a migration file
+- Use of migration from another application
+- Migration to a horizontally partitioned database
+- Transaction across multiple databases (XA transaction)
+
+### Automatic generation of a migration file
+
+Yacto's migration is different from Ecto. Although Ecto defined the schema and migration separately, Yacto automatically outputs the migration file from the schema.
+
+Specifically, assuming that the schema is defined as follows,
 
 ```elixir
-# In your config/config.exs file
-config :my_app, ecto_repos: [MyApp.Repo.Default,
-                             MyApp.Repo.Player0,
-                             MyApp.Repo.Player1]
-
-config :my_app, MyApp.Repo.Default,
-  adapter: Ecto.Adapters.MySQL,
-  database: "myapp_repo_default",
-  username: "root",
-  password: "",
-  hostname: "localhost"
-
-config :my_app, MyApp.Repo.Player0,
-  adapter: Ecto.Adapters.MySQL,
-  database: "myapp_repo_player0",
-  username: "root",
-  password: "",
-  hostname: "localhost"
-
-config :my_app, MyApp.Repo.Player1,
-  adapter: Ecto.Adapters.MySQL,
-  database: "myapp_repo_player1",
-  username: "root",
-  password: "",
-  hostname: "localhost"
-
-config :yacto, :databases,
-  %{default: %{module: Yacto.DB.Single,
-               repo: MyApp.Repo.Default},
-    # player databases are sharded by player id
-    player: %{module: Yacto.DB.Shard,
-              repos: [MyApp.Repo.Player0,
-                      MyApp.Repo.Player1]}}
-
-# In your application code
-defmodule MyApp.Repo.Default do
-  use Ecto.Repo, otp_app: :my_app
-end
-defmodule MyApp.Repo.Player0 do
-  use Ecto.Repo, otp_app: :my_app
-end
-defmodule MyApp.Repo.Player1 do
-  use Ecto.Repo, otp_app: :my_app
-end
-
-defmodule MyApp.VersionInfo do
-  use Yacto.Schema
-
-  def dbname(), do: :default
-
-  schema @auto_source do
-    field :app_name, :string, meta: [size: 128, null: false, index: true]
-    field :version, :integer, meta: [null: false]
-    field :value, :integer, meta: [null: false]
-    index [:app_name, :version], unique: true
-  end
-end
-
 defmodule MyApp.Player do
   use Yacto.Schema
 
-  def dbname(), do: :player
+  @impl Yacto.Schema
+  def dbname() do
+    :player
+  end
 
   schema @auto_source do
     # sharding key
@@ -81,66 +37,22 @@ defmodule MyApp.Player do
     index :player_id, unique: true
   end
 end
-
-defmodule MyApp.Application do
-  def heal(player_id) do
-    # get a player from sharded databases with lock
-    player = MyApp.Player.Query.get(player_id, lock: true, lookup: [player_id: player_id])
-
-    # update and save to the database
-    player = %{player | hp: player.hp + 10}
-    MyApp.Player.Query.save(player_id, record: player)
-  end
-
-  def run() do
-    player_id = "xxxx-yyyy-zzzz"
-    # start XA transaction
-    Yacto.transaction([:default,
-                       {:player, player_id}], fn ->
-      {version_info, created} = MyApp.VersionInfo.Query.get_or_new(nil, lock: true, lookup: [app_name: "my_app", version: 1234], defaults: [value: 0])
-      if created do
-        heal(player_id)
-      end
-      version_info = %{version_info | value: version_info.value + 1}
-      MyApp.VersionInfo.Query.save(nil, record: version_info)
-    end)
-  end
-end
 ```
 
-## Migration
-
-Generate migration file:
-
-```
-mix yacto.gen.migration
-```
-
-The command generates a migration file `priv/migrations/2017-08-08T100652_my_app.exs`.
+If you run `mix yacto.gen.migration` in this state, the following migration file will be output.
 
 ```elixir
-defmodule MyApp.Migration20170808100652 do
+defmodule MyApp.Migration20171122045225 do
   use Ecto.Migration
 
   def change(MyApp.Player) do
-    create table(String.to_atom("my_app_player"))
-    alter table(String.to_atom("my_app_player")), do: add(:hp, :integer, [])
-    alter table(String.to_atom("my_app_player")), do: add(:player_id, :string, [])
-    alter table(String.to_atom("my_app_player")), do: modify(:hp, :integer, [null: false])
-    alter table(String.to_atom("my_app_player")), do: modify(:player_id, :string, [null: false])
-    create index(String.to_atom("my_app_player"), [:player_id], [])
-    create index(String.to_atom("my_app_player"), [:player_id], [unique: true])
-  end
-  def change(MyApp.VersionInfo) do
-    create table(String.to_atom("my_app_version_info"))
-    alter table(String.to_atom("my_app_version_info")), do: add(:app_name, :string, [])
-    alter table(String.to_atom("my_app_version_info")), do: add(:value, :integer, [])
-    alter table(String.to_atom("my_app_version_info")), do: add(:version, :integer, [])
-    alter table(String.to_atom("my_app_version_info")), do: modify(:app_name, :string, [null: false, size: 128])
-    alter table(String.to_atom("my_app_version_info")), do: modify(:value, :integer, [null: false])
-    alter table(String.to_atom("my_app_version_info")), do: modify(:version, :integer, [null: false])
-    create index(String.to_atom("my_app_version_info"), [:app_name], [])
-    create index(String.to_atom("my_app_version_info"), [:app_name, :version], [unique: true])
+    create table("my_app_player")
+    alter table("my_app_player") do
+      add(:hp, :integer, [null: false])
+      add(:player_id, :string, [null: false])
+    end
+    create index("my_app_player", [:player_id], [name: "player_id_index"])
+    create index("my_app_player", [:player_id], [name: "player_id_index", unique: true])
   end
 
   def change(_other) do
@@ -149,53 +61,110 @@ defmodule MyApp.Migration20170808100652 do
 
   def __migration_structures__() do
     [
-      %Yacto.Migration.Structure{fields: [:id, :player_id, :hp], meta: %{attrs: %{hp: %{null: false}, player_id: %{null: false}}, indices: %{{[:player_id], []} => true, {[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, player_id: :string}},
-      %Yacto.Migration.Structure{fields: [:id, :app_name, :version, :value], meta: %{attrs: %{app_name: %{null: false, size: 128}, value: %{null: false}, version: %{null: false}}, indices: %{{[:app_name], []} => true, {[:app_name, :version], [unique: true]} => true}}, source: "my_app_version_info", types: %{app_name: :string, id: :id, value: :integer, version: :integer}},
+      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp], meta: %{attrs: %{hp: %{null: false}, player_id: %{null: false}}, indices: %{{[:player_id], []} => true, {[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, player_id: :string}}},
     ]
   end
 
   def __migration_version__() do
-    20170808100652
+    20171122045225
   end
 end
 ```
 
-If the migration file is not what you want, change `change(MyApp.Player)` or `change(MyApp.VersionInfo)`.
+After that, if you run `mix yacto.migrate` command, this migration file will be applied in the database.
+You are not necessary to write a migration file.
 
-In order to migrate, execute the following command:
+In addition, in this state, add the `:mp` field to the `MyApp.Player` schema and run `mix yacto.gen.migration`,
+the following migration file is generated.
 
-```
-mix yacto.migrate
-```
-
-## Sharding
-
-In order to shard databases, set `Yacto.DB.Shard` in configuration.
-
-```
-config :yacto, :databases,
-  %{player: %{module: Yacto.DB.Shard,
-              repos: [MyApp.Repo.Player0,
-                      MyApp.Repo.Player1]}}
-```
-
-Then, a sharding schema implements `dbname/0` function that return `:player`.
-
-```
+```elixir
 defmodule MyApp.Player do
-  use Yacto.Schema
-
-  def dbname(), do: :player
+  ...
 
   schema @auto_source do
+    ...
+
+    # add a field
+    field :mp, :integer, default: 0, meta: [null: false]
+
     ...
   end
 end
 ```
 
-Following query is sharded by `player_id`.
+```elixir
+defmodule MyApp.Migration20171122052212 do
+  use Ecto.Migration
+
+  def change(MyApp.Player) do
+    alter table("my_app_player") do
+      add(:mp, :integer, [null: false])
+    end
+  end
+
+  def change(_other) do
+    :ok
+  end
+
+  def __migration_structures__() do
+    [
+      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp, :mp], meta: %{attrs: %{hp: %{null: false}, mp: %{null: false}, player_id: %{null: false}}, indices: %{{[:player_id], []} => true, {[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, mp: :integer, player_id: :string}}},
+    ]
+  end
+
+  def __migration_version__() do
+    20171122052212
+  end
+end
+```
+
+Only the previous differences are output to the migration file.
+If you run `mix yacto.migrate`, this migration file will be applied in the database.
+
+
+If none of the migration files have been applied to the database,
+the above two migration files are applied sequentially.
+
+### Use of migration from another application
+
+Suppose there is an `other_app` application that uses the `my_app` application we created earlier.
+Since `my_app` uses the database, you need to migrate for `my_app` on `other_app`.
+With Yacto, after writing `config/config.exs`, you can migrate `my_app` just by executing the following command on `other_app`.
 
 ```
-# player_id is the sharding key
-MyApp.Player.Query.get(player_id, lock: true, lookup: [player_id: player_id])
+mix yacto.migrate --app my_app
 ```
+
+With Ecto, it was necessary to write a migration file myself that other applications needed,
+or to migrate in a different way specified by each application.
+For applications using Yacto, you can migrate all in the same way.
+
+### Migration to a horizontally partitioned database
+
+TODO
+
+### Transaction across multiple databases (XA transaction)
+
+TODO
+
+## Yacto Schema
+
+TODO
+
+### Automatic generation of table name
+
+TODO
+
+### Meta information
+
+TODO
+
+### Index
+
+TODO
+
+### Foreign key constraint
+
+TODO
+
+
