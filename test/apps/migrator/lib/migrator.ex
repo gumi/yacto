@@ -27,7 +27,7 @@ defmodule Migrator.Player3 do
   def dbname(), do: :player
 
   schema @auto_source do
-    field :name3, :string, meta: [null: false, size: 100]
+    field :name3, :string, meta: [null: false, default: "hage", size: 100]
     field :value, :string
     field :text, :string, meta: [type: :text, null: false]
     index [:value, :name3]

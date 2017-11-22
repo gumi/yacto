@@ -93,7 +93,7 @@ defmodule Yacto.Schema do
   defmacro field(name, type \\ :string, opts \\ []) do
     quote bind_quoted: [name: name, type: type, opts: opts] do
       {meta, opts} = Keyword.pop(opts, :meta, [])
-      for {key, value} <- meta, key in [:null, :size] do
+      for {key, value} <- meta, key in [:null, :size, :default] do
         new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
         @yacto_attrs Map.put(@yacto_attrs, name, new_value)
       end
