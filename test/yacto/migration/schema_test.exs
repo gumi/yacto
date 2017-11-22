@@ -2,7 +2,7 @@ defmodule Yacto.Migration.SchemaTest do
   use PowerAssert
 
   defmodule Schema do
-    use Yacto.Migration.Schema
+    use Yacto.Schema
 
     schema @auto_source do
     end
@@ -13,16 +13,12 @@ defmodule Yacto.Migration.SchemaTest do
   end
 
   defmodule TestMeta do
-    use Yacto.Migration.Schema
+    use Yacto.Schema
 
     schema @auto_source do
-      field :name
-      field :value, :integer
+      field :name, :string, meta: [null: false, size: 50, default: "foo", index: true]
+      field :value, :integer, meta: [null: false]
       timestamps()
-    end
-    schema_meta do
-      field :name, null: false, index: true
-      field :value, null: false
 
       index :value
       index [:value, :name]
@@ -31,8 +27,8 @@ defmodule Yacto.Migration.SchemaTest do
   end
 
   test "schema_meta" do
-    assert %{name: false,
-             value: false} == TestMeta.__meta__(:nulls)
+    assert %{name: %{null: false, size: 50, default: "foo"},
+             value: %{null: false}} == TestMeta.__meta__(:attrs)
     assert %{{[:name], []} => true,
              {[:value], []} => true,
              {[:value, :name], []} => true,

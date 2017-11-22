@@ -2,7 +2,7 @@ defmodule Yacto.Migration.StructureTest do
   use PowerAssert
 
   defmodule Schema do
-    use Yacto.Migration.Schema
+    use Yacto.Schema
 
     schema @auto_source do
     end
