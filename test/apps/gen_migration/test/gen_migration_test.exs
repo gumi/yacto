@@ -33,9 +33,8 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                tablename = "player"
-                create table(tablename)
-                alter table(tablename) do
+                create table("player")
+                alter table("player") do
                   add(:inserted_at, :naive_datetime, [])
                   add(:name, :string, [])
                   add(:updated_at, :naive_datetime, [])
@@ -64,9 +63,8 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                tablename = "player2"
-                rename table("player"), to: table(tablename)
-                alter table(tablename) do
+                rename table("player"), to: table("player2")
+                alter table("player2") do
                   remove(:inserted_at)
                   remove(:name)
                   add(:name2, :string, [])
@@ -97,9 +95,8 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Player) do
-                tablename = "gen_migration_player3"
-                rename table("player2"), to: table(tablename)
-                alter table(tablename) do
+                rename table("player2"), to: table("gen_migration_player3")
+                alter table("gen_migration_player3") do
                   remove(:name2)
                   add(:name3, :string, [null: false, size: 100])
                 end
@@ -167,13 +164,12 @@ defmodule GenMigrationTest do
               use Ecto.Migration
 
               def change(GenMigration.Item) do
-                tablename = "gen_migration_item"
-                create table(tablename)
-                alter table(tablename) do
+                create table("gen_migration_item")
+                alter table("gen_migration_item") do
                   add(:_gen_migration_dummy, :integer, [])
                   remove(:id)
                 end
-                alter table(tablename) do
+                alter table("gen_migration_item") do
                   remove(:_gen_migration_dummy)
                   add(:id, :binary_id, [primary_key: true, autogenerate: true])
                   add(:name, :string, [])

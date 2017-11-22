@@ -77,7 +77,7 @@ defmodule Yacto.Migration.GenMigration do
               ["  add(:_gen_migration_dummy, :integer, [])"] ++
               lines ++
               ["end"] ++
-              ["alter table(tablename) do"] ++
+              ["alter table(#{inspect structure_to.source}) do"] ++
               ["  remove(:_gen_migration_dummy)"]
             else
               lines
@@ -250,22 +250,20 @@ defmodule Yacto.Migration.GenMigration do
       lines =
         case diff.source do
           :not_changed ->
-            ["tablename = #{inspect structure_to.source}"]
-          {:changed, from_value, _to_value} ->
-            ["tablename = #{inspect structure_to.source}",
-             "rename table(#{inspect from_value}), to: table(tablename)"]
+            []
+          {:changed, from_value, to_value} ->
+            ["rename table(#{inspect from_value}), to: table(#{inspect to_value})"]
           {:delete, from_value} ->
             ["drop table(#{inspect from_value})"]
           {:create, _to_value} ->
-            ["tablename = #{inspect structure_to.source}",
-             "create table(tablename)"]
+            ["create table(#{inspect structure_to.source})"]
         end
 
       lines = lines ++
         case diff.source do
           {:delete, _} -> []
           _ ->
-            ["alter table(tablename) do"] ++
+            ["alter table(#{inspect structure_to.source}) do"] ++
             generate_fields(diff.types, diff.meta.attrs, structure_to) ++
             ["end"] ++
             generate_indices(diff.meta.indices, structure_to)
