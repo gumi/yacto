@@ -18,6 +18,7 @@ defmodule Yacto.Mixfile do
       test_paths: ["test/yacto"],
       start_permanent: Mix.env == :prod,
       deps: deps(),
+      source_url: "https://github.com/gumi/yacto",
     ]
   end
 
