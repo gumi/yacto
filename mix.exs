@@ -10,7 +10,7 @@ defmodule Yacto.Mixfile do
       elixirc_options: [all_warnings: true],
       description: "A library for automatically generating a migration file and horizontally partitioning databases",
       package: [
-        maintainers: ["melpon"],
+        maintainers: ["melpon", "kenichirow"],
         licenses: ["Apache 2.0"],
         links: %{"GitHub" => "https://github.com/gumi/yacto"},
       ],
