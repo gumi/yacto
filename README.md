@@ -1,11 +1,11 @@
 # Yacto
 
-Ecto is a very handy library handling databases.
+[Ecto](https://hexdocs.pm/ecto/Ecto.html) is a very handy library handling databases.
 However, since there were some inconvenient parts to use on our own, I made a library called Yacto.
 
-- [日本語版はこちら](TODO)
+[日本語ドキュメントはこちら](TODO)
 
-## About Yacto
+# About Yacto
 
 Yacto is a library to support parts that were difficult to use with Ecto.
 It has the following features.
@@ -15,11 +15,11 @@ It has the following features.
 - Migration to a horizontally partitioned database
 - Transaction across multiple databases (XA transaction)
 
-### Automatic generation of a migration file
+## Automatic generation of a migration file
 
-Yacto's migration is different from Ecto. Although Ecto defined the schema and migration separately, Yacto automatically outputs the migration file from the schema.
+Yacto's migration is different from Ecto. Although Ecto defined the schema and migration separately, *Yacto automatically outputs the migration file from the schema*.
 
-Specifically, assuming that the schema is defined as follows,
+Specifically, when the schema is defined as follows,
 
 ```elixir
 defmodule MyApp.Player do
@@ -125,7 +125,7 @@ If you run `mix yacto.migrate`, this migration file will be applied in the datab
 If none of the migration files have been applied to the database,
 the above two migration files are applied sequentially.
 
-### Use of migration from another application
+## Use of migration from another application
 
 Suppose there is an `other_app` application that uses the `my_app` application we created earlier.
 Since `my_app` uses the database, you need to migrate for `my_app` on `other_app`.
@@ -139,32 +139,170 @@ With Ecto, it was necessary to write a migration file myself that other applicat
 or to migrate in a different way specified by each application.
 For applications using Yacto, you can migrate all in the same way.
 
-### Migration to a horizontally partitioned database
+## Migration to a horizontally partitioned database
 
-TODO
+When partitioning the MyApp.Player schema horizontally, you should apply the migration file of this schema to multiple Repos.
+For that, write it in the configuration file as follows.
 
-### Transaction across multiple databases (XA transaction)
+```elixir
+config :yacto, :databases,
+  %{
+    default: %{
+      module: Yacto.DB.Single,
+      repo: MyApp.Repo.Default,
+    },
+    player: %{
+      module: Yacto.DB.Shard,
+      repos: [MyApp.Repo.Player0, MyApp.Repo.Player1],
+    },
+  }
+```
 
-TODO
+Recall that `MyApp.Player` had the following callback function.
 
-## Yacto Schema
+```elixir
+defmodule MyApp.Player do
+  ...
 
-TODO
+  @impl Yacto.Schema
+  def dbname() do
+    :player
+  end
 
-### Automatic generation of table name
+  ...
+end
+```
 
-TODO
+This `:player` is the group name of Repo to which` MyApp.Player` belongs.
+`MyApp.Player` belongs to the Repo group `:player`, and the `:player` Repo group is associated with Repos of `MyApp.Repo.Player0` and `MyApp.Repo.Player1` by the configuration file.
 
-### Meta information
+After writing the configuration file, just run `mix yacto.migrate`.
+The migration file for `MyApp.Player` is applied to `MyApp.Repo.Player0` and `MyApp.Repo.Player1`.
 
-TODO
+When using a horizontally partitioned database, use `Yacto.DB.repo/2` to get a Repo.
 
-### Index
+```elixir
+repo = Yacto.DB.repo(:player, player_id)
+MyApp.Player |> repo.all()
+```
 
-TODO
+### Use a horizontal partitioned application from other applications
 
-### Foreign key constraint
+Of course, you can also use this horizontally partitioned `my_app` application with `other_app`.
+In `other_app` write the configuration file like below,
 
-TODO
+```elixir
+config :yacto, :databases,
+  %{
+    default: %{
+      module: Yacto.DB.Single,
+      repo: OtherApp.Repo.Default,
+    },
+    player: %{
+      module: Yacto.DB.Shard,
+      repos: [OtherApp.Repo.Player0, OtherApp.Repo.Player1, OtherApp.Repo.Player2],
+    },
+  }
+```
 
+When you run `mix yacto.migrate --app my_app`, the migration file for `MyApp.Player` schema is applied to `OtherApp.Repo.Player0`, `OtherApp.Repo.Player1` and `OtherApp.Repo.Player2`.
 
+## Transaction across multiple databases (XA transaction)
+
+With `Yacto.transaction/2`, transactions can be started to multiple databases.
+
+```elixir
+# Since two or more Repos are specified, an XA transaction is started
+Yacto.transaction([:default,
+                   {:player, player_id1},
+                   {:player, player_id2}], fn ->
+  default_repo = Yacto.DB.repo(:default)
+  player1_repo = Yacto.DB.repo(:player, player_id1)
+  player2_repo = Yacto.DB.repo(:player, player_id2)
+
+  # Operate databases here
+  ...
+
+# All XA transactions are committed here
+end)
+```
+
+`Yacto.transaction/2` will make transactions for the following three Repos.
+
+- Repo `MyApp.Repo.Default` of`: default`
+- Repo sharded with `player_id1`
+- Repo sharded with `player_id 2`
+
+The last two may have the same Repo depending on the shard key, so Repo to use is either 2 or 3.
+When you start transactions using more than one Repo, those transactions automatically become XA transactions.
+
+XA transactions can not reliably prevent inconsistencies, but they can be prevented than starting separate transactions.
+However, since this library does not provide a mechanism to solve the transactions left in `XA RECOVER`, it needs to be prepared separately.
+
+# Details of Yacto Schema
+
+There is a part not yet explained about Yacto's schema, so I will explain it in more detail.
+
+As I wrote in the beginning, Yacto's schema is defined as follows.
+
+```elixir
+defmodule MyApp.Player do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname() do
+    :player
+  end
+
+  schema @auto_source do
+    field :player_id, :string, meta: [null: false, index: true]
+    field :hp, :integer, default: 0, meta: [null: false]
+    index :player_id, unique: true
+  end
+end
+```
+
+Basically it is the same as `Ecto.Schema`.
+The schema generated by `Yacto.Schema` is compatible with the schema generated by` Ecto.Schema`.
+However, since the migration setting is necessary, the amount of description increases more than `Ecto.Schema`.
+
+## Automatic generation of table name
+
+`@auto_source` defines the table name automatically generated from the module name.
+In most cases, using `@auto_source` will always be fine.
+
+## Meta information
+
+```elixir
+    field :player_id, :string, meta: [null: false, index: true]
+    field :hp, :integer, default: 0, meta: [null: false]
+```
+
+This is almost the same as the `field/3` function of `Ecto.Schema`, except that it has a `:meta` option.
+The `:meta` option is a place to store information on migration, specifying whether the field is nullable, the size of the string, and so on.
+
+The options that can be specified are as follows.
+
+- `:null`: Whether the field is nullable (`true` by default)
+- `:size`: The size of the string (It is used like `VARCHAR (<size>)`) (`255` by default)
+- `:default`: Default value for that field (the initial value of each type by default)
+- `:index`: Whether to index in this field (`false` by default)
+- `:type`: Specify the type at migration (type specified by `field/3` by default)
+
+## Index
+
+```elixir
+    index :player_id, unique: true
+```
+
+You can generate an index with `index/2`.
+Although you can specify an index in the `:meta` option of `field/3`, you can also generate composite indexes and unique indexes using `index/2`.
+
+To make it a composite index, specify it as a list like `index [:player_id, :hp]`.
+To change the index to a unique index, specify `unique: true` as an option.
+
+## Foreign key constraint
+
+Not supported.
+
+I think it is generally necessary, but I do not need it yet.

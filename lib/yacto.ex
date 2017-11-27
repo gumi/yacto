@@ -1,4 +1,8 @@
 defmodule Yacto do
+  @moduledoc """
+  #{File.read!("README.md")}
+  """
+
   def transaction(databases, fun, opts \\ []) do
     f = fn
           {dbname, dbkey} -> Yacto.DB.repo(dbname, dbkey)

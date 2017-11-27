@@ -8,6 +8,13 @@ defmodule Yacto.Mixfile do
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env),
       elixirc_options: [all_warnings: true],
+      description: "A library for automatically generating a migration file and horizontally partitioning databases",
+      package: [
+        maintainers: ["melpon"],
+        licenses: ["Apache 2.0"],
+        links: %{"GitHub" => "https://github.com/gumi/yacto"},
+      ],
+      docs: [main: "Yacto"],
       test_paths: ["test/yacto"],
       start_permanent: Mix.env == :prod,
       deps: deps(),
@@ -28,6 +35,7 @@ defmodule Yacto.Mixfile do
   defp deps do
     [
       {:ecto, "~> 2.2"},
+      {:ex_doc, "~> 0.18.1", only: :dev, runtime: false},
       {:db_connection, "~> 1.1"},
       {:mariaex, "~> 0.8.3"},
       {:uuid, "~> 1.1"},
