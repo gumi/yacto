@@ -3,7 +3,7 @@
 [Ecto](https://hexdocs.pm/ecto/Ecto.html) is a very handy library handling databases.
 However, since there were some inconvenient parts to use on our own, I made a library called Yacto.
 
-[日本語ドキュメントはこちら](TODO)
+[日本語ドキュメントはこちら](https://qiita.com/melpon/items/5c9b0645d5240cd22d0f)
 
 # About Yacto
 
@@ -32,7 +32,7 @@ defmodule MyApp.Player do
 
   schema @auto_source do
     # sharding key
-    field :player_id, :string, meta: [null: false, index: true]
+    field :player_id, :string, meta: [null: false, size: 64]
     field :hp, :integer, default: 0, meta: [null: false]
     index :player_id, unique: true
   end
@@ -48,10 +48,9 @@ defmodule MyApp.Migration20171122045225 do
   def change(MyApp.Player) do
     create table("my_app_player")
     alter table("my_app_player") do
-      add(:hp, :integer, [null: false])
+      add(:hp, :integer, [null: false, size: 64])
       add(:player_id, :string, [null: false])
     end
-    create index("my_app_player", [:player_id], [name: "player_id_index"])
     create index("my_app_player", [:player_id], [name: "player_id_index", unique: true])
   end
 
@@ -61,7 +60,7 @@ defmodule MyApp.Migration20171122045225 do
 
   def __migration_structures__() do
     [
-      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp], meta: %{attrs: %{hp: %{null: false}, player_id: %{null: false}}, indices: %{{[:player_id], []} => true, {[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, player_id: :string}}},
+      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp], meta: %{attrs: %{hp: %{null: false}, player_id: %{null: false, size: 64}}, indices: %{{[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, player_id: :string}}},
     ]
   end
 
@@ -108,7 +107,7 @@ defmodule MyApp.Migration20171122052212 do
 
   def __migration_structures__() do
     [
-      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp, :mp], meta: %{attrs: %{hp: %{null: false}, mp: %{null: false}, player_id: %{null: false}}, indices: %{{[:player_id], []} => true, {[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, mp: :integer, player_id: :string}}},
+      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp, :mp], meta: %{attrs: %{hp: %{null: false}, mp: %{null: false}, player_id: %{null: false, size: 64}}, indices: %{{[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, mp: :integer, player_id: :string}}},
     ]
   end
 
@@ -255,7 +254,7 @@ defmodule MyApp.Player do
   end
 
   schema @auto_source do
-    field :player_id, :string, meta: [null: false, index: true]
+    field :player_id, :string, meta: [null: false, size: 64]
     field :hp, :integer, default: 0, meta: [null: false]
     index :player_id, unique: true
   end
@@ -274,7 +273,7 @@ In most cases, using `@auto_source` will always be fine.
 ## Meta information
 
 ```elixir
-    field :player_id, :string, meta: [null: false, index: true]
+    field :player_id, :string, meta: [null: false, size: 64]
     field :hp, :integer, default: 0, meta: [null: false]
 ```
 
