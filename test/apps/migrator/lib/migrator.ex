@@ -47,6 +47,17 @@ defmodule Migrator.Item do
   end
 end
 
+defmodule Migrator.UnsignedBigInteger do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname(), do: :default
+
+  schema @auto_source do
+    field :user_id, :integer, meta: [null: false, type: :'bigint(20) unsigned']
+  end
+end
+
 defmodule Migrator.Repo0 do
   use Ecto.Repo, otp_app: :migrator
 end

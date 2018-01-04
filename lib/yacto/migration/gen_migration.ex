@@ -69,7 +69,7 @@ defmodule Yacto.Migration.GenMigration do
             opts = attr
             opts = opts ++ if(Enum.find(structure_to.primary_key, &(&1 == field)) != nil, do: [primary_key: true], else: [])
             opts = opts ++ if(elem(structure_to.autogenerate_id, 0) == field, do: [autogenerate: true], else: [])
-            ["  add(:#{field}, :#{type}, #{inspect opts})"]
+            ["  add(:#{field}, #{inspect type}, #{inspect opts})"]
           :remove ->
             lines = ["  remove(:#{field})"]
 
