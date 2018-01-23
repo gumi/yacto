@@ -4,6 +4,10 @@ defmodule Yacto.Migration.SchemaTest do
   defmodule Schema do
     use Yacto.Schema
 
+    def dbname() do
+      :default
+    end
+
     schema @auto_source do
     end
   end
@@ -14,6 +18,10 @@ defmodule Yacto.Migration.SchemaTest do
 
   defmodule TestMeta do
     use Yacto.Schema
+
+    def dbname() do
+      :default
+    end
 
     schema @auto_source do
       field :name, :string, meta: [null: false, size: 50, default: "foo", index: true]

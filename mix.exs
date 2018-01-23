@@ -7,7 +7,7 @@ defmodule Yacto.Mixfile do
       version: "1.0.6",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env),
-      elixirc_options: [all_warnings: true],
+      elixirc_options: [all_warnings: true, warnings_as_errors: true],
       description: "A library for automatically generating a migration file and horizontally partitioning databases",
       package: [
         maintainers: ["melpon", "kenichirow"],

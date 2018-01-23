@@ -6,10 +6,10 @@ defmodule Yacto.QueryTest do
 
   setup do
     repo_default = Yacto.DB.repo(:default)
-    item = repo_default.insert!(%Yacto.QueryTest.Item{name: "foo", quantity: 100})
+    _item = repo_default.insert!(%Yacto.QueryTest.Item{name: "foo", quantity: 100})
 
     repo_player = Yacto.DB.repo(:player, @player_id)
-    player = repo_player.insert!(%Yacto.QueryTest.Player{name: "player", value: 1000})
+    _player = repo_player.insert!(%Yacto.QueryTest.Player{name: "player", value: 1000})
 
     ExUnit.Callbacks.on_exit(fn -> cleanup() end)
 

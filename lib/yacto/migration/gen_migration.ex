@@ -131,7 +131,7 @@ defmodule Yacto.Migration.GenMigration do
     """
     defmodule <%= @migration_name %> do
       use Ecto.Migration
-<%= for schema_info <- @schema_infos do %>
+    <%= for schema_info <- @schema_infos do %>
       def change(<%= schema_info.schema |> Atom.to_string() |> String.replace_prefix("Elixir.", "") %>) do<%= for line <- schema_info.lines do %>
         <%= line %><% end %>
       end<% end %>

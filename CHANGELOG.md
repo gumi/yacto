@@ -2,6 +2,7 @@
 
 ## 1.0.7
 
+- Fix warnings
 - Update dependencies
 
 ## 1.0.6

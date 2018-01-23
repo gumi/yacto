@@ -4,6 +4,10 @@ defmodule Yacto.Migration.StructureTest do
   defmodule Schema do
     use Yacto.Schema
 
+    def dbname() do
+      :default
+    end
+
     schema @auto_source do
     end
   end
