@@ -2,6 +2,7 @@
 
 ## 1.0.7
 
+- Apply elixir formatter
 - Fix warnings
 - Update dependencies
 

@@ -15,17 +15,19 @@ defmodule Mix.Tasks.Yacto do
     {_opts, args, _} = OptionParser.parse(args)
 
     case args do
-      [] -> general()
+      [] ->
+        general()
+
       _ ->
-        Mix.raise "Invalid arguments, expected: mix yacto"
+        Mix.raise("Invalid arguments, expected: mix yacto")
     end
   end
 
   defp general() do
     Application.ensure_all_started(:yacto)
-    Mix.shell.info "Yacto v#{Application.spec(:ecto, :vsn)}"
-    Mix.shell.info "Convinience migration tool for Ecto."
-    Mix.shell.info "\nAvailable tasks:\n"
+    Mix.shell().info("Yacto v#{Application.spec(:ecto, :vsn)}")
+    Mix.shell().info("Convinience migration tool for Ecto.")
+    Mix.shell().info("\nAvailable tasks:\n")
     Mix.Tasks.Help.run(["--search", "yacto."])
   end
 end

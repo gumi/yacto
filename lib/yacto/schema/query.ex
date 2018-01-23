@@ -12,21 +12,34 @@ defmodule Yacto.Schema.Query do
     code =
       quote do
         def get(dbkey, kwargs) do
-          Yacto.Query.get(unquote(env.module), Yacto.DB.repo(unquote(env.module).dbname(), dbkey), kwargs)
+          Yacto.Query.get(
+            unquote(env.module),
+            Yacto.DB.repo(unquote(env.module).dbname(), dbkey),
+            kwargs
+          )
         end
 
         def create(dbkey, kwargs) do
-          Yacto.Query.create(unquote(env.module), Yacto.DB.repo(unquote(env.module).dbname(), dbkey), kwargs)
+          Yacto.Query.create(
+            unquote(env.module),
+            Yacto.DB.repo(unquote(env.module).dbname(), dbkey),
+            kwargs
+          )
         end
 
         def get_or_new(dbkey, kwargs) do
-          Yacto.Query.get_or_new(unquote(env.module), Yacto.DB.repo(unquote(env.module).dbname(), dbkey), kwargs)
+          Yacto.Query.get_or_new(
+            unquote(env.module),
+            Yacto.DB.repo(unquote(env.module).dbname(), dbkey),
+            kwargs
+          )
         end
 
         def save(dbkey, kwargs) do
           Yacto.Query.save(Yacto.DB.repo(unquote(env.module).dbname(), dbkey), kwargs)
         end
       end
+
     Module.create(Module.concat(env.module, Query), code, Macro.Env.location(env))
 
     quote do

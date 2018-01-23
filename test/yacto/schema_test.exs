@@ -7,7 +7,7 @@ defmodule Yacto.SchemaTest do
     def dbname(), do: :default
 
     schema @auto_source do
-      field :name, :string
+      field(:name, :string)
       timestamps()
     end
 

@@ -5,10 +5,10 @@ defmodule Yacto.Migration.SchemaMigration do
   @table_name "yacto_schema_migrations"
   @primary_key false
   schema @table_name do
-    field :app, :string
-    field :schema, :string
-    field :version, :integer
-    timestamps updated_at: false
+    field(:app, :string)
+    field(:schema, :string)
+    field(:version, :integer)
+    timestamps(updated_at: false)
   end
 
   @opts [timeout: :infinity, log: false]
@@ -21,6 +21,7 @@ defmodule Yacto.Migration.SchemaMigration do
   def migrated_versions(repo, app, schema) when is_atom(app) and is_atom(schema) do
     app = Atom.to_string(app)
     schema = Atom.to_string(schema)
+
     __MODULE__
     |> Ecto.Query.where(app: ^app, schema: ^schema)
     |> Ecto.Query.select([:version])
@@ -39,18 +40,26 @@ defmodule Yacto.Migration.SchemaMigration do
   def down(repo, app, schema, version) when is_atom(app) and is_atom(schema) do
     app = Atom.to_string(app)
     schema = Atom.to_string(schema)
-    __MODULE__ |> Ecto.Query.where(app: ^app, schema: ^schema, version: ^version) |> repo.delete_all(@opts)
+
+    __MODULE__
+    |> Ecto.Query.where(app: ^app, schema: ^schema, version: ^version)
+    |> repo.delete_all(@opts)
   end
 
   defp create_migrations_table(adapter, repo) do
     table = %Ecto.Migration.Table{name: @table_name}
 
     # DDL queries do not log, so we do not need to pass log: false here.
-    adapter.execute_ddl(repo,
-      {:create_if_not_exists, table, [
-        {:add, :app, :string, null: false},
-        {:add, :schema, :string, null: false},
-        {:add, :version, :bigint, null: false},
-        {:add, :inserted_at, :naive_datetime, null: false}]}, @opts)
+    adapter.execute_ddl(
+      repo,
+      {:create_if_not_exists, table,
+       [
+         {:add, :app, :string, null: false},
+         {:add, :schema, :string, null: false},
+         {:add, :version, :bigint, null: false},
+         {:add, :inserted_at, :naive_datetime, null: false}
+       ]},
+      @opts
+    )
   end
 end

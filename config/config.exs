@@ -2,11 +2,14 @@ use Mix.Config
 
 # config for testing
 
-config :yacto, ecto_repos: [Yacto.XATest.Repo0,
-                            Yacto.XATest.Repo1,
-                            Yacto.QueryTest.Repo.Default,
-                            Yacto.QueryTest.Repo.Player0,
-                            Yacto.QueryTest.Repo.Player1]
+config :yacto,
+  ecto_repos: [
+    Yacto.XATest.Repo0,
+    Yacto.XATest.Repo1,
+    Yacto.QueryTest.Repo.Default,
+    Yacto.QueryTest.Repo.Player0,
+    Yacto.QueryTest.Repo.Player1
+  ]
 
 config :yacto, Yacto.XATest.Repo0,
   adapter: Ecto.Adapters.MySQL,
@@ -48,8 +51,10 @@ config :yacto, Yacto.QueryTest.Repo.Player1,
   hostname: "localhost",
   port: "3306"
 
-config :yacto, :databases,
-  %{default: %{module: Yacto.DB.Single,
-               repo: Yacto.QueryTest.Repo.Default},
-    player: %{module: Yacto.DB.Shard,
-              repos: [Yacto.QueryTest.Repo.Player0, Yacto.QueryTest.Repo.Player1]}}
+config :yacto, :databases, %{
+  default: %{module: Yacto.DB.Single, repo: Yacto.QueryTest.Repo.Default},
+  player: %{
+    module: Yacto.DB.Shard,
+    repos: [Yacto.QueryTest.Repo.Player0, Yacto.QueryTest.Repo.Player1]
+  }
+}

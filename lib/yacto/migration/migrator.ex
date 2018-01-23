@@ -1,12 +1,12 @@
 defmodule Yacto.Migration.Migrator do
   require Logger
 
-  @spec migrated_versions(Ecto.Repo.t, atom, module) :: [integer]
+  @spec migrated_versions(Ecto.Repo.t(), atom, module) :: [integer]
   def migrated_versions(repo, app, schema) do
-    verbose_schema_migration repo, "retrieve migrated versions", fn ->
+    verbose_schema_migration(repo, "retrieve migrated versions", fn ->
       Yacto.Migration.SchemaMigration.ensure_schema_migrations_table!(repo)
       Yacto.Migration.SchemaMigration.migrated_versions(repo, app, schema)
-    end
+    end)
   end
 
   defp difference_migration(migrations, versions) do
@@ -28,33 +28,41 @@ defmodule Yacto.Migration.Migrator do
       if Yacto.Migration.Util.allow_migrate?(schema, repo) do
         versions = migrated_versions(repo, app, schema)
         need_migrations = difference_migration(migrations, versions)
+
         for migration <- need_migrations do
           do_up(app, repo, schema, migration, opts)
         end
       end
     end
+
     :ok
   end
 
   defp do_up(app, repo, schema, migration, opts) do
-    run_maybe_in_transaction repo, migration, fn ->
+    run_maybe_in_transaction(repo, migration, fn ->
       run(repo, schema, migration, :forward, :change, :up, opts)
-      verbose_schema_migration repo, "update schema migrations", fn ->
+
+      verbose_schema_migration(repo, "update schema migrations", fn ->
         Yacto.Migration.SchemaMigration.up(repo, app, schema, migration.__migration_version__())
-      end
-    end
+      end)
+    end)
   end
 
   defp run(repo, schema, migration, direction, operation, migrator_direction, opts) do
     level = Keyword.get(opts, :log, :info)
     sql = Keyword.get(opts, :log_sql, false)
     log = %{level: level, sql: sql}
-    args  = [self(), repo, direction, migrator_direction, log]
+    args = [self(), repo, direction, migrator_direction, log]
 
     {:ok, runner} = Supervisor.start_child(Ecto.Migration.Supervisor, args)
     Ecto.Migration.Runner.metadata(runner, opts)
 
-    log(level, "== Running #{inspect migration}.#{operation}(#{inspect schema}) #{direction} to [#{inspect repo}]")
+    message =
+      "== Running #{inspect(migration)}.#{operation}(#{inspect(schema)}) " <>
+        "#{direction} to [#{inspect(repo)}]"
+
+    log(level, message)
+
     {time1, _} = :timer.tc(migration, operation, [schema])
     {time2, _} = :timer.tc(&Ecto.Migration.Runner.flush/0, [])
     time = time1 + time2
@@ -67,8 +75,10 @@ defmodule Yacto.Migration.Migrator do
     cond do
       module.__migration__[:disable_ddl_transaction] ->
         fun.()
+
       repo.__adapter__.supports_ddl_transaction? ->
-        repo.transaction(fun, [log: false, timeout: :infinity])
+        repo.transaction(fun, log: false, timeout: :infinity)
+
       true ->
         fun.()
     end
@@ -79,11 +89,11 @@ defmodule Yacto.Migration.Migrator do
       fun.()
     rescue
       error ->
-        Logger.error "Could not #{reason} for #{repo}."
-        reraise error, System.stacktrace
+        Logger.error("Could not #{reason} for #{repo}.")
+        reraise error, System.stacktrace()
     end
   end
 
   defp log(false, _msg), do: :ok
-  defp log(level, msg),  do: Logger.log(level, msg)
+  defp log(level, msg), do: Logger.log(level, msg)
 end

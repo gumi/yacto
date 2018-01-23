@@ -5,6 +5,7 @@ defmodule Yacto.XA do
 
   defp run_multi([repo | repos], fun, opts, conns) do
     {_repo_mod, pool, default_opts} = Ecto.Registry.lookup(repo)
+
     DBConnection.run(
       pool,
       fn conn ->
@@ -18,7 +19,8 @@ defmodule Yacto.XA do
           Process.delete(xa_key(conn))
         end
       end,
-      opts ++ default_opts)
+      opts ++ default_opts
+    )
   end
 
   defp try_and_rescue(fun, rescue_fun) do
@@ -27,7 +29,7 @@ defmodule Yacto.XA do
     rescue
       error ->
         rescue_fun.()
-        reraise(error, System.stacktrace)
+        reraise(error, System.stacktrace())
     end
   end
 
@@ -39,59 +41,89 @@ defmodule Yacto.XA do
     # rollback from any state
     repo_states
     |> Enum.each(fn repo_state ->
-                   for command <- ["END", "PREPARE", "ROLLBACK"] do
-                     try do
-                       Ecto.Adapters.SQL.query!(repo_state.repo, "XA #{command} '#{repo_state.uuid}'", [])
-                     rescue
-                       _error ->
-                         # ignore errors
-                         :ignore
-                     end
-                   end
-                 end)
+      for command <- ["END", "PREPARE", "ROLLBACK"] do
+        try do
+          Ecto.Adapters.SQL.query!(repo_state.repo, "XA #{command} '#{repo_state.uuid}'", [])
+        rescue
+          _error ->
+            # ignore errors
+            :ignore
+        end
+      end
+    end)
   end
 
   defp commit(repo_states) do
     # commit from any state
     repo_states
     |> Enum.each(fn repo_state ->
-                   for command <- ["END", "PREPARE", "COMMIT"] do
-                     try do
-                       Ecto.Adapters.SQL.query!(repo_state.repo, "XA #{command} '#{repo_state.uuid}'", [])
-                     rescue
-                       _error ->
-                         # ignore errors
-                         :ignore
-                     end
-                   end
-                 end)
+      for command <- ["END", "PREPARE", "COMMIT"] do
+        try do
+          Ecto.Adapters.SQL.query!(repo_state.repo, "XA #{command} '#{repo_state.uuid}'", [])
+        rescue
+          _error ->
+            # ignore errors
+            :ignore
+        end
+      end
+    end)
   end
 
   def with_xa(conns, repos, fun) do
-    repo_states = repos
-                  |> Enum.map(fn repo ->
-                                %RepoState{repo: repo,
-                                           uuid: UUID.uuid4(),
-                                           conn: Map.fetch!(conns, repo)}
-                              end)
+    repo_states =
+      repos
+      |> Enum.map(fn repo ->
+        %RepoState{repo: repo, uuid: UUID.uuid4(), conn: Map.fetch!(conns, repo)}
+      end)
 
-    result = try_and_rescue(
-               fn ->
-                 repo_states |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} -> Ecto.Adapters.SQL.query!(repo, "XA START '#{uuid}'", []) end)
-                 result = fun.()
-                 repo_states |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} -> Ecto.Adapters.SQL.query!(repo, "XA END '#{uuid}'", []) end)
-                 repo_states |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} -> Ecto.Adapters.SQL.query!(repo, "XA PREPARE '#{uuid}'", []) end)
-                 result
-               end,
-               fn -> rollback(repo_states) end)
+    result =
+      try_and_rescue(
+        fn ->
+          repo_states
+          |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} ->
+            Ecto.Adapters.SQL.query!(repo, "XA START '#{uuid}'", [])
+          end)
+
+          result = fun.()
+
+          repo_states
+          |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} ->
+            Ecto.Adapters.SQL.query!(repo, "XA END '#{uuid}'", [])
+          end)
+
+          repo_states
+          |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} ->
+            Ecto.Adapters.SQL.query!(repo, "XA PREPARE '#{uuid}'", [])
+          end)
+
+          result
+        end,
+        fn -> rollback(repo_states) end
+      )
 
     [first_repo_state | other_repo_states] = repo_states
-    try_and_rescue(fn -> Ecto.Adapters.SQL.query!(first_repo_state.repo, "XA COMMIT '#{first_repo_state.uuid}'", []) end,
-                   fn -> rollback([first_repo_state]) end)
+
+    try_and_rescue(
+      fn ->
+        Ecto.Adapters.SQL.query!(
+          first_repo_state.repo,
+          "XA COMMIT '#{first_repo_state.uuid}'",
+          []
+        )
+      end,
+      fn -> rollback([first_repo_state]) end
+    )
 
     # all repos try to XA COMMIT even if any XA COMMIT is failed
-    try_and_rescue(fn -> other_repo_states |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} -> Ecto.Adapters.SQL.query!(repo, "XA COMMIT '#{uuid}'", []) end) end,
-                   fn -> commit(other_repo_states) end)
+    try_and_rescue(
+      fn ->
+        other_repo_states
+        |> Enum.each(fn %RepoState{repo: repo, uuid: uuid} ->
+          Ecto.Adapters.SQL.query!(repo, "XA COMMIT '#{uuid}'", [])
+        end)
+      end,
+      fn -> commit(other_repo_states) end
+    )
 
     result
   end
@@ -106,8 +138,11 @@ defmodule Yacto.XA do
 
   def in_xa_transaction?(repo) do
     {_, pool, _} = Ecto.Registry.lookup(repo)
+
     case Process.get(adapter_key(pool)) do
-      nil -> false
+      nil ->
+        false
+
       conn ->
         case Process.get(xa_key(conn)) do
           nil -> false

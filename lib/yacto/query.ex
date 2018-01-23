@@ -11,8 +11,9 @@ defmodule Yacto.Query do
   end
 
   defp ensure_empty([]), do: :ok
+
   defp ensure_empty(kwargs) do
-    raise "unnecessary keywords: #{inspect kwargs}"
+    raise "unnecessary keywords: #{inspect(kwargs)}"
   end
 
   def get(schema, repo, kwargs) do
@@ -21,13 +22,17 @@ defmodule Yacto.Query do
     {opts, kwargs} = Keyword.pop(kwargs, :opts, [])
     ensure_empty(kwargs)
 
-    query = schema
-            |> Ecto.Query.where(^lookup)
-    query = if lock do
-              query |> Ecto.Query.lock("FOR UPDATE")
-            else
-              query
-            end
+    query =
+      schema
+      |> Ecto.Query.where(^lookup)
+
+    query =
+      if lock do
+        query |> Ecto.Query.lock("FOR UPDATE")
+      else
+        query
+      end
+
     query |> repo.one!(opts)
   end
 
@@ -49,12 +54,15 @@ defmodule Yacto.Query do
     ensure_empty(kwargs)
 
     if lock do
-      query = schema
-              |> Ecto.Query.where(^lookup)
+      query =
+        schema
+        |> Ecto.Query.where(^lookup)
+
       case repo.one(query, opts) do
         nil ->
           # insert
           record = struct(schema, Keyword.merge(lookup, defaults))
+
           try do
             repo.insert!(record)
           else
@@ -62,26 +70,34 @@ defmodule Yacto.Query do
           rescue
             _ in Ecto.ConstraintError ->
               # duplicate key
-              query = schema
-                      |> Ecto.Query.where(^lookup)
-                      |> Ecto.Query.lock("FOR UPDATE")
+              query =
+                schema
+                |> Ecto.Query.where(^lookup)
+                |> Ecto.Query.lock("FOR UPDATE")
+
               record = repo.one!(query)
               {record, false}
           end
+
         _ ->
           # retry SELECT with FOR UPDATE
-          query = schema
-                  |> Ecto.Query.where(^lookup)
-                  |> Ecto.Query.lock("FOR UPDATE")
+          query =
+            schema
+            |> Ecto.Query.where(^lookup)
+            |> Ecto.Query.lock("FOR UPDATE")
+
           record = repo.one!(query)
           {record, false}
       end
     else
-      query = schema
-              |> Ecto.Query.where(^lookup)
+      query =
+        schema
+        |> Ecto.Query.where(^lookup)
+
       case repo.one(query, opts) do
         nil ->
           {struct(schema, Keyword.merge(lookup, defaults)), true}
+
         record ->
           {record, false}
       end
@@ -96,10 +112,12 @@ defmodule Yacto.Query do
     schema = record.__struct__
     set = record |> Map.drop([:__meta__]) |> Map.from_struct() |> Map.to_list()
 
-    {1, _} = schema
-             |> Ecto.Query.where(id: ^record.id)
-             |> Ecto.Query.update(set: ^set)
-             |> repo.update_all([], opts)
+    {1, _} =
+      schema
+      |> Ecto.Query.where(id: ^record.id)
+      |> Ecto.Query.update(set: ^set)
+      |> repo.update_all([], opts)
+
     record
   end
 end

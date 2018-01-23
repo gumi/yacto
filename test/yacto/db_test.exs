@@ -2,11 +2,11 @@ defmodule Yacto.DBTest do
   use PowerAssert
 
   setup do
-    databases = %{default: %{module: Yacto.DB.Single,
-                             repo: Yacto.Repo.Default},
-                  player: %{module: Yacto.DB.Shard,
-                            repos: [Yacto.Repo.Player1,
-                                    Yacto.Repo.Player2]}}
+    databases = %{
+      default: %{module: Yacto.DB.Single, repo: Yacto.Repo.Default},
+      player: %{module: Yacto.DB.Shard, repos: [Yacto.Repo.Player1, Yacto.Repo.Player2]}
+    }
+
     Application.put_env(:yacto, :databases, databases)
     ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :databases) end)
   end

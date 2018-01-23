@@ -19,3 +19,6 @@ deps.get:
 
 test:
 	COMMAND="mix test" && $(SCRIPT)
+
+format:
+	mix format --check-equivalent

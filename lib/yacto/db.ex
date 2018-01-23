@@ -21,10 +21,13 @@ defmodule Yacto.DB do
 
   def all_repos() do
     databases = Application.fetch_env!(:yacto, :databases)
-    repos = for {_dbname, config} <- databases do
-              mod = config.module
-              mod.repos(config)
-            end
+
+    repos =
+      for {_dbname, config} <- databases do
+        mod = config.module
+        mod.repos(config)
+      end
+
     repos |> List.flatten() |> Enum.sort() |> Enum.dedup()
   end
 end

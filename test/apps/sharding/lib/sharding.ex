@@ -1,4 +1,3 @@
-
 defmodule Sharding.Repo.Default do
   use Ecto.Repo, otp_app: :sharding
 end
@@ -15,7 +14,7 @@ defmodule Sharding.Schema.Item do
   def dbname(), do: :default
 
   schema @auto_source do
-    field :name, :string
+    field(:name, :string)
   end
 end
 
@@ -25,7 +24,7 @@ defmodule Sharding.Schema.Player do
   def dbname(), do: :player
 
   schema @auto_source do
-    field :name, :string
+    field(:name, :string)
   end
 end
 

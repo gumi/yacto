@@ -16,8 +16,8 @@ defmodule Yacto.QueryTest.Item do
   def dbname(), do: :default
 
   schema "item" do
-    field :name, :string
-    field :quantity, :integer
+    field(:name, :string)
+    field(:quantity, :integer)
   end
 end
 
@@ -26,8 +26,8 @@ defmodule Yacto.QueryTest.Default.Migration do
 
   def change() do
     create table(:item) do
-      add :name, :string, null: false
-      add :quantity, :integer, null: false
+      add(:name, :string, null: false)
+      add(:quantity, :integer, null: false)
     end
   end
 end
@@ -38,8 +38,8 @@ defmodule Yacto.QueryTest.Player do
   def dbname(), do: :player
 
   schema "xa_player" do
-    field :name
-    field :value, :integer
+    field(:name)
+    field(:value, :integer)
     timestamps()
   end
 end
@@ -49,8 +49,8 @@ defmodule Yacto.QueryTest.Player.Migration do
 
   def change() do
     create table(:xa_player) do
-      add :name, :string, null: false
-      add :value, :integer, null: false
+      add(:name, :string, null: false)
+      add(:value, :integer, null: false)
       timestamps()
     end
   end

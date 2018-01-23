@@ -19,9 +19,11 @@ end
 defmodule MigrationRouter.Repo.Default do
   use Ecto.Repo, otp_app: :migration_router
 end
+
 defmodule MigrationRouter.Repo.Player1 do
   use Ecto.Repo, otp_app: :migration_router
 end
+
 defmodule MigrationRouter.Repo.Player2 do
   use Ecto.Repo, otp_app: :migration_router
 end

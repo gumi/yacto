@@ -2,8 +2,8 @@ defmodule GenMigration.Player do
   use Ecto.Schema
 
   schema "player" do
-    field :name
-    field :value, :integer
+    field(:name)
+    field(:value, :integer)
     timestamps()
   end
 end
@@ -12,8 +12,8 @@ defmodule GenMigration.Player2 do
   use Ecto.Schema
 
   schema "player2" do
-    field :name2
-    field :value, :string
+    field(:name2)
+    field(:value, :string)
   end
 end
 
@@ -24,10 +24,10 @@ defmodule GenMigration.Player3 do
   def dbname(), do: :player
 
   schema @auto_source do
-    field :name3, :string, meta: [null: false, size: 100]
-    field :value, :string
-    index [:value, :name3]
-    index [:name3, :value], unique: true
+    field(:name3, :string, meta: [null: false, size: 100])
+    field(:value, :string)
+    index([:value, :name3])
+    index([:name3, :value], unique: true)
   end
 end
 
@@ -40,7 +40,7 @@ defmodule GenMigration.Item do
   @primary_key {:id, :binary_id, autogenerate: true}
 
   schema @auto_source do
-    field :name
+    field(:name)
   end
 end
 
@@ -76,12 +76,12 @@ defmodule GenMigration.Coin do
   def dbname(), do: :player
 
   schema @auto_source do
-    field :player_id, :string, meta: [null: false]
-    field :type_id, GenMigration.CoinType, meta: [null: false]
-    field :platform, :string, meta: [type: :text, length: 64, null: false]
-    field :quantity, :integer, default: 0, meta: [null: false]
+    field(:player_id, :string, meta: [null: false])
+    field(:type_id, GenMigration.CoinType, meta: [null: false])
+    field(:platform, :string, meta: [type: :text, length: 64, null: false])
+    field(:quantity, :integer, default: 0, meta: [null: false])
     timestamps()
 
-    index [:player_id, :type_id, :platform], unique: true
+    index([:player_id, :type_id, :platform], unique: true)
   end
 end

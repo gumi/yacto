@@ -52,7 +52,7 @@ defmodule Yacto.Schema do
     end
   end
 
-  defmacro schema(source, [do: block]) do
+  defmacro schema(source, do: block) do
     quote do
       import Yacto.Schema
       unquote(block)
@@ -70,6 +70,7 @@ defmodule Yacto.Schema do
       @schema_prefix @yacto_schema_prefix
 
       yacto_orig_calls = Enum.reverse(@yacto_orig_calls)
+
       Ecto.Schema.schema unquote(source) do
         for {m, f, a} <- yacto_orig_calls do
           Code.eval_quoted(quote(do: unquote(m).unquote(f)(unquote_splicing(a))), [], __ENV__)
@@ -93,6 +94,7 @@ defmodule Yacto.Schema do
   defmacro field(name, type \\ :string, opts \\ []) do
     quote bind_quoted: [name: name, type: type, opts: opts] do
       {meta, opts} = Keyword.pop(opts, :meta, [])
+
       for {key, value} <- meta, key in [:null, :size, :default] do
         new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
         @yacto_attrs Map.put(@yacto_attrs, name, new_value)
@@ -112,6 +114,7 @@ defmodule Yacto.Schema do
 
   defmacro index(field_or_fields, opts \\ []) do
     fields = List.wrap(field_or_fields)
+
     quote do
       @yacto_indices Map.put(@yacto_indices, {unquote(fields), unquote(opts)}, true)
     end

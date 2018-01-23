@@ -7,6 +7,7 @@ defmodule Yacto.Migration.Util do
     if Enum.take(list, length(vs)) != vs do
       raise "invalid source"
     end
+
     list = Enum.drop(list, length(vs))
     apply_myers_difference(list, diff, [vs | result])
   end
@@ -19,6 +20,7 @@ defmodule Yacto.Migration.Util do
     if Enum.take(list, length(vs)) != vs do
       raise "invalid source"
     end
+
     list = Enum.drop(list, length(vs))
     apply_myers_difference(list, diff, result)
   end
@@ -76,20 +78,21 @@ defmodule Yacto.Migration.Util do
 
   def get_all_schema(app, prefix \\ nil) do
     mods = Application.spec(app, :modules)
-    Enum.filter(mods,
-                fn mod ->
-                  Code.ensure_loaded(mod)
-                  exported = is_schema_module?(mod)
-                  if !exported do
-                    false
-                  else
-                    if prefix == nil do
-                      true
-                    else
-                      String.starts_with?(Atom.to_string(mod), Atom.to_string(prefix))
-                    end
-                  end
-                end)
+
+    Enum.filter(mods, fn mod ->
+      Code.ensure_loaded(mod)
+      exported = is_schema_module?(mod)
+
+      if !exported do
+        false
+      else
+        if prefix == nil do
+          true
+        else
+          String.starts_with?(Atom.to_string(mod), Atom.to_string(prefix))
+        end
+      end
+    end)
   end
 
   def is_migration_module?(mod), do: function_exported?(mod, :__migration__, 0)
@@ -104,6 +107,7 @@ defmodule Yacto.Migration.Util do
 
   def allow_migrate?(schema, repo) do
     Code.ensure_loaded(schema)
+
     if function_exported?(schema, :dbname, 0) do
       dbname = schema.dbname()
       repos = Yacto.DB.repos(dbname)

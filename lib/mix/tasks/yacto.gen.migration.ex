@@ -6,8 +6,9 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
   @switches [version: :integer]
 
   def run(args) do
-    Mix.Task.run "loadpaths", args
-    Mix.Task.run "app.start", args
+    Mix.Task.run("loadpaths", args)
+    Mix.Task.run("app.start", args)
+
     case OptionParser.parse(args, switches: @switches) do
       {opts, [], _} ->
         app = Keyword.fetch!(Mix.Project.config(), :app)
@@ -16,10 +17,12 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
         _ = Application.load(app)
         schemas = Yacto.Migration.Util.get_all_schema(app)
         Yacto.Migration.GenMigration.generate_migration(app, schemas, [], version)
+
       {_, [_ | _], _} ->
-        Mix.raise "Args error"
+        Mix.raise("Args error")
+
       {_, _, invalids} ->
-        Mix.raise "Invalid arguments #{inspect invalids}"
+        Mix.raise("Invalid arguments #{inspect(invalids)}")
     end
   end
 end

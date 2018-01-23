@@ -10,8 +10,8 @@ defmodule Yacto.XATest.Player do
   use Ecto.Schema
 
   schema "xa_player" do
-    field :name
-    field :value, :integer
+    field(:name)
+    field(:value, :integer)
   end
 end
 
@@ -20,8 +20,8 @@ defmodule Yacto.XATest.Player.Migration do
 
   def change() do
     create table(:xa_player) do
-      add :name, :string, null: false
-      add :value, :integer, null: false
+      add(:name, :string, null: false)
+      add(:value, :integer, null: false)
     end
   end
 end
