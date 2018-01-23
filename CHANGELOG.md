@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7
+
+- Update dependencies
+
 ## 1.0.6
 
 - [Bug] Fix a migration type name includes with spaces.
