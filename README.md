@@ -23,12 +23,7 @@ Specifically, when the schema is defined as follows,
 
 ```elixir
 defmodule MyApp.Player do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname() do
-    :player
-  end
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     # sharding key
@@ -157,16 +152,11 @@ config :yacto, :databases,
   }
 ```
 
-Recall that `MyApp.Player` had the following callback function.
+Recall that `MyApp.Player` was the following code.
 
 ```elixir
 defmodule MyApp.Player do
-  ...
-
-  @impl Yacto.Schema
-  def dbname() do
-    :player
-  end
+  use Yacto.Schema, dbname: :player
 
   ...
 end
@@ -182,6 +172,13 @@ When using a horizontally partitioned database, use `Yacto.DB.repo/2` to get a R
 
 ```elixir
 repo = Yacto.DB.repo(:player, player_id)
+MyApp.Player |> repo.all()
+```
+
+Or you can use `schema.repo/1`.
+
+```elixir
+repo = MyApp.Player.repo(player_id)
 MyApp.Player |> repo.all()
 ```
 
@@ -230,7 +227,7 @@ end)
 
 - Repo `MyApp.Repo.Default` of`: default`
 - Repo sharded with `player_id1`
-- Repo sharded with `player_id 2`
+- Repo sharded with `player_id2`
 
 The last two may have the same Repo depending on the shard key, so Repo to use is either 2 or 3.
 When you start transactions using more than one Repo, those transactions automatically become XA transactions.
@@ -246,12 +243,7 @@ As I wrote in the beginning, Yacto's schema is defined as follows.
 
 ```elixir
 defmodule MyApp.Player do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname() do
-    :player
-  end
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     field :player_id, :string, meta: [null: false, size: 64]

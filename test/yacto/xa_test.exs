@@ -16,11 +16,15 @@ defmodule Yacto.XATest do
     value =
       Yacto.XA.transaction([Yacto.XATest.Repo0, Yacto.XATest.Repo1], fn ->
         player0 =
-          Yacto.XATest.Player |> Ecto.Query.where(name: "foo") |> Ecto.Query.lock("FOR UPDATE")
+          Yacto.XATest.Player
+          |> Ecto.Query.where(name: "foo")
+          |> Ecto.Query.lock("FOR UPDATE")
           |> Yacto.XATest.Repo0.one()
 
         player1 =
-          Yacto.XATest.Player |> Ecto.Query.where(name: "bar") |> Ecto.Query.lock("FOR UPDATE")
+          Yacto.XATest.Player
+          |> Ecto.Query.where(name: "bar")
+          |> Ecto.Query.lock("FOR UPDATE")
           |> Yacto.XATest.Repo1.one()
 
         value = player0.value * player1.value
@@ -38,11 +42,15 @@ defmodule Yacto.XATest do
     assert_raise(RuntimeError, "error", fn ->
       Yacto.XA.transaction([Yacto.XATest.Repo0, Yacto.XATest.Repo1], fn ->
         player0 =
-          Yacto.XATest.Player |> Ecto.Query.where(name: "foo") |> Ecto.Query.lock("FOR UPDATE")
+          Yacto.XATest.Player
+          |> Ecto.Query.where(name: "foo")
+          |> Ecto.Query.lock("FOR UPDATE")
           |> Yacto.XATest.Repo0.one()
 
         player1 =
-          Yacto.XATest.Player |> Ecto.Query.where(name: "bar") |> Ecto.Query.lock("FOR UPDATE")
+          Yacto.XATest.Player
+          |> Ecto.Query.where(name: "bar")
+          |> Ecto.Query.lock("FOR UPDATE")
           |> Yacto.XATest.Repo1.one()
 
         {:ok, _} =
