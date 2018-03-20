@@ -130,16 +130,20 @@ defmodule Yacto.QueryTest do
   end
 
   test "Yacto.Repo.find" do
-    assert length(Yacto.QueryTest.Item.repo().find(Yacto.QueryTest.Item, [name: "foo"])) == 1
-    assert length(Yacto.QueryTest.Item.repo().find(Yacto.QueryTest.Item, [name: "bar"])) == 0
-    assert length(Yacto.QueryTest.Player.repo(@player_id).find(Yacto.QueryTest.Player, [name: "player"])) == 1
-    assert length(Yacto.QueryTest.Player.repo(@player_id).find(Yacto.QueryTest.Player, [name: "not player"])) == 0
+    mod = Yacto.QueryTest.Item
+    assert length(mod.repo().find(mod, name: "foo")) == 1
+    assert length(mod.repo().find(mod, name: "bar")) == 0
+    mod = Yacto.QueryTest.Player
+    assert length(mod.repo(@player_id).find(mod, name: "player")) == 1
+    assert length(mod.repo(@player_id).find(mod, name: "not player")) == 0
   end
 
   test "Yacto.Repo.count" do
-    assert Yacto.QueryTest.Item.repo().count(Yacto.QueryTest.Item, [name: "foo"]) == 1
-    assert Yacto.QueryTest.Item.repo().count(Yacto.QueryTest.Item, [name: "bar"]) == 0
-    assert Yacto.QueryTest.Player.repo(@player_id).count(Yacto.QueryTest.Player, [name: "player"]) == 1
-    assert Yacto.QueryTest.Player.repo(@player_id).count(Yacto.QueryTest.Player, [name: "not player"]) == 0
+    mod = Yacto.QueryTest.Item
+    assert mod.repo().count(mod, name: "foo") == 1
+    assert mod.repo().count(mod, name: "bar") == 0
+    mod = Yacto.QueryTest.Player
+    assert mod.repo(@player_id).count(mod, name: "player") == 1
+    assert mod.repo(@player_id).count(mod, name: "not player") == 0
   end
 end
