@@ -61,7 +61,7 @@ defmodule Yacto.Repo.Helper do
   alias Yacto.Repo.Helper.Helper
 
   defmacro __using__(_) do
-    quote do
+    quote location: :keep do
       def get_for_update(queryable, id, opts \\ []) do
         query = Helper.query_for_get(__MODULE__, queryable, id)
         query |> Yacto.Query.for_update() |> __MODULE__.one(opts)
@@ -80,6 +80,23 @@ defmodule Yacto.Repo.Helper do
       def get_by_for_update!(queryable, clauses, opts \\ []) do
         query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
         query |> Yacto.Query.for_update() |> __MODULE__.one!(opts)
+      end
+
+      def find(queryable, clauses, opts \\ []) do
+        query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
+        query |> __MODULE__.all(opts)
+      end
+
+      def find_for_update(queryable, clauses, opts \\ []) do
+        query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
+        query |> Yacto.Query.for_update() |> __MODULE__.all(opts)
+      end
+
+      def count(queryable, clauses, opts \\ []) do
+        require Ecto.Query
+
+        query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
+        query |> Ecto.Query.select(count("*")) |> __MODULE__.one!(opts)
       end
 
       def get_or_new(queryable, clauses, default_struct, opts \\ []) do

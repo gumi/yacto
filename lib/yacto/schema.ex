@@ -57,14 +57,9 @@ defmodule Yacto.Schema do
           unquote(dbname)
         end
 
+        # for backward compatibility
         defoverridable dbname: 0
       end
-
-      def repo(dbkey \\ nil) do
-        Yacto.DB.repo(dbname(), dbkey)
-      end
-
-      defoverridable repo: 0, repo: 1
     end
   end
 

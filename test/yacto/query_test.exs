@@ -19,8 +19,8 @@ defmodule Yacto.QueryTest do
   defp cleanup() do
     repo_default = Yacto.DB.repo(:default)
     repo_player = Yacto.DB.repo(:player, @player_id)
-    Yacto.QueryTest.Item |> Ecto.Query.where([_u], true) |> repo_default.delete_all()
-    Yacto.QueryTest.Player |> Ecto.Query.where([_u], true) |> repo_player.delete_all()
+    Yacto.QueryTest.Item |> Ecto.Query.where([], true) |> repo_default.delete_all()
+    Yacto.QueryTest.Player |> Ecto.Query.where([], true) |> repo_player.delete_all()
   end
 
   test "Yacto.Query.get_by_for_update" do
@@ -127,5 +127,19 @@ defmodule Yacto.QueryTest do
 
   test "Yacto.Repo.get_or_new with lock" do
     test_get_or_new(true)
+  end
+
+  test "Yacto.Repo.find" do
+    assert length(Yacto.QueryTest.Item.repo().find(Yacto.QueryTest.Item, [name: "foo"])) == 1
+    assert length(Yacto.QueryTest.Item.repo().find(Yacto.QueryTest.Item, [name: "bar"])) == 0
+    assert length(Yacto.QueryTest.Player.repo(@player_id).find(Yacto.QueryTest.Player, [name: "player"])) == 1
+    assert length(Yacto.QueryTest.Player.repo(@player_id).find(Yacto.QueryTest.Player, [name: "not player"])) == 0
+  end
+
+  test "Yacto.Repo.count" do
+    assert Yacto.QueryTest.Item.repo().count(Yacto.QueryTest.Item, [name: "foo"]) == 1
+    assert Yacto.QueryTest.Item.repo().count(Yacto.QueryTest.Item, [name: "bar"]) == 0
+    assert Yacto.QueryTest.Player.repo(@player_id).count(Yacto.QueryTest.Player, [name: "player"]) == 1
+    assert Yacto.QueryTest.Player.repo(@player_id).count(Yacto.QueryTest.Player, [name: "not player"]) == 0
   end
 end

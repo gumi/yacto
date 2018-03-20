@@ -175,9 +175,16 @@ repo = Yacto.DB.repo(:player, player_id)
 MyApp.Player |> repo.all()
 ```
 
-Or you can use `schema.repo/1`.
+Or you can use `schema.repo/1` if you use `Yacto.Schema.Shard`.
 
 ```elixir
+def MyApp.Player do
+  use Yacto.Schema.Shard, dbname: :player
+  # repo/1 is defined automatically
+
+  ...
+end
+
 repo = MyApp.Player.repo(player_id)
 MyApp.Player |> repo.all()
 ```
