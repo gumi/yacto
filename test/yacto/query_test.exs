@@ -146,4 +146,13 @@ defmodule Yacto.QueryTest do
     assert mod.repo(@player_id).count(mod, name: "player") == 1
     assert mod.repo(@player_id).count(mod, name: "not player") == 0
   end
+
+  test "Yacto.Repo.delete_by" do
+    mod = Yacto.QueryTest.Player
+    assert mod.repo(@player_id).delete_by(mod, name: "player") == {1, nil}
+    assert mod.repo(@player_id).delete_by(mod, name: "player") == {0, nil}
+    assert_raise Ecto.NoResultsError, fn ->
+      mod.repo(@player_id).delete_by!(mod, name: "player")
+    end
+  end
 end

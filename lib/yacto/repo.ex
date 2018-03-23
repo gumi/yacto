@@ -61,7 +61,7 @@ defmodule Yacto.Repo.Helper do
   alias Yacto.Repo.Helper.Helper
 
   defmacro __using__(_) do
-    quote location: :keep do
+    quote do
       def get_for_update(queryable, id, opts \\ []) do
         query = Helper.query_for_get(__MODULE__, queryable, id)
         query |> Yacto.Query.for_update() |> __MODULE__.one(opts)
@@ -92,6 +92,20 @@ defmodule Yacto.Repo.Helper do
         query |> Yacto.Query.for_update() |> __MODULE__.all(opts)
       end
 
+      def delete_by(queryable, clauses, opts \\ []) do
+        query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
+        query |> __MODULE__.delete_all(opts)
+      end
+
+      def delete_by!(queryable, clauses, opts \\ []) do
+        case delete_by(queryable, clauses, opts) do
+          {0, _} ->
+            raise Ecto.NoResultsError, queryable: queryable
+          otherwise ->
+            otherwise
+        end
+      end
+
       def count(queryable, clauses, opts \\ []) do
         require Ecto.Query
 
@@ -109,12 +123,12 @@ defmodule Yacto.Repo.Helper do
         end
       end
 
-      def get_or_insert_for_update(queryable, clauses, default_changeset, opts \\ []) do
+      def get_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ []) do
         case __MODULE__.get_by(queryable, clauses, opts) do
           nil ->
             # insert
             try do
-              __MODULE__.insert!(default_changeset)
+              __MODULE__.insert!(default_struct_or_changeset)
             else
               record -> {record, true}
             rescue
