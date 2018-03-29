@@ -101,6 +101,7 @@ defmodule Yacto.Repo.Helper do
         case delete_by(queryable, clauses, opts) do
           {0, _} ->
             raise Ecto.NoResultsError, queryable: queryable
+
           otherwise ->
             otherwise
         end

@@ -151,6 +151,7 @@ defmodule Yacto.QueryTest do
     mod = Yacto.QueryTest.Player
     assert mod.repo(@player_id).delete_by(mod, name: "player") == {1, nil}
     assert mod.repo(@player_id).delete_by(mod, name: "player") == {0, nil}
+
     assert_raise Ecto.NoResultsError, fn ->
       mod.repo(@player_id).delete_by!(mod, name: "player")
     end
