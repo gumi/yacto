@@ -1,19 +1,20 @@
 defmodule Yacto.QueryTest.Repo.Default do
   use Ecto.Repo, otp_app: :yacto
+  use Yacto.Repo.Helper
 end
 
 defmodule Yacto.QueryTest.Repo.Player0 do
   use Ecto.Repo, otp_app: :yacto
+  use Yacto.Repo.Helper
 end
 
 defmodule Yacto.QueryTest.Repo.Player1 do
   use Ecto.Repo, otp_app: :yacto
+  use Yacto.Repo.Helper
 end
 
 defmodule Yacto.QueryTest.Item do
-  use Yacto.Schema
-
-  def dbname(), do: :default
+  use Yacto.Schema.Single, dbname: :default
 
   schema "item" do
     field(:name, :string)
@@ -33,9 +34,7 @@ defmodule Yacto.QueryTest.Default.Migration do
 end
 
 defmodule Yacto.QueryTest.Player do
-  use Yacto.Schema
-
-  def dbname(), do: :player
+  use Yacto.Schema.Shard, dbname: :player
 
   schema "xa_player" do
     field(:name)
@@ -48,7 +47,8 @@ defmodule Yacto.QueryTest.Player.Migration do
   use Ecto.Migration
 
   def change() do
-    create table(:xa_player) do
+    create table(:xa_player, primary_key: false) do
+      add(:id, :binary_id, autogenerate: true, primary_key: true)
       add(:name, :string, null: false)
       add(:value, :integer, null: false)
       timestamps()

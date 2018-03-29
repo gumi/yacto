@@ -19,91 +19,76 @@ defmodule Yacto.QueryTest do
   defp cleanup() do
     repo_default = Yacto.DB.repo(:default)
     repo_player = Yacto.DB.repo(:player, @player_id)
-    Yacto.QueryTest.Item |> Ecto.Query.where([_u], true) |> repo_default.delete_all()
-    Yacto.QueryTest.Player |> Ecto.Query.where([_u], true) |> repo_player.delete_all()
+    Yacto.QueryTest.Item |> Ecto.Query.where([], true) |> repo_default.delete_all()
+    Yacto.QueryTest.Player |> Ecto.Query.where([], true) |> repo_player.delete_all()
   end
 
-  test "Yacto.Query.get" do
-    obj =
-      Yacto.Query.get(
-        Yacto.QueryTest.Item,
-        Yacto.DB.repo(:default),
-        lock: false,
-        lookup: [name: "foo"]
-      )
+  test "Yacto.Query.get_by_for_update" do
+    repo = Yacto.QueryTest.Item.repo()
+    obj = repo.get_by_for_update!(Yacto.QueryTest.Item, name: "foo")
 
     assert obj.name == "foo"
     assert obj.quantity == 100
 
-    obj =
-      Yacto.Query.get(
-        Yacto.QueryTest.Item,
-        Yacto.DB.repo(:default),
-        lock: true,
-        lookup: [quantity: 100]
-      )
+    repo = Yacto.QueryTest.Player.repo(@player_id)
+    obj = repo.get_by_for_update!(Yacto.QueryTest.Player, name: "player")
 
-    assert obj.name == "foo"
-    assert obj.quantity == 100
-
-    obj =
-      Yacto.Query.get(
-        Yacto.QueryTest.Player,
-        Yacto.DB.repo(:player, @player_id),
-        lock: false,
-        lookup: [name: "player"]
-      )
-
-    assert obj.name == "player"
-    assert obj.value == 1000
-  end
-
-  test "Yacto.Schema.Query.get" do
-    obj = Yacto.QueryTest.Item.Query.get(nil, lock: false, lookup: [name: "foo"])
-    assert obj.name == "foo"
-    assert obj.quantity == 100
-    obj = Yacto.QueryTest.Item.Query.get(nil, lock: true, lookup: [quantity: 100])
-    assert obj.name == "foo"
-    assert obj.quantity == 100
-
-    obj = Yacto.QueryTest.Player.Query.get(@player_id, lock: false, lookup: [name: "player"])
     assert obj.name == "player"
     assert obj.value == 1000
   end
 
   defp test_get_or_new(lock) do
+    repo = Yacto.QueryTest.Item.repo()
+
     {obj, false} =
-      Yacto.Query.get_or_new(
-        Yacto.QueryTest.Item,
-        Yacto.DB.repo(:default),
-        lock: lock,
-        lookup: [name: "foo"],
-        defaults: [quantity: 1000]
-      )
+      if lock do
+        repo.get_or_insert_for_update(
+          Yacto.QueryTest.Item,
+          [name: "foo"],
+          Ecto.Changeset.change(%Yacto.QueryTest.Item{name: "foo", quantity: 1000})
+        )
+      else
+        repo.get_or_new(Yacto.QueryTest.Item, [name: "foo"], %Yacto.QueryTest.Item{
+          name: "foo",
+          quantity: 1000
+        })
+      end
 
     assert obj.name == "foo"
     assert obj.quantity == 100
 
     {obj, true} =
-      Yacto.Query.get_or_new(
-        Yacto.QueryTest.Item,
-        Yacto.DB.repo(:default),
-        lock: lock,
-        lookup: [name: "bar"],
-        defaults: [quantity: 1000]
-      )
+      if lock do
+        repo.get_or_insert_for_update(
+          Yacto.QueryTest.Item,
+          [name: "bar"],
+          Ecto.Changeset.change(%Yacto.QueryTest.Item{name: "bar", quantity: 1000})
+        )
+      else
+        repo.get_or_new(Yacto.QueryTest.Item, [name: "bar"], %Yacto.QueryTest.Item{
+          name: "bar",
+          quantity: 1000
+        })
+      end
 
     assert obj.name == "bar"
     assert obj.quantity == 1000
 
+    repo = Yacto.QueryTest.Player.repo(@player_id)
+
     {obj, false} =
-      Yacto.Query.get_or_new(
-        Yacto.QueryTest.Player,
-        Yacto.DB.repo(:player, @player_id),
-        lock: lock,
-        lookup: [name: "player"],
-        defaults: [value: 999]
-      )
+      if lock do
+        repo.get_or_insert_for_update(
+          Yacto.QueryTest.Player,
+          [name: "player"],
+          Ecto.Changeset.change(%Yacto.QueryTest.Player{name: "player", value: 999})
+        )
+      else
+        repo.get_or_new(Yacto.QueryTest.Player, [name: "player"], %Yacto.QueryTest.Player{
+          name: "player",
+          value: 999
+        })
+      end
 
     assert obj.name == "player"
     assert obj.value == 1000
@@ -111,13 +96,18 @@ defmodule Yacto.QueryTest do
     assert obj.inserted_at != nil
 
     {obj, true} =
-      Yacto.Query.get_or_new(
-        Yacto.QueryTest.Player,
-        Yacto.DB.repo(:player, @player_id),
-        lock: lock,
-        lookup: [name: "not player"],
-        defaults: [value: 999]
-      )
+      if lock do
+        repo.get_or_insert_for_update(
+          Yacto.QueryTest.Player,
+          [name: "not player"],
+          Ecto.Changeset.change(%Yacto.QueryTest.Player{name: "not player", value: 999})
+        )
+      else
+        repo.get_or_new(Yacto.QueryTest.Player, [name: "not player"], %Yacto.QueryTest.Player{
+          name: "not player",
+          value: 999
+        })
+      end
 
     assert obj.name == "not player"
     assert obj.value == 999
@@ -131,45 +121,38 @@ defmodule Yacto.QueryTest do
     end
   end
 
-  test "Yacto.Query.get_or_new with no lock" do
+  test "Yacto.Repo.get_or_new with no lock" do
     test_get_or_new(false)
   end
 
-  test "Yacto.Query.get_or_new with lock" do
+  test "Yacto.Repo.get_or_new with lock" do
     test_get_or_new(true)
   end
 
-  test "Yacto.Query.create" do
-    record =
-      Yacto.Query.create(
-        Yacto.QueryTest.Item,
-        Yacto.DB.repo(:default),
-        fields: [name: "test", quantity: 80]
-      )
-
-    assert record.id != nil
-    assert record.name == "test"
-    assert record.quantity == 80
-
-    # duplicate
-    assert_raise Ecto.ConstraintError, fn ->
-      Yacto.Query.create(
-        Yacto.QueryTest.Item,
-        Yacto.DB.repo(:default),
-        fields: [id: record.id, name: "test", quantity: 80]
-      )
-    end
+  test "Yacto.Repo.find" do
+    mod = Yacto.QueryTest.Item
+    assert length(mod.repo().find(mod, name: "foo")) == 1
+    assert length(mod.repo().find(mod, name: "bar")) == 0
+    mod = Yacto.QueryTest.Player
+    assert length(mod.repo(@player_id).find(mod, name: "player")) == 1
+    assert length(mod.repo(@player_id).find(mod, name: "not player")) == 0
   end
 
-  test "Yacto.Query.save" do
-    record =
-      Yacto.Query.create(
-        Yacto.QueryTest.Item,
-        Yacto.DB.repo(:default),
-        fields: [name: "test", quantity: 80]
-      )
+  test "Yacto.Repo.count" do
+    mod = Yacto.QueryTest.Item
+    assert mod.repo().count(mod, name: "foo") == 1
+    assert mod.repo().count(mod, name: "bar") == 0
+    mod = Yacto.QueryTest.Player
+    assert mod.repo(@player_id).count(mod, name: "player") == 1
+    assert mod.repo(@player_id).count(mod, name: "not player") == 0
+  end
 
-    record2 = %{record | name: "foo", quantity: 20}
-    Yacto.Query.save(Yacto.DB.repo(:default), record: record2)
+  test "Yacto.Repo.delete_by" do
+    mod = Yacto.QueryTest.Player
+    assert mod.repo(@player_id).delete_by(mod, name: "player") == {1, nil}
+    assert mod.repo(@player_id).delete_by(mod, name: "player") == {0, nil}
+    assert_raise Ecto.NoResultsError, fn ->
+      mod.repo(@player_id).delete_by!(mod, name: "player")
+    end
   end
 end

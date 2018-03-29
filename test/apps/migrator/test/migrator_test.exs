@@ -116,7 +116,6 @@ defmodule MigratorTest do
     _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
 
     Mix.Task.rerun("yacto.gen.migration", [])
-    File.cp_r!("priv", Application.app_dir(:migrator, "priv"))
     Mix.Task.rerun("yacto.migrate", ["--repo", "Migrator.Repo0", "--app", "migrator"])
 
     player = %Migrator.Player{name: "foo", value: 100}
@@ -151,7 +150,6 @@ defmodule MigratorTest do
     _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
 
     Mix.Task.rerun("yacto.gen.migration", [])
-    File.cp_r!("priv", Application.app_dir(:migrator, "priv"))
     Mix.Task.rerun("yacto.migrate", ["--repo", "Migrator.Repo1", "--app", "migrator"])
 
     bigint = %Migrator.UnsignedBigInteger{user_id: 12_345_678_901_234_567_890}

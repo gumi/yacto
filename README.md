@@ -23,12 +23,7 @@ Specifically, when the schema is defined as follows,
 
 ```elixir
 defmodule MyApp.Player do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname() do
-    :player
-  end
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     # sharding key
@@ -157,16 +152,11 @@ config :yacto, :databases,
   }
 ```
 
-Recall that `MyApp.Player` had the following callback function.
+Recall that `MyApp.Player` was the following code.
 
 ```elixir
 defmodule MyApp.Player do
-  ...
-
-  @impl Yacto.Schema
-  def dbname() do
-    :player
-  end
+  use Yacto.Schema, dbname: :player
 
   ...
 end
@@ -182,6 +172,20 @@ When using a horizontally partitioned database, use `Yacto.DB.repo/2` to get a R
 
 ```elixir
 repo = Yacto.DB.repo(:player, player_id)
+MyApp.Player |> repo.all()
+```
+
+Or you can use `schema.repo/1` if you use `Yacto.Schema.Shard`.
+
+```elixir
+def MyApp.Player do
+  use Yacto.Schema.Shard, dbname: :player
+  # repo/1 is defined automatically
+
+  ...
+end
+
+repo = MyApp.Player.repo(player_id)
 MyApp.Player |> repo.all()
 ```
 
@@ -230,7 +234,7 @@ end)
 
 - Repo `MyApp.Repo.Default` of`: default`
 - Repo sharded with `player_id1`
-- Repo sharded with `player_id 2`
+- Repo sharded with `player_id2`
 
 The last two may have the same Repo depending on the shard key, so Repo to use is either 2 or 3.
 When you start transactions using more than one Repo, those transactions automatically become XA transactions.
@@ -246,12 +250,7 @@ As I wrote in the beginning, Yacto's schema is defined as follows.
 
 ```elixir
 defmodule MyApp.Player do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname() do
-    :player
-  end
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     field :player_id, :string, meta: [null: false, size: 64]
@@ -305,3 +304,44 @@ To change the index to a unique index, specify `unique: true` as an option.
 Not supported.
 
 I think it is generally necessary, but I do not need it yet.
+
+# Convenient Functions
+
+Yacto provides `Yacto.Repo.Helper` which defines convinient functions for Repo.
+
+```elixir
+defmodule MyApp.Repo do
+  use Ecto.Repo, otp_app: :my_app
+  use Yacto.Repo.Helper
+end
+```
+
+This defines the following functions:
+
+- `count(queryable, clauses, opts \\ [])`
+
+Return the number of elements filtered by `Ecto.Query.where`.
+
+- `find(queryable, clauses, opts \\ [])`
+
+Return elements filtered by `Ecto.Query.where`.
+
+- `find_for_update(queryable, clauses, opts \\ [])`
+- `get_for_update(queryable, id, opts \\ [])`
+- `get_for_update!(queryable, id, opts \\ [])`
+- `get_by_for_update(queryable, clauses, opts \\ [])`
+- `get_by_for_update!(queryable, clauses, opts \\ [])`
+
+Get (an) element(s) by a query of `SELECT ... FOR UPDATE`.
+
+`find_for_update/3` is `find/3` with `Ecto.Query.lock("FOR UPDATE")`.
+`get_for_update/3` and `get_by_for_update/3` are `Ecto.Repo.get` and `Ecto.Repo.get_by` with `Ecto.Query.lock("FOR UPDATE")`.
+
+- `get_or_new(queryable, clauses, default_struct, opts \\ [])`
+- `get_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ [])`
+
+`get_or_new/4` is tried to get the record and returns that record if exists, otherwise it returns the default value `default_struct`. Even if a record does not exist, it is not inserted into the database.
+The function does not take a exclusive lock, so do not insert or update into the database using the value obtained with `get_or_new/4`.
+
+`get_or_insert_for_update/4` is `get_or_new/4` with exclusive lock.
+`get_or_insert_for_update/4` is tried to get the record and returns that record if exists, otherwise it add new `default_struct_or_changeset` and return it. The returned record is exclusively locked.

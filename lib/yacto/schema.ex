@@ -29,14 +29,15 @@ defmodule Yacto.Schema do
 
   @callback dbname() :: atom
 
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
+    dbname = Keyword.get(opts, :dbname)
+
     quote do
       @behaviour Yacto.Schema
 
       @auto_source __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
 
       import Yacto.Schema, only: [schema: 2]
-      use Yacto.Schema.Query
 
       @primary_key nil
       @timestamps_opts []
@@ -49,6 +50,16 @@ defmodule Yacto.Schema do
       @yacto_attrs %{}
       @yacto_indices %{}
       @yacto_types %{}
+
+      if unquote(dbname) != nil do
+        @impl Yacto.Schema
+        def dbname() do
+          unquote(dbname)
+        end
+
+        # for backward compatibility
+        defoverridable dbname: 0
+      end
     end
   end
 
