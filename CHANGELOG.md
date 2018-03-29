@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- Add `Yacto.Schema.Single` and `Yacto.Schema.Shard` modules.
+    - These define `repo/{0-1}` after `use Yacto.Schema`.
+- Add `Yacto.Repo.Helper` to provide convenient functions.
+
 ## 1.0.7
 
 - Apply elixir formatter
