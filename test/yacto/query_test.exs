@@ -37,18 +37,18 @@ defmodule Yacto.QueryTest do
     assert obj.value == 1000
   end
 
-  defp test_get_or_new(lock) do
+  defp test_get_by_or_new(lock) do
     repo = Yacto.QueryTest.Item.repo()
 
     {obj, false} =
       if lock do
-        repo.get_or_insert_for_update(
+        repo.get_by_or_insert_for_update(
           Yacto.QueryTest.Item,
           [name: "foo"],
           Ecto.Changeset.change(%Yacto.QueryTest.Item{name: "foo", quantity: 1000})
         )
       else
-        repo.get_or_new(Yacto.QueryTest.Item, [name: "foo"], %Yacto.QueryTest.Item{
+        repo.get_by_or_new(Yacto.QueryTest.Item, [name: "foo"], %Yacto.QueryTest.Item{
           name: "foo",
           quantity: 1000
         })
@@ -59,13 +59,13 @@ defmodule Yacto.QueryTest do
 
     {obj, true} =
       if lock do
-        repo.get_or_insert_for_update(
+        repo.get_by_or_insert_for_update(
           Yacto.QueryTest.Item,
           [name: "bar"],
           Ecto.Changeset.change(%Yacto.QueryTest.Item{name: "bar", quantity: 1000})
         )
       else
-        repo.get_or_new(Yacto.QueryTest.Item, [name: "bar"], %Yacto.QueryTest.Item{
+        repo.get_by_or_new(Yacto.QueryTest.Item, [name: "bar"], %Yacto.QueryTest.Item{
           name: "bar",
           quantity: 1000
         })
@@ -78,13 +78,13 @@ defmodule Yacto.QueryTest do
 
     {obj, false} =
       if lock do
-        repo.get_or_insert_for_update(
+        repo.get_by_or_insert_for_update(
           Yacto.QueryTest.Player,
           [name: "player"],
           Ecto.Changeset.change(%Yacto.QueryTest.Player{name: "player", value: 999})
         )
       else
-        repo.get_or_new(Yacto.QueryTest.Player, [name: "player"], %Yacto.QueryTest.Player{
+        repo.get_by_or_new(Yacto.QueryTest.Player, [name: "player"], %Yacto.QueryTest.Player{
           name: "player",
           value: 999
         })
@@ -97,13 +97,13 @@ defmodule Yacto.QueryTest do
 
     {obj, true} =
       if lock do
-        repo.get_or_insert_for_update(
+        repo.get_by_or_insert_for_update(
           Yacto.QueryTest.Player,
           [name: "not player"],
           Ecto.Changeset.change(%Yacto.QueryTest.Player{name: "not player", value: 999})
         )
       else
-        repo.get_or_new(Yacto.QueryTest.Player, [name: "not player"], %Yacto.QueryTest.Player{
+        repo.get_by_or_new(Yacto.QueryTest.Player, [name: "not player"], %Yacto.QueryTest.Player{
           name: "not player",
           value: 999
         })
@@ -121,12 +121,12 @@ defmodule Yacto.QueryTest do
     end
   end
 
-  test "Yacto.Repo.get_or_new with no lock" do
-    test_get_or_new(false)
+  test "Yacto.Repo.get_by_or_new with no lock" do
+    test_get_by_or_new(false)
   end
 
-  test "Yacto.Repo.get_or_new with lock" do
-    test_get_or_new(true)
+  test "Yacto.Repo.get_by_or_new with lock" do
+    test_get_by_or_new(true)
   end
 
   test "Yacto.Repo.find" do

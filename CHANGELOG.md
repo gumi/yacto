@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Rename `get_or_new/4` to `get_by_or_new/4` and `get_or_insert_for_update/4` to `get_by_or_insert_for_update/4`
+
 ## 1.1.0
 
 - Add `Yacto.Schema.Single` and `Yacto.Schema.Shard` modules.

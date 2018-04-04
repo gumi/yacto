@@ -114,7 +114,7 @@ defmodule Yacto.Repo.Helper do
         query |> Ecto.Query.select(count("*")) |> __MODULE__.one!(opts)
       end
 
-      def get_or_new(queryable, clauses, default_struct, opts \\ []) do
+      def get_by_or_new(queryable, clauses, default_struct, opts \\ []) do
         case __MODULE__.get_by(queryable, clauses, opts) do
           nil ->
             {default_struct, true}
@@ -124,7 +124,7 @@ defmodule Yacto.Repo.Helper do
         end
       end
 
-      def get_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ []) do
+      def get_by_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ []) do
         case __MODULE__.get_by(queryable, clauses, opts) do
           nil ->
             # insert

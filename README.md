@@ -337,11 +337,11 @@ Get (an) element(s) by a query of `SELECT ... FOR UPDATE`.
 `find_for_update/3` is `find/3` with `Ecto.Query.lock("FOR UPDATE")`.
 `get_for_update/3` and `get_by_for_update/3` are `Ecto.Repo.get` and `Ecto.Repo.get_by` with `Ecto.Query.lock("FOR UPDATE")`.
 
-- `get_or_new(queryable, clauses, default_struct, opts \\ [])`
-- `get_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ [])`
+- `get_by_or_new(queryable, clauses, default_struct, opts \\ [])`
+- `get_by_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ [])`
 
-`get_or_new/4` is tried to get the record and returns that record if exists, otherwise it returns the default value `default_struct`. Even if a record does not exist, it is not inserted into the database.
-The function does not take a exclusive lock, so do not insert or update into the database using the value obtained with `get_or_new/4`.
+`get_by_or_new/4` is tried to get the record and returns that record if exists, otherwise it returns the default value `default_struct`. Even if a record does not exist, it is not inserted into the database.
+The function does not take a exclusive lock, so do not insert or update into the database using the value obtained with `get_by_or_new/4`.
 
-`get_or_insert_for_update/4` is `get_or_new/4` with exclusive lock.
-`get_or_insert_for_update/4` is tried to get the record and returns that record if exists, otherwise it add new `default_struct_or_changeset` and return it. The returned record is exclusively locked.
+`get_by_or_insert_for_update/4` is `get_by_or_new/4` with exclusive lock.
+`get_by_or_insert_for_update/4` is tried to get the record and returns that record if exists, otherwise it add new `default_struct_or_changeset` and return it. The returned record is exclusively locked.
