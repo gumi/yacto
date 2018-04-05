@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- In `Yacto.Schema.field/3`, if opts[:default] is specified, set the value to meta[:default]
+
 ## 1.1.1
 
 - Rename `get_or_new/4` to `get_by_or_new/4` and `get_or_insert_for_update/4` to `get_by_or_insert_for_update/4`
