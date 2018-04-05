@@ -106,6 +106,13 @@ defmodule Yacto.Schema do
     quote bind_quoted: [name: name, type: type, opts: opts] do
       {meta, opts} = Keyword.pop(opts, :meta, [])
 
+      meta =
+        if Keyword.has_key?(opts, :default) and not Keyword.has_key?(meta, :default) do
+          Keyword.put(meta, :default, opts[:default])
+        else
+          meta
+        end
+
       for {key, value} <- meta, key in [:null, :size, :default] do
         new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
         @yacto_attrs Map.put(@yacto_attrs, name, new_value)

@@ -40,7 +40,7 @@ defmodule MigratorTest do
       end
     end
 
-    player = %Migrator.Player3{name3: "foo", value: "bar", text: ""}
+    player = %Migrator.Player3{value: "bar", text: ""}
     player = Migrator.Repo0.insert!(player)
 
     assert [player] == Migrator.Repo0.all(Migrator.Player3)
