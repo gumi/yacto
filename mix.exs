@@ -4,7 +4,7 @@ defmodule Yacto.Mixfile do
   def project do
     [
       app: :yacto,
-      version: "1.1.2",
+      version: "1.1.3",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       elixirc_options: [all_warnings: true, warnings_as_errors: true],
@@ -37,9 +37,9 @@ defmodule Yacto.Mixfile do
   defp deps do
     [
       {:ecto, "~> 2.2"},
-      {:ex_doc, "~> 0.18.1", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.18.3", only: :dev, runtime: false},
       {:db_connection, "~> 1.1"},
-      {:mariaex, "~> 0.8.3"},
+      {:mariaex, "~> 0.8.4"},
       {:uuid, "~> 1.1"},
       {:power_assert, "~> 0.1.1", only: :test}
     ]

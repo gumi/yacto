@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3
+
+- Update dependencies
+
 ## 1.1.2
 
 - In `Yacto.Schema.field/3`, if opts[:default] is specified, set the value to meta[:default]
