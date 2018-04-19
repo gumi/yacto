@@ -242,6 +242,21 @@ When you start transactions using more than one Repo, those transactions automat
 XA transactions can not reliably prevent inconsistencies, but they can be prevented than starting separate transactions.
 However, since this library does not provide a mechanism to solve the transactions left in `XA RECOVER`, it needs to be prepared separately.
 
+If you want to roll back, you can use `Yacto.XA.rollback/2`.
+
+```elixir
+Yacto.transaction([:default,
+                   {:player, player_id1},
+                   {:player, player_id2}], fn ->
+  ...
+
+  # It raises Yacto.XA.RollbackError
+  Yacto.XA.rollback(MyApp.Player.repo(player_id1), :error)
+end)
+```
+
+`Yacto.transaction/2` raises `Yacto.XA.RollbackError` and all database operations are rolled back.
+
 # Details of Yacto Schema
 
 There is a part not yet explained about Yacto's schema, so I will explain it in more detail.

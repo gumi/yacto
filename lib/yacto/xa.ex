@@ -1,4 +1,8 @@
 defmodule Yacto.XA do
+  defmodule RollbackError do
+    defexception [:message, :reason]
+  end
+
   defp run_multi([], fun, _opts, conns) do
     fun.(conns)
   end
@@ -160,8 +164,12 @@ defmodule Yacto.XA do
     end
 
     # single transaction
-    {:ok, result} = repo.transaction(fun, opts)
-    result
+    case repo.transaction(fun, opts) do
+      {:ok, result} ->
+        result
+      {:error, reason} ->
+        raise Yacto.XA.RollbackError, message: "The transaction is rolled-back. reason: #{inspect reason}", reason: reason
+    end
   end
 
   # two or more repos
@@ -182,5 +190,13 @@ defmodule Yacto.XA do
     end
 
     run_multi(repos, &with_xa(&1, repos, fun), opts, %{})
+  end
+
+  def rollback(repo, reason) do
+    if in_xa_transaction?(repo) do
+      raise Yacto.XA.RollbackError, message: "The transaction is rolled-back. reason: #{inspect reason}", reason: reason
+    else
+      repo.rollback(reason)
+    end
   end
 end
