@@ -4,7 +4,7 @@ defmodule Yacto.Mixfile do
   def project do
     [
       app: :yacto,
-      version: "1.1.3",
+      version: "1.2.0",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       elixirc_options: [all_warnings: true, warnings_as_errors: true],

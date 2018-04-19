@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- Implement `Yacto.XA.rollback/2`
+
 ## 1.1.3
 
 - Update dependencies
