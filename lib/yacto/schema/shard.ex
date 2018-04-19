@@ -15,6 +15,7 @@ defmodule Yacto.Schema.Shard do
     quote do
       use Yacto.Schema, dbname: unquote(dbname)
 
+      # TODO: remove Yacto 2.0
       @primary_key {:id, :binary_id, autogenerate: true}
 
       def repo(shard_key) do
