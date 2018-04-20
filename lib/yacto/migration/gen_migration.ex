@@ -94,7 +94,13 @@ defmodule Yacto.Migration.GenMigration do
             is_primary_key = Enum.find(structure_to.primary_key, &(&1 == field)) != nil
             opts = opts ++ if(is_primary_key, do: [primary_key: true], else: [])
 
-            is_autogenerate = elem(structure_to.autogenerate_id, 0) == field
+            is_autogenerate =
+              if(
+                structure_to.autogenerate_id,
+                do: elem(structure_to.autogenerate_id, 0) == field,
+                else: false
+              )
+
             opts = opts ++ if(is_autogenerate, do: [autogenerate: true], else: [])
 
             ["  add(:#{field}, #{inspect(type)}, #{inspect(opts)})"]

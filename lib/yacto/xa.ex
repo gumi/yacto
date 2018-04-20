@@ -167,8 +167,11 @@ defmodule Yacto.XA do
     case repo.transaction(fun, opts) do
       {:ok, result} ->
         result
+
       {:error, reason} ->
-        raise Yacto.XA.RollbackError, message: "The transaction is rolled-back. reason: #{inspect reason}", reason: reason
+        raise Yacto.XA.RollbackError,
+          message: "The transaction is rolled-back. reason: #{inspect(reason)}",
+          reason: reason
     end
   end
 
@@ -194,7 +197,9 @@ defmodule Yacto.XA do
 
   def rollback(repo, reason) do
     if in_xa_transaction?(repo) do
-      raise Yacto.XA.RollbackError, message: "The transaction is rolled-back. reason: #{inspect reason}", reason: reason
+      raise Yacto.XA.RollbackError,
+        message: "The transaction is rolled-back. reason: #{inspect(reason)}",
+        reason: reason
     else
       repo.rollback(reason)
     end

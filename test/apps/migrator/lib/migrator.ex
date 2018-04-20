@@ -58,6 +58,23 @@ defmodule Migrator.UnsignedBigInteger do
   end
 end
 
+defmodule Migrator.CustomPrimaryKey do
+  use Yacto.Schema
+
+  def primary_key() do
+    String.duplicate("a", 10)
+  end
+
+  def dbname(), do: :default
+
+  @primary_key {:id, :string, autogenerate: {__MODULE__, :primary_key, []}}
+  @primary_key_meta %{id: [size: 10]}
+
+  schema @auto_source do
+    field(:name, :string, meta: [null: false])
+  end
+end
+
 defmodule Migrator.Repo0 do
   use Ecto.Repo, otp_app: :migrator
 end

@@ -19,6 +19,9 @@ defmodule Yacto.Migration.SchemaTest do
   defmodule TestMeta do
     use Yacto.Schema
 
+    @primary_key {:id, :string, autogenerate: {UUID, :uuid4, []}}
+    @primary_key_meta %{id: [size: 64]}
+
     def dbname() do
       :default
     end
@@ -35,8 +38,13 @@ defmodule Yacto.Migration.SchemaTest do
   end
 
   test "schema_meta" do
-    assert %{name: %{null: false, size: 50, default: "foo"}, value: %{null: false}} ==
-             TestMeta.__meta__(:attrs)
+    expected = %{
+      id: %{size: 64},
+      name: %{null: false, size: 50, default: "foo"},
+      value: %{null: false}
+    }
+
+    assert expected == TestMeta.__meta__(:attrs)
 
     assert %{
              {[:name], []} => true,

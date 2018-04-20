@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- Fix an issue where using `autogenerate: {m, f, a}` in `@primary_key` definition causes an error
+- Implement `@primary_key_meta` that specify a primary key meta info for migration
+
 ## 1.2.0
 
 - Implement `Yacto.XA.rollback/2`

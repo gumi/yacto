@@ -156,4 +156,21 @@ defmodule MigratorTest do
     bigint = Migrator.Repo1.insert!(bigint)
     assert [bigint] == Migrator.Repo1.all(Migrator.UnsignedBigInteger)
   end
+
+  test "Migrator.CustomPrimaryKey" do
+    Mix.Task.rerun("ecto.drop")
+    Mix.Task.rerun("ecto.create")
+
+    _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:migrator))
+    _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
+
+    Mix.Task.rerun("yacto.gen.migration", [])
+    Mix.Task.rerun("yacto.migrate", ["--repo", "Migrator.Repo1", "--app", "migrator"])
+
+    pk = String.duplicate("a", 10)
+    record = %Migrator.CustomPrimaryKey{name: "1234"}
+    record = Migrator.Repo1.insert!(record)
+    assert pk == record.id
+    assert [record] == Migrator.Repo1.all(Migrator.CustomPrimaryKey)
+  end
 end

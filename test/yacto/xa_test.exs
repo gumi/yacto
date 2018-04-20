@@ -125,8 +125,12 @@ defmodule Yacto.XATest do
   test "XA Transaction rollback" do
     assert_raise(Yacto.XA.RollbackError, "The transaction is rolled-back. reason: :error", fn ->
       Yacto.XA.transaction([Yacto.XATest.Repo0, Yacto.XATest.Repo1], fn ->
-        {:ok, _player0} = Yacto.XATest.Repo0.insert(%Yacto.XATest.Player{name: "rollfoo", value: 10})
-        {:ok, _player1} = Yacto.XATest.Repo1.insert(%Yacto.XATest.Player{name: "rollbar", value: 20})
+        {:ok, _player0} =
+          Yacto.XATest.Repo0.insert(%Yacto.XATest.Player{name: "rollfoo", value: 10})
+
+        {:ok, _player1} =
+          Yacto.XATest.Repo1.insert(%Yacto.XATest.Player{name: "rollbar", value: 20})
+
         Yacto.XA.rollback(Yacto.XATest.Repo0, :error)
       end)
     end)
@@ -137,8 +141,11 @@ defmodule Yacto.XATest do
     assert player1 == nil
 
     Yacto.XA.transaction([Yacto.XATest.Repo0, Yacto.XATest.Repo1], fn ->
-      {:ok, _player0} = Yacto.XATest.Repo0.insert(%Yacto.XATest.Player{name: "rollfoo", value: 10})
-      {:ok, _player1} = Yacto.XATest.Repo1.insert(%Yacto.XATest.Player{name: "rollbar", value: 20})
+      {:ok, _player0} =
+        Yacto.XATest.Repo0.insert(%Yacto.XATest.Player{name: "rollfoo", value: 10})
+
+      {:ok, _player1} =
+        Yacto.XATest.Repo1.insert(%Yacto.XATest.Player{name: "rollbar", value: 20})
     end)
 
     player0 = Yacto.XATest.Player |> Ecto.Query.where(name: "rollfoo") |> Yacto.XATest.Repo0.one()

@@ -143,7 +143,7 @@ defmodule Yacto.Migration.Structure do
     # get types
     types =
       for field <- schema.__schema__(:fields), into: %{} do
-        # use specified migration type if :type defined in meta
+        # use specified migration type if :type is defined in meta
         result =
           if function_exported?(schema, :__meta__, 1) do
             types = schema.__meta__(:types)
@@ -155,6 +155,7 @@ defmodule Yacto.Migration.Structure do
         type =
           case result do
             :error ->
+              # resolve ecto type if :type is not defined
               type = schema.__schema__(:type, field)
               type = Ecto.Type.type(type)
               type

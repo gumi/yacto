@@ -40,6 +40,7 @@ defmodule Yacto.Schema do
       import Yacto.Schema, only: [schema: 2]
 
       @primary_key nil
+      @primary_key_meta %{}
       @timestamps_opts []
       @foreign_key_type :id
       @schema_prefix nil
@@ -67,6 +68,17 @@ defmodule Yacto.Schema do
     quote do
       import Yacto.Schema
       unquote(block)
+
+      for {name, meta} <- @primary_key_meta do
+        for {key, value} <- meta, key in [:size, :default] do
+          new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
+          @yacto_attrs Map.put(@yacto_attrs, name, new_value)
+        end
+
+        for {key, value} <- meta, key == :type do
+          @yacto_types Map.put(@yacto_types, name, value)
+        end
+      end
 
       @yacto_primary_key @primary_key
       @yacto_timestamps_opts @timestamps_opts
