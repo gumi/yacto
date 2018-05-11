@@ -152,7 +152,27 @@ defmodule Yacto.Schema do
 
   defmacro timestamps(opts \\ []) do
     quote bind_quoted: [opts: opts] do
-      @yacto_orig_calls [{Ecto.Schema, :timestamps, [opts]} | @yacto_orig_calls]
+      default_opts = [inserted_at: :inserted_at, updated_at: :updated_at, type: :naive_datetime, usec: true]
+      opts = default_opts |> Keyword.merge(@timestamps_opts) |> Keyword.merge(opts)
+      {meta, opts} = Keyword.pop(opts, :meta, [])
+
+      fields = [opts[:inserted_at], opts[:updated_at]] |> Enum.filter(&(&1 != nil))
+      for name <- fields do
+        for {key, value} <- meta, key in [:null, :size, :default] do
+          new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
+          @yacto_attrs Map.put(@yacto_attrs, name, new_value)
+        end
+
+        for {key, value} <- meta, key == :index do
+          @yacto_indices Map.put(@yacto_indices, {[name], []}, value)
+        end
+
+        for {key, value} <- meta, key == :type do
+          @yacto_types Map.put(@yacto_types, name, value)
+        end
+      end
+
+      @yacto_orig_calls [{Ecto.Schema, :timestamps, [Enum.map(opts, &Macro.escape/1)]} | @yacto_orig_calls]
     end
   end
 end

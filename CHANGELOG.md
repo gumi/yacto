@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- `timestamps/1` can be had `:meta`
+
 ## 1.2.1
 
 - Fix an issue where using `autogenerate: {m, f, a}` in `@primary_key` definition causes an error
