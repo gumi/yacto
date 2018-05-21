@@ -3,6 +3,7 @@ defmodule Yacto.Migration.Structure do
             prefix: nil,
             primary_key: [:id],
             fields: [:id],
+            field_sources: %{id: :id},
             types: %{id: :id},
             associations: [],
             embeds: [],
@@ -76,17 +77,35 @@ defmodule Yacto.Migration.Structure do
     #   types: %{id: :id, name: :string, value: :integer}
     # }
     source = once_difference(structure_from.source, structure_to.source)
-    fields = List.myers_difference(structure_from.fields, structure_to.fields)
+    from_fields = Enum.map(structure_from.fields, &structure_from.field_sources[&1])
+    to_fields = Enum.map(structure_to.fields, &structure_to.field_sources[&1])
+    fields = List.myers_difference(from_fields, to_fields)
     primary_key = List.myers_difference(structure_from.primary_key, structure_to.primary_key)
 
     autogenerate_id =
       once_difference(structure_from.autogenerate_id, structure_to.autogenerate_id)
 
-    types = map_difference(structure_from.types, structure_to.types)
+    from_types = structure_from.types |> Enum.map(fn {f, t} -> {Map.fetch!(structure_from.field_sources, f), t} end) |> Enum.into(%{})
+    to_types = structure_to.types |> Enum.map(fn {f, t} -> {Map.fetch!(structure_to.field_sources, f), t} end) |> Enum.into(%{})
+    types = map_difference(from_types, to_types)
 
+    from_attrs = structure_from.meta.attrs |> Enum.map(fn {f, t} -> {Map.fetch!(structure_from.field_sources, f), t} end) |> Enum.into(%{})
+    to_attrs = structure_to.meta.attrs |> Enum.map(fn {f, t} -> {Map.fetch!(structure_to.field_sources, f), t} end) |> Enum.into(%{})
+    from_indices =
+      structure_from.meta.indices
+      |> Enum.map(fn {{fields, opts}, value} ->
+        {{Enum.map(fields, &Map.fetch!(structure_from.field_sources, &1)), opts}, value}
+      end)
+      |> Enum.into(%{})
+    to_indices =
+      structure_to.meta.indices
+      |> Enum.map(fn {{fields, opts}, value} ->
+        {{Enum.map(fields, &Map.fetch!(structure_to.field_sources, &1)), opts}, value}
+      end)
+      |> Enum.into(%{})
     meta = %{
-      attrs: map_difference(structure_from.meta.attrs, structure_to.meta.attrs),
-      indices: map_difference(structure_from.meta.indices, structure_to.meta.indices)
+      attrs: map_difference(from_attrs, to_attrs),
+      indices: map_difference(from_indices, to_indices)
     }
 
     %{
@@ -138,7 +157,7 @@ defmodule Yacto.Migration.Structure do
   end
 
   def from_schema(schema) do
-    keys = struct(__MODULE__) |> Map.drop([:__struct__, :meta, :types]) |> Map.keys()
+    keys = struct(__MODULE__) |> Map.drop([:__struct__, :meta, :types, :field_sources]) |> Map.keys()
     fields = keys |> Enum.map(fn key -> {key, schema.__schema__(key)} end)
     # get types
     types =
@@ -168,6 +187,14 @@ defmodule Yacto.Migration.Structure do
       end
 
     fields = [{:types, types} | fields]
+
+    # get field_sources
+    field_sources =
+      for field <- schema.__schema__(:fields), into: %{} do
+        {field, schema.__schema__(:field_source, field)}
+      end
+
+    fields = [{:field_sources, field_sources} | fields]
 
     st = struct(__MODULE__, fields)
 

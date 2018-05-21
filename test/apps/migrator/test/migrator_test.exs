@@ -50,7 +50,7 @@ defmodule MigratorTest do
       `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
       `value` varchar(255) DEFAULT NULL,
       `name3` varchar(100) NOT NULL DEFAULT 'hage',
-      `text` text NOT NULL,
+      `text_data` text NOT NULL,
       PRIMARY KEY (`id`),
       UNIQUE KEY `name3_value_index` (`name3`,`value`),
       KEY `value_name3_index` (`value`,`name3`)

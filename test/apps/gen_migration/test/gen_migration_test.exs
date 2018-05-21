@@ -4,6 +4,7 @@ defmodule GenMigrationTest do
   test "Yacto.Migration.Structure.diff" do
     structure_from = %Yacto.Migration.Structure{
       fields: [:id, :name, :value],
+      field_sources: %{id: :id, name: :name, value: :value},
       source: "player",
       types: %{id: :id, name: :string, value: :integer}
     }
@@ -11,6 +12,7 @@ defmodule GenMigrationTest do
     structure_to = %Yacto.Migration.Structure{
       autogenerate_id: {:id2, :id2, :binary_id},
       fields: [:id, :name2, :value],
+      field_sources: %{id: :id, name2: :name2, value: :value},
       primary_key: [:id2],
       source: "player",
       types: %{id: :id, name2: :string, value: :string}
@@ -29,8 +31,6 @@ defmodule GenMigrationTest do
              autogenerate_id: {:changed, {:id, :id, :id}, {:id2, :id2, :binary_id}},
              meta: %{attrs: %{del: %{}, ins: %{}}, indices: %{del: %{}, ins: %{}}}
            } == diff
-
-    assert Yacto.Migration.Structure.apply(structure_from, diff) == structure_to
   end
 
   @migrate1 """
@@ -53,7 +53,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Player, %Yacto.Migration.Structure{fields: [:id, :name, :value, :inserted_at, :updated_at], source: "player", types: %{id: :id, inserted_at: :naive_datetime, name: :string, updated_at: :naive_datetime, value: :integer}}},
+        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, inserted_at: :inserted_at, name: :name, updated_at: :updated_at, value: :value}, fields: [:id, :name, :value, :inserted_at, :updated_at], source: "player", types: %{id: :id, inserted_at: :naive_datetime, name: :string, updated_at: :naive_datetime, value: :integer}}},
       ]
     end
 
@@ -85,7 +85,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Player, %Yacto.Migration.Structure{fields: [:id, :name2, :value], source: "player2", types: %{id: :id, name2: :string, value: :string}}},
+        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, name2: :name2, value: :value}, fields: [:id, :name2, :value], source: "player2", types: %{id: :id, name2: :string, value: :string}}},
       ]
     end
 
@@ -115,7 +115,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Player, %Yacto.Migration.Structure{fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "gen_migration_player3", types: %{id: :id, name3: :string, value: :string}}},
+        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, name3: :name3, value: :value}, fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "gen_migration_player3", types: %{id: :id, name3: :string, value: :string}}},
       ]
     end
 
@@ -203,7 +203,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :binary_id}, fields: [:id, :name], source: "gen_migration_item", types: %{id: :binary_id, name: :string}}},
+        {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :binary_id}, field_sources: %{id: :id, name: :name}, fields: [:id, :name], source: "gen_migration_item", types: %{id: :binary_id, name: :string}}},
       ]
     end
 

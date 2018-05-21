@@ -29,7 +29,7 @@ defmodule Migrator.Player3 do
   schema @auto_source do
     field(:name3, :string, default: "hage", meta: [null: false, size: 100])
     field(:value, :string)
-    field(:text, :string, meta: [type: :text, null: false])
+    field(:text, :string, source: :text_data, meta: [type: :text, null: false])
     index([:value, :name3])
     index([:name3, :value], unique: true)
   end
