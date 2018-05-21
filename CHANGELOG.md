@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3
+
+- Fix a migration error is occured when using `:source` in field
+
 ## 1.2.2
 
 - `timestamps/1` can be had `:meta`
