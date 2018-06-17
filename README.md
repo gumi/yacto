@@ -298,7 +298,7 @@ The options that can be specified are as follows.
 
 - `:null`: Whether the field is nullable (`true` by default)
 - `:size`: The size of the string (It is used like `VARCHAR (<size>)`) (`255` by default)
-- `:default`: Default value for that field (the initial value of each type by default)
+- `:default`: Default value for that field (`opts[:default]` or the initial value of each type by default)
 - `:index`: Whether to index in this field (`false` by default)
 - `:type`: Specify the type at migration (type specified by `field/3` by default)
 

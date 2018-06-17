@@ -10,22 +10,22 @@ defmodule Yacto.DB do
   def repos(dbname) do
     config = get_config(dbname)
     mod = config.module
-    mod.repos(config)
+    mod.repos(dbname)
   end
 
   def repo(dbname, dbkey \\ nil) do
     config = get_config(dbname)
     mod = config.module
-    mod.repo(config, dbkey)
+    mod.repo(dbname, dbkey)
   end
 
   def all_repos() do
     databases = Application.fetch_env!(:yacto, :databases)
 
     repos =
-      for {_dbname, config} <- databases do
+      for {dbname, config} <- databases do
         mod = config.module
-        mod.repos(config)
+        mod.repos(dbname)
       end
 
     repos |> List.flatten() |> Enum.sort() |> Enum.dedup()

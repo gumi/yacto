@@ -41,6 +41,7 @@ defmodule Yacto.Mixfile do
       {:db_connection, "~> 1.1"},
       {:mariaex, "~> 0.8.4"},
       {:uuid, "~> 1.1"},
+      {:memoize, "~> 1.2"},
       {:power_assert, "~> 0.1.1", only: :test}
     ]
   end
