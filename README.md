@@ -341,6 +341,12 @@ Return the number of elements filtered by `Ecto.Query.where`.
 
 Return elements filtered by `Ecto.Query.where`.
 
+- `def delete_by(queryable, clauses, opts \\ [])`
+- `def delete_by!(queryable, clauses, opts \\ [])`
+
+Delete elements filtered by `Ecto.Query.where`.
+`delete_by!/3` throws `Ecto.NoResultsError` when the deleted count is 0.
+
 - `find_for_update(queryable, clauses, opts \\ [])`
 - `get_for_update(queryable, id, opts \\ [])`
 - `get_for_update!(queryable, id, opts \\ [])`
