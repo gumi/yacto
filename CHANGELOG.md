@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5
+
+- Use asdf
+
 ## 1.2.4
 
 - Customize a hashing function for sharding databases
