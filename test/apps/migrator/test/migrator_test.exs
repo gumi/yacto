@@ -173,4 +173,19 @@ defmodule MigratorTest do
     assert pk == record.id
     assert [record] == Migrator.Repo1.all(Migrator.CustomPrimaryKey)
   end
+
+  test "Migrator.Coin" do
+    Mix.Task.rerun("ecto.drop")
+    Mix.Task.rerun("ecto.create")
+
+    _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:migrator))
+    _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
+
+    Mix.Task.rerun("yacto.gen.migration", [])
+    Mix.Task.rerun("yacto.migrate", ["--app", "migrator"])
+
+    record = %Migrator.Coin{}
+    record = Migrator.Repo1.insert!(record)
+    assert record.type == :common_coin
+  end
 end

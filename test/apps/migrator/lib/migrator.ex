@@ -75,6 +75,42 @@ defmodule Migrator.CustomPrimaryKey do
   end
 end
 
+defmodule Migrator.CoinType do
+  @behaviour Ecto.Type
+
+  @impl Ecto.Type
+  def type(), do: :integer
+
+  @impl Ecto.Type
+  def cast(:free_coin), do: {:ok, :free_coin}
+  def cast(:paid_coin), do: {:ok, :paid_coin}
+  def cast(:common_coin), do: {:ok, :common_coin}
+  def cast(_), do: :error
+
+  @impl Ecto.Type
+  def load(0), do: {:ok, :free_coin}
+  def load(1), do: {:ok, :paid_coin}
+  def load(2), do: {:ok, :common_coin}
+  def load(_), do: :error
+
+  @impl Ecto.Type
+  def dump(:free_coin), do: {:ok, 0}
+  def dump(:paid_coin), do: {:ok, 1}
+  def dump(:common_coin), do: {:ok, 2}
+  def dump(_), do: :error
+end
+
+defmodule Migrator.Coin do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname(), do: :default
+
+  schema @auto_source do
+    field(:type, Migrator.CoinType, default: :common_coin, meta: [null: false])
+  end
+end
+
 defmodule Migrator.Repo0 do
   use Ecto.Repo, otp_app: :migrator
 end

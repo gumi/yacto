@@ -120,7 +120,8 @@ defmodule Yacto.Schema do
 
       meta =
         if Keyword.has_key?(opts, :default) and not Keyword.has_key?(meta, :default) do
-          Keyword.put(meta, :default, opts[:default])
+          {:ok, default} = Ecto.Type.dump(type, opts[:default])
+          Keyword.put(meta, :default, default)
         else
           meta
         end

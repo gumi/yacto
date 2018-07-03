@@ -3,6 +3,7 @@
 ## 1.2.5
 
 - Use asdf
+- Fix migration error when using custom Ecto.Type with default value
 
 ## 1.2.4
 
