@@ -35,7 +35,16 @@ defmodule Yacto.Schema do
     quote do
       @behaviour Yacto.Schema
 
-      @auto_source __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
+      @auto_source (
+        case Application.fetch_env(:yacto, :table_name_converter) do
+          :error -> __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
+          {:ok, {regex, replacement}} ->
+            __MODULE__
+            |> Macro.underscore()
+            |> String.replace("/", "_")
+            |> (fn s -> Regex.replace(Regex.compile!(regex), s, replacement) end).()
+        end
+      )
 
       import Yacto.Schema, only: [schema: 2]
 
