@@ -8,12 +8,8 @@ defmodule CustomTableNameTest do
     def change(CustomTableName.Player.Schema.TestData) do
       create table("custom_table_name_player")
       alter table("custom_table_name_player") do
-        add(:name, :string, [default: "hage", null: false, size: 100])
-        add(:text_data, :text, [null: false])
-        add(:value, :string, [])
+        add(:name, :string, [default: "hoge", null: false, size: 100])
       end
-      create index("custom_table_name_player", [:name, :value], [name: "name_value_index", unique: true])
-      create index("custom_table_name_player", [:value, :name], [name: "value_name_index"])
     end
 
     def change(_other) do
@@ -22,7 +18,7 @@ defmodule CustomTableNameTest do
 
     def __migration_structures__() do
       [
-        {CustomTableName.Player.Schema.TestData, %Yacto.Migration.Structure{field_sources: %{id: :id, name: :name, text: :text_data, value: :value}, fields: [:id, :name, :value, :text], meta: %{attrs: %{name: %{default: "hage", null: false, size: 100}, text: %{null: false}}, indices: %{{[:name, :value], [unique: true]} => true, {[:value, :name], []} => true}}, source: "custom_table_name_player", types: %{id: :id, name: :string, text: :text, value: :string}}},
+        {CustomTableName.Player.Schema.TestData, %Yacto.Migration.Structure{field_sources: %{id: :id, name: :name}, fields: [:id, :name], meta: %{attrs: %{name: %{default: "hoge", null: false, size: 100}}, indices: %{}}, source: "custom_table_name_player", types: %{id: :id, name: :string}}},
       ]
     end
 

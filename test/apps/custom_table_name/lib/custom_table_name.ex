@@ -4,23 +4,17 @@ defmodule CustomTableName.Player.Schema.TestData do
   def dbname(), do: :player
 
   schema @auto_source do
-    field(:name, :string, default: "hage", meta: [null: false, size: 100])
-    field(:value, :string)
-    field(:text, :string, source: :text_data, meta: [type: :text, null: false])
-    index([:value, :name])
-    index([:name, :value], unique: true)
+    field(:name, :string, default: "hoge", meta: [null: false, size: 100])
   end
 end
 
-defmodule CustomTableName.Item do
+defmodule CustomTableName.Player.Unmatch.TestData do
   use Yacto.Schema
 
-  def dbname(), do: :default
-
-  @primary_key {:id, :binary_id, autogenerate: true}
+  def dbname(), do: :player
 
   schema @auto_source do
-    field(:name, :string, meta: [null: false])
+    field(:name, :string, default: "hoge", meta: [null: false, size: 100])
   end
 end
 
