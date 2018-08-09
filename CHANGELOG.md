@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.6
+
+- Implement table name converter
+
 ## 1.2.5
 
 - Use asdf
