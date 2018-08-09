@@ -35,23 +35,25 @@ defmodule Yacto.Schema do
     quote do
       @behaviour Yacto.Schema
 
-      @auto_source (
-        case Application.fetch_env(:yacto, :table_name_converter) do
-          :error -> __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
-          {:ok, {regex, replacement}} ->
-            r = Regex.compile!(regex)
-            module_name =
-              __MODULE__
-              |> Macro.underscore()
-              |> String.replace("/", "_")
+      @auto_source (case Application.fetch_env(:yacto, :table_name_converter) do
+                      :error ->
+                        __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
 
-              unless Regex.match?(r, module_name) do
-                raise MatchError, term: "module_name #{module_name} is unmatched pattern: #{inspect(r)}"
-              end
+                      {:ok, {regex, replacement}} ->
+                        r = Regex.compile!(regex)
 
-            Regex.replace(r, module_name, replacement)
-        end
-      )
+                        module_name =
+                          __MODULE__
+                          |> Macro.underscore()
+                          |> String.replace("/", "_")
+
+                        unless Regex.match?(r, module_name) do
+                          term = "module_name #{module_name} is unmatched pattern: #{inspect(r)}"
+                          raise MatchError, term: term
+                        end
+
+                        Regex.replace(r, module_name, replacement)
+                    end)
 
       import Yacto.Schema, only: [schema: 2]
 

@@ -7,4 +7,3 @@ defmodule CustomTableName.Player.Schema.TestData do
     field(:name, :string, default: "hoge", meta: [null: false, size: 100])
   end
 end
-
