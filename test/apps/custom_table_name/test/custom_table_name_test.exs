@@ -37,4 +37,18 @@ defmodule CustomTableNameTest do
     source = Yacto.Migration.GenMigration.generate_source(CustomTableName, v1, 20_170_424_155_528)
     assert @migrate == source
   end
+
+  test "Yacto.Migration.GenMigration generate_source with unmatched regex." do
+    assert_raise MatchError, "no match of right hand side value: \"module_name custom_table_name_test_custom_table_name_player_unmatch_test_data is unmatched pattern: ~r/^(.*)_schema(.*)_test_data/\"", fn ->
+      defmodule CustomTableName.Player.Unmatch.TestData do
+        use Yacto.Schema
+      
+        def dbname(), do: :player
+      
+        schema @auto_source do
+          field(:name, :string, default: "hoge", meta: [null: false, size: 100])
+        end
+      end
+    end
+  end
 end
