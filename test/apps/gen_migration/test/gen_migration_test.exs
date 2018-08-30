@@ -100,13 +100,13 @@ defmodule GenMigrationTest do
     use Ecto.Migration
 
     def change(GenMigration.Player) do
-      rename table("player2"), to: table("gen_migration_player3")
-      alter table("gen_migration_player3") do
+      rename table("player2"), to: table("genmigration_player3")
+      alter table("genmigration_player3") do
         remove(:name2)
         add(:name3, :string, [null: false, size: 100])
       end
-      create index("gen_migration_player3", [:name3, :value], [name: "name3_value_index", unique: true])
-      create index("gen_migration_player3", [:value, :name3], [name: "value_name3_index"])
+      create index("genmigration_player3", [:name3, :value], [name: "name3_value_index", unique: true])
+      create index("genmigration_player3", [:value, :name3], [name: "value_name3_index"])
     end
 
     def change(_other) do
@@ -115,7 +115,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, name3: :name3, value: :value}, fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "gen_migration_player3", types: %{id: :id, name3: :string, value: :string}}},
+        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, name3: :name3, value: :value}, fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "genmigration_player3", types: %{id: :id, name3: :string, value: :string}}},
       ]
     end
 
@@ -130,7 +130,7 @@ defmodule GenMigrationTest do
     use Ecto.Migration
 
     def change(GenMigration.Player) do
-      drop table("gen_migration_player3")
+      drop table("genmigration_player3")
     end
 
     def change(_other) do
@@ -185,12 +185,12 @@ defmodule GenMigrationTest do
     use Ecto.Migration
 
     def change(GenMigration.Item) do
-      create table("gen_migration_item")
-      alter table("gen_migration_item") do
+      create table("genmigration_item")
+      alter table("genmigration_item") do
         add(:_gen_migration_dummy, :integer, [])
         remove(:id)
       end
-      alter table("gen_migration_item") do
+      alter table("genmigration_item") do
         remove(:_gen_migration_dummy)
         add(:id, :binary_id, [primary_key: true, autogenerate: true])
         add(:name, :string, [])
@@ -203,7 +203,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :binary_id}, field_sources: %{id: :id, name: :name}, fields: [:id, :name], source: "gen_migration_item", types: %{id: :binary_id, name: :string}}},
+        {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :binary_id}, field_sources: %{id: :id, name: :name}, fields: [:id, :name], source: "genmigration_item", types: %{id: :binary_id, name: :string}}},
       ]
     end
 

@@ -13,7 +13,7 @@ defmodule Yacto.Migration.SchemaTest do
   end
 
   test "use EctoSchema" do
-    assert "yacto_migration_schema_test_schema" == Schema.__schema__(:source)
+    assert "yacto_migration_schematest_schema" == Schema.__schema__(:source)
   end
 
   defmodule TestMeta do
