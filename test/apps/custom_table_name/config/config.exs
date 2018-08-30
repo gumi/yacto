@@ -23,4 +23,4 @@ config :yacto, :databases, %{
   player: %{module: Yacto.DB.Shard, repos: [CustomTableName.Repo0, CustomTableName.Repo1]}
 }
 
-config :yacto, table_name_converter: {"^(.*)_schema(.*)_test_data", "\\1\\2"}
+config :yacto, table_name_converter: {"^(.*)_schema(.*)_testdata", "\\1\\2"}

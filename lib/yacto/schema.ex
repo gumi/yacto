@@ -37,7 +37,10 @@ defmodule Yacto.Schema do
 
       @auto_source (case Application.fetch_env(:yacto, :table_name_converter) do
                       :error ->
-                        __MODULE__ |> Macro.underscore() |> String.replace("/", "_")
+                        __MODULE__
+                        |> Macro.underscore()
+                        |> String.replace("_", "")
+                        |> String.replace("/", "_")
 
                       {:ok, {regex, replacement}} ->
                         r = Regex.compile!(regex)
@@ -45,6 +48,7 @@ defmodule Yacto.Schema do
                         module_name =
                           __MODULE__
                           |> Macro.underscore()
+                          |> String.replace("_", "")
                           |> String.replace("/", "_")
 
                         unless Regex.match?(r, module_name) do

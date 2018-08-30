@@ -6,8 +6,8 @@ defmodule CustomTableNameTest do
     use Ecto.Migration
 
     def change(CustomTableName.Player.Schema.TestData) do
-      create table("custom_table_name_player")
-      alter table("custom_table_name_player") do
+      create table("customtablename_player")
+      alter table("customtablename_player") do
         add(:name, :string, [default: "hoge", null: false, size: 100])
       end
     end
@@ -18,7 +18,7 @@ defmodule CustomTableNameTest do
 
     def __migration_structures__() do
       [
-        {CustomTableName.Player.Schema.TestData, %Yacto.Migration.Structure{field_sources: %{id: :id, name: :name}, fields: [:id, :name], meta: %{attrs: %{name: %{default: "hoge", null: false, size: 100}}, indices: %{}}, source: "custom_table_name_player", types: %{id: :id, name: :string}}},
+        {CustomTableName.Player.Schema.TestData, %Yacto.Migration.Structure{field_sources: %{id: :id, name: :name}, fields: [:id, :name], meta: %{attrs: %{name: %{default: "hoge", null: false, size: 100}}, indices: %{}}, source: "customtablename_player", types: %{id: :id, name: :string}}},
       ]
     end
 
@@ -41,8 +41,8 @@ defmodule CustomTableNameTest do
   test "Yacto.Migration.GenMigration generate_source with unmatched regex." do
     message =
       "no match of right hand side value: " <>
-        "\"module_name custom_table_name_test_custom_table_name_player_unmatch_test_data is unmatched pattern: " <>
-        "~r/^(.*)_schema(.*)_test_data/\""
+        "\"module_name customtablenametest_customtablename_player_unmatch_testdata is unmatched pattern: " <>
+        "~r/^(.*)_schema(.*)_testdata/\""
 
     assert_raise(
       MatchError,
