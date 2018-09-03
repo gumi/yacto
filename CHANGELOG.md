@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-pre.0
+
+### Breaking Changes
+
+- Remove default `@primary_key` in `Yacto.Schema`
+- Change convertion rule `@auto_source`
+  - `App.Model.FooBar`: `app_model_foo_bar` in 1.x, `app_model_foobar` in 2.x.
+
 ## 1.2.6
 
 - Implement table name converter
