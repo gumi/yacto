@@ -48,7 +48,7 @@ defmodule Yacto.QueryTest.Player.Migration do
 
   def change() do
     create table(:xa_player, primary_key: false) do
-      add(:id, :binary_id, autogenerate: true, primary_key: true)
+      add(:id, :serial, primary_key: true)
       add(:name, :string, null: false)
       add(:value, :integer, null: false)
       timestamps()
