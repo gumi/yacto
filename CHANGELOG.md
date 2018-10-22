@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0-pre.1
+
+- Using Ecto 3.0.0-rc.1
+- Update dependencies
+
 ## 2.0.0-pre.0
 
 ### Breaking Changes
