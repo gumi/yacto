@@ -3,6 +3,7 @@
 ## 2.0.0-pre.1
 
 - Using Ecto 3.0.0-rc.1
+- Using Elixir 1.7
 - Update dependencies
 
 ## 2.0.0-pre.0
