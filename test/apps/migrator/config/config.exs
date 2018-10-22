@@ -3,7 +3,6 @@ use Mix.Config
 config :migrator, :ecto_repos, [Migrator.Repo0, Migrator.Repo1]
 
 config :migrator, Migrator.Repo0,
-  adapter: Ecto.Adapters.MySQL,
   database: "migrator_repo0",
   username: "root",
   password: "",
@@ -11,7 +10,6 @@ config :migrator, Migrator.Repo0,
   port: "3306"
 
 config :migrator, Migrator.Repo1,
-  adapter: Ecto.Adapters.MySQL,
   database: "migrator_repo1",
   username: "root",
   password: "",

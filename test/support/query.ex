@@ -1,15 +1,15 @@
 defmodule Yacto.QueryTest.Repo.Default do
-  use Ecto.Repo, otp_app: :yacto
+  use Ecto.Repo, otp_app: :yacto, adapter: Ecto.Adapters.MySQL
   use Yacto.Repo.Helper
 end
 
 defmodule Yacto.QueryTest.Repo.Player0 do
-  use Ecto.Repo, otp_app: :yacto
+  use Ecto.Repo, otp_app: :yacto, adapter: Ecto.Adapters.MySQL
   use Yacto.Repo.Helper
 end
 
 defmodule Yacto.QueryTest.Repo.Player1 do
-  use Ecto.Repo, otp_app: :yacto
+  use Ecto.Repo, otp_app: :yacto, adapter: Ecto.Adapters.MySQL
   use Yacto.Repo.Helper
 end
 

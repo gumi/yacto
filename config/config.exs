@@ -12,7 +12,6 @@ config :yacto,
   ]
 
 config :yacto, Yacto.XATest.Repo0,
-  adapter: Ecto.Adapters.MySQL,
   database: "yact_xa_repo0",
   username: "root",
   password: "",
@@ -20,7 +19,6 @@ config :yacto, Yacto.XATest.Repo0,
   port: "3306"
 
 config :yacto, Yacto.XATest.Repo1,
-  adapter: Ecto.Adapters.MySQL,
   database: "yact_xa_repo1",
   username: "root",
   password: "",
@@ -28,7 +26,6 @@ config :yacto, Yacto.XATest.Repo1,
   port: "3306"
 
 config :yacto, Yacto.QueryTest.Repo.Default,
-  adapter: Ecto.Adapters.MySQL,
   database: "yact_query_repo_default",
   username: "root",
   password: "",
@@ -36,7 +33,6 @@ config :yacto, Yacto.QueryTest.Repo.Default,
   port: "3306"
 
 config :yacto, Yacto.QueryTest.Repo.Player0,
-  adapter: Ecto.Adapters.MySQL,
   database: "yact_query_repo_player0",
   username: "root",
   password: "",
@@ -44,7 +40,6 @@ config :yacto, Yacto.QueryTest.Repo.Player0,
   port: "3306"
 
 config :yacto, Yacto.QueryTest.Repo.Player1,
-  adapter: Ecto.Adapters.MySQL,
   database: "yact_query_repo_player1",
   username: "root",
   password: "",

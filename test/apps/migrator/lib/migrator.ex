@@ -112,9 +112,9 @@ defmodule Migrator.Coin do
 end
 
 defmodule Migrator.Repo0 do
-  use Ecto.Repo, otp_app: :migrator
+  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MySQL
 end
 
 defmodule Migrator.Repo1 do
-  use Ecto.Repo, otp_app: :migrator
+  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MySQL
 end

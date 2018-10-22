@@ -36,13 +36,13 @@ defmodule Yacto.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ecto, "~> 2.2"},
-      {:ex_doc, "~> 0.18.3", only: :dev, runtime: false},
-      {:db_connection, "~> 1.1"},
-      {:mariaex, "~> 0.8.4"},
+      {:ecto, "~> 3.0.0-rc.1"},
+      {:ecto_sql, "~> 3.0.0-rc.0"},
+      {:ex_doc, "~> 0.19.1", only: :dev, runtime: false},
+      {:mariaex, "~> 0.9.0-rc.0"},
       {:uuid, "~> 1.1"},
       {:memoize, "~> 1.2"},
-      {:power_assert, "~> 0.1.1", only: :test}
+      {:power_assert, "~> 0.1.2", only: :test}
     ]
   end
 end

@@ -1,7 +1,6 @@
 use Mix.Config
 
 config :sharding, Sharding.Repo.Default,
-  adapter: Ecto.Adapters.MySQL,
   database: "sharding_default",
   username: "root",
   password: "",
@@ -13,7 +12,6 @@ mods =
     mod = Module.concat(Sharding.Repo, "Player#{n}")
 
     config :sharding, mod,
-      adapter: Ecto.Adapters.MySQL,
       database: "sharding_repo_player#{n}",
       username: "root",
       password: "",

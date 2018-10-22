@@ -3,7 +3,6 @@ use Mix.Config
 config :custom_table_name, :ecto_repos, [CustomTableName.Repo0, CustomTableName.Repo1]
 
 config :custom_table_name, CustomTableName.Repo0,
-  adapter: Ecto.Adapters.MySQL,
   database: "custom_table_name_repo0",
   username: "root",
   password: "",
@@ -11,7 +10,6 @@ config :custom_table_name, CustomTableName.Repo0,
   port: "3306"
 
 config :custom_table_name, CustomTableName.Repo1,
-  adapter: Ecto.Adapters.MySQL,
   database: "custom_table_name_repo1",
   username: "root",
   password: "",

@@ -7,7 +7,6 @@ config :migration_router, :ecto_repos, [
 ]
 
 config :migration_router, MigrationRouter.Repo.Default,
-  adapter: Ecto.Adapters.MySQL,
   database: "migration_router_default",
   username: "root",
   password: "",
@@ -15,7 +14,6 @@ config :migration_router, MigrationRouter.Repo.Default,
   port: "3306"
 
 config :migration_router, MigrationRouter.Repo.Player1,
-  adapter: Ecto.Adapters.MySQL,
   database: "migration_router_player1",
   username: "root",
   password: "",
@@ -23,7 +21,6 @@ config :migration_router, MigrationRouter.Repo.Player1,
   port: "3306"
 
 config :migration_router, MigrationRouter.Repo.Player2,
-  adapter: Ecto.Adapters.MySQL,
   database: "migration_router_player2",
   username: "root",
   password: "",

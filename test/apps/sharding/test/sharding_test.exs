@@ -3,11 +3,11 @@ defmodule ShardingTest do
 
   test "config" do
     assert [
+             telemetry_prefix: [:sharding, :repo, :player0],
              otp_app: :sharding,
-             repo: Sharding.Repo.Player0,
              timeout: 15000,
              pool_timeout: 5000,
-             adapter: Ecto.Adapters.MySQL,
+             pool_size: 10,
              database: "sharding_repo_player0",
              username: "root",
              password: "",
@@ -16,11 +16,11 @@ defmodule ShardingTest do
            ] == Sharding.Repo.Player0.config()
 
     assert [
+             telemetry_prefix: [:sharding, :repo, :player1],
              otp_app: :sharding,
-             repo: Sharding.Repo.Player1,
              timeout: 15000,
              pool_timeout: 5000,
-             adapter: Ecto.Adapters.MySQL,
+             pool_size: 10,
              database: "sharding_repo_player1",
              username: "root",
              password: "",
@@ -29,11 +29,11 @@ defmodule ShardingTest do
            ] == Sharding.Repo.Player1.config()
 
     assert [
+             telemetry_prefix: [:sharding, :repo, :default],
              otp_app: :sharding,
-             repo: Sharding.Repo.Default,
              timeout: 15000,
              pool_timeout: 5000,
-             adapter: Ecto.Adapters.MySQL,
+             pool_size: 10,
              database: "sharding_default",
              username: "root",
              password: "",

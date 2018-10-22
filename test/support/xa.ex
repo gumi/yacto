@@ -1,9 +1,9 @@
 defmodule Yacto.XATest.Repo0 do
-  use Ecto.Repo, otp_app: :yacto
+  use Ecto.Repo, otp_app: :yacto, adapter: Ecto.Adapters.MySQL
 end
 
 defmodule Yacto.XATest.Repo1 do
-  use Ecto.Repo, otp_app: :yacto
+  use Ecto.Repo, otp_app: :yacto, adapter: Ecto.Adapters.MySQL
 end
 
 defmodule Yacto.XATest.Player do
