@@ -7,6 +7,11 @@ defmodule Yacto.XATest do
     :result = Yacto.XA.transaction([Yacto.XATest.Repo1], fn -> :result end)
   end
 
+  test "Multi Transaction without XA" do
+    :result =
+      Yacto.XA.transaction([Yacto.XATest.Repo0, Yacto.XATest.Repo1], fn -> :result end, noxa: true)
+  end
+
   test "XA Transaction" do
     Yacto.XA.transaction([Yacto.XATest.Repo0, Yacto.XATest.Repo1], fn ->
       {:ok, _player0} = Yacto.XATest.Repo0.insert(%Yacto.XATest.Player{name: "foo", value: 10})
@@ -119,6 +124,18 @@ defmodule Yacto.XATest do
       Yacto.XA.transaction([Yacto.XATest.Repo1], fn ->
         Yacto.XA.rollback(Yacto.XATest.Repo1, :error)
       end)
+    end)
+  end
+
+  test "Multi Transaction without XA rollback" do
+    assert_raise(Yacto.XA.RollbackError, "The transaction is rolled-back. reason: :error", fn ->
+      Yacto.XA.transaction(
+        [Yacto.XATest.Repo0, Yacto.XATest.Repo1],
+        fn ->
+          Yacto.XA.rollback(Yacto.XATest.Repo1, :error)
+        end,
+        noxa: true
+      )
     end)
   end
 

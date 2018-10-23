@@ -165,19 +165,13 @@ defmodule Yacto.XA do
       raise "repo #{repo} is already in XA transaction."
     end
 
-    # single transaction
-    case repo.transaction(fun, opts) do
-      {:ok, result} ->
-        result
+    # remove :noxa option
+    {_noxa, opts} = Keyword.pop(opts, :noxa, false)
 
-      {:error, reason} ->
-        raise Yacto.XA.RollbackError,
-          message: "The transaction is rolled-back. reason: #{inspect(reason)}",
-          reason: reason
-    end
+    # single transaction
+    do_transaction([repo], fun, opts)
   end
 
-  # two or more repos
   def transaction([_, _ | _] = repos, fun, opts) do
     # XA transaction
 
@@ -194,7 +188,37 @@ defmodule Yacto.XA do
       end
     end
 
-    run_multi(repos, &with_xa(&1, repos, fun), opts, %{})
+    {noxa, opts} = Keyword.pop(opts, :noxa, false)
+
+    if noxa do
+      do_transaction(repos, fun, opts)
+    else
+      run_multi(repos, &with_xa(&1, repos, fun), opts, %{})
+    end
+  end
+
+  defp do_transaction([repo | repos], fun, opts) do
+    result =
+      repo.transaction(
+        fn ->
+          do_transaction(repos, fun, opts)
+        end,
+        opts
+      )
+
+    case result do
+      {:ok, result} ->
+        result
+
+      {:error, reason} ->
+        raise Yacto.XA.RollbackError,
+          message: "The transaction is rolled-back. reason: #{inspect(reason)}",
+          reason: reason
+    end
+  end
+
+  defp do_transaction([], fun, _opts) do
+    fun.()
   end
 
   def rollback(repo, reason) do

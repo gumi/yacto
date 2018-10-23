@@ -257,6 +257,8 @@ end)
 
 `Yacto.transaction/2` raises `Yacto.XA.RollbackError` and all database operations are rolled back.
 
+If you do not want to use XA transaction, you can specify `noxa: true` opts in `Yacto.transaction/3`.
+
 # Details of Yacto Schema
 
 There is a part not yet explained about Yacto's schema, so I will explain it in more detail.
