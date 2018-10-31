@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-pre.3
+
+- Update dependencies
+
 ## 2.0.0-pre.2
 
 - Add `:noxa` option for `Yacto.transaction/3`
