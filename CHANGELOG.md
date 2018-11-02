@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-pre.4
+
+- Fix `get_for_update/3`
+
 ## 2.0.0-pre.3
 
 - Update dependencies
