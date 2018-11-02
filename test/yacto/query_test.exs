@@ -6,14 +6,14 @@ defmodule Yacto.QueryTest do
 
   setup do
     repo_default = Yacto.DB.repo(:default)
-    _item = repo_default.insert!(%Yacto.QueryTest.Item{name: "foo", quantity: 100})
+    item = repo_default.insert!(%Yacto.QueryTest.Item{name: "foo", quantity: 100})
 
     repo_player = Yacto.DB.repo(:player, @player_id)
-    _player = repo_player.insert!(%Yacto.QueryTest.Player{name: "player", value: 1000})
+    player = repo_player.insert!(%Yacto.QueryTest.Player{name: "player", value: 1000})
 
     ExUnit.Callbacks.on_exit(fn -> cleanup() end)
 
-    :ok
+    [item_id: item.id, player_id: player.id]
   end
 
   defp cleanup() do
@@ -21,6 +21,22 @@ defmodule Yacto.QueryTest do
     repo_player = Yacto.DB.repo(:player, @player_id)
     Yacto.QueryTest.Item |> Ecto.Query.where([], true) |> repo_default.delete_all()
     Yacto.QueryTest.Player |> Ecto.Query.where([], true) |> repo_player.delete_all()
+  end
+
+  test "Yacto.Query.get_for_update", context do
+    repo = Yacto.QueryTest.Item.repo()
+    obj = repo.get_for_update!(Yacto.QueryTest.Item, context[:item_id])
+
+    assert obj.id == context[:item_id]
+    assert obj.name == "foo"
+    assert obj.quantity == 100
+
+    repo = Yacto.QueryTest.Player.repo(@player_id)
+    obj = repo.get_for_update!(Yacto.QueryTest.Player, context[:player_id])
+
+    assert obj.id == context[:player_id]
+    assert obj.name == "player"
+    assert obj.value == 1000
   end
 
   test "Yacto.Query.get_by_for_update" do
