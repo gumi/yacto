@@ -213,7 +213,7 @@ defmodule GenMigrationTest do
   end
   """
 
-  test "Yacto.Migration.GenMigrationgenerate_source with dummy." do
+  test "Yacto.Migration.GenMigration generate_source with dummy." do
     v1 = [
       {GenMigration.Item, %Yacto.Migration.Structure{},
        Yacto.Migration.Structure.from_schema(GenMigration.Item)}
@@ -221,5 +221,46 @@ defmodule GenMigrationTest do
 
     source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528)
     assert @migrate5 == source
+  end
+
+  @migrate6 """
+  defmodule GenMigration.Migration20170424155528 do
+    use Ecto.Migration
+
+    def change(GenMigration.ManyIndex) do
+      create table("genmigration_manyindex")
+      alter table("genmigration_manyindex") do
+        add(:aaaaaa, :string, [])
+        add(:bbbbbb, :string, [])
+        add(:cccccc, :string, [])
+        add(:dddddd, :string, [])
+      end
+      create index("genmigration_manyindex", [:aaaaaa, :bbbbbb, :cccccc, :dddddd], [name: "aaaaaa_bbbb_9a4e1a2f"])
+    end
+
+    def change(_other) do
+      :ok
+    end
+
+    def __migration_structures__() do
+      [
+        {GenMigration.ManyIndex, %Yacto.Migration.Structure{field_sources: %{aaaaaa: :aaaaaa, bbbbbb: :bbbbbb, cccccc: :cccccc, dddddd: :dddddd, id: :id}, fields: [:id, :aaaaaa, :bbbbbb, :cccccc, :dddddd], meta: %{attrs: %{}, indices: %{{[:aaaaaa, :bbbbbb, :cccccc, :dddddd], []} => true}}, source: "genmigration_manyindex", types: %{aaaaaa: :string, bbbbbb: :string, cccccc: :string, dddddd: :string, id: :id}}},
+      ]
+    end
+
+    def __migration_version__() do
+      20170424155528
+    end
+  end
+  """
+
+  test "Shrink long index name" do
+    v1 = [
+      {GenMigration.ManyIndex, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(GenMigration.ManyIndex)}
+    ]
+
+    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, index_name_max_length: 20)
+    assert @migrate6 == source
   end
 end

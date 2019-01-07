@@ -24,10 +24,12 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
       {GenMigration.Item, %Yacto.Migration.Structure{},
        Yacto.Migration.Structure.from_schema(GenMigration.Item)},
       {GenMigration.Coin, %Yacto.Migration.Structure{},
-       Yacto.Migration.Structure.from_schema(GenMigration.Coin)}
+       Yacto.Migration.Structure.from_schema(GenMigration.Coin)},
+      {GenMigration.ManyIndex, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(GenMigration.ManyIndex)}
     ]
 
-    expected = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, @migration_version)
+    expected = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, @migration_version, index_name_max_length: 20)
     assert expected == source
 
     # if all schemas are not changed, a migration file is not generated

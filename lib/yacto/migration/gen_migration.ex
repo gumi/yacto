@@ -82,7 +82,7 @@ defmodule Yacto.Migration.GenMigration do
     List.flatten(changes)
   end
 
-  def generate_fields(types, attrs, structure_to) do
+  def generate_fields(types, attrs, structure_to, _migration_opts) do
     ops = convert_fields(types, attrs)
 
     lines =
@@ -127,15 +127,33 @@ defmodule Yacto.Migration.GenMigration do
     List.flatten(lines)
   end
 
-  defp create_index_name(fields) do
-    [fields, "index"]
-    |> List.flatten()
-    |> Enum.join("_")
-    |> String.replace(~r"[^\w_]", "_")
-    |> String.replace("__", "_")
+  defp create_index_name(fields, max_length) do
+    # minimum max_length is 10
+    if max_length != :infinity && max_length < 10 do
+      raise "Invalid max_length: #{max_length}"
+    end
+
+    name =
+      [fields, "index"]
+      |> List.flatten()
+      |> Enum.join("_")
+      |> String.replace(~r"[^\w_]", "_")
+      |> String.replace("__", "_")
+
+    if max_length == :infinity || String.length(name) <= max_length do
+      name
+    else
+      # shrink index name
+      # long_index_name_index -> long_i_cd9351f4 when max_length == 15
+      # long_index_name_index -> long_index__cd9351f4 when max_length == 20
+
+      hash = :crypto.hash(:sha, name) |> Base.encode16(case: :lower) |> String.slice(0, 8)
+      shrinked_name = String.slice(name, 0, max_length - 9)
+      Enum.join([shrinked_name, "_", hash])
+    end
   end
 
-  def generate_indices(indices, structure_to) do
+  def generate_indices(indices, structure_to, migration_opts) do
     xs =
       for {changetype, changes} <- indices do
         case changetype do
@@ -145,7 +163,7 @@ defmodule Yacto.Migration.GenMigration do
                 if Keyword.has_key?(opts, :name) do
                   opts
                 else
-                  [{:name, create_index_name(fields)} | opts]
+                  [{:name, create_index_name(fields, Keyword.get(migration_opts, :index_name_max_length, :infinity))} | opts]
                 end
 
               "drop index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
@@ -157,7 +175,7 @@ defmodule Yacto.Migration.GenMigration do
                 if Keyword.has_key?(opts, :name) do
                   opts
                 else
-                  [{:name, create_index_name(fields)} | opts]
+                  [{:name, create_index_name(fields, Keyword.get(migration_opts, :index_name_max_length, :infinity))} | opts]
                 end
 
               "create index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
@@ -219,7 +237,8 @@ defmodule Yacto.Migration.GenMigration do
         schemas,
         delete_schemas \\ [],
         migration_version \\ nil,
-        migration_dir \\ nil
+        migration_dir \\ nil,
+        opts \\ []
       ) do
     if migration_version != nil do
       Yacto.Migration.Util.validate_version(migration_version)
@@ -254,7 +273,7 @@ defmodule Yacto.Migration.GenMigration do
     migration_version = migration_version || timestamp()
 
     app_prefix = app |> Atom.to_string() |> Macro.camelize() |> String.to_atom()
-    source = generate_source(app_prefix, structure_infos, migration_version)
+    source = generate_source(app_prefix, structure_infos, migration_version, opts)
 
     if source == :not_changed do
       Logger.info("All schemas are not changed. A migration file is not generated.")
@@ -271,7 +290,7 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
-  def generate_source(app_prefix, structure_infos, migration_version) do
+  def generate_source(app_prefix, structure_infos, migration_version, opts \\ []) do
     structure_infos = Enum.sort(structure_infos)
 
     migration_name =
@@ -282,7 +301,7 @@ defmodule Yacto.Migration.GenMigration do
 
     schema_infos =
       for {schema, from, to} <- structure_infos do
-        case generate_lines(from, to) do
+        case generate_lines(from, to, opts) do
           :not_changed -> :not_changed
           lines -> %{schema: schema, lines: lines}
         end
@@ -314,7 +333,7 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
-  defp generate_lines(structure_from, structure_to) do
+  defp generate_lines(structure_from, structure_to, migration_opts) do
     diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
     rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
 
@@ -344,8 +363,8 @@ defmodule Yacto.Migration.GenMigration do
 
             _ ->
               ["alter table(#{inspect(structure_to.source)}) do"] ++
-                generate_fields(diff.types, diff.meta.attrs, structure_to) ++
-                ["end"] ++ generate_indices(diff.meta.indices, structure_to)
+                generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts) ++
+                ["end"] ++ generate_indices(diff.meta.indices, structure_to, migration_opts)
           end
 
       lines

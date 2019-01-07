@@ -383,3 +383,31 @@ config :yacto, table_name_converter: {"^(.*)_foo_models(.*)", "\\1\\2"}
 ```
 
 If this config is set, the `@auto_source` will be `"myapp_bar_player"`.
+
+### Generated index name is too long
+
+Index name is generated automatically from index fields.
+If it is too long, there are two ways.
+
+Specify `:name` opts:
+
+```elixir
+defmodule MyApp.ShortIndex do
+  use Yacto.Schema, dbname: :default
+
+  schema @auto_source do
+    field :too_long_field_name, :string
+    field :too_long_long_long_field_name, :string
+    index [:too_long_field_name, :too_long_long_long_field_name], name: "short_index_name"
+  end
+end
+```
+
+Configure `:index_name_max_length` migration opts:
+
+```elixir
+config :yacto, :migrations,
+  index_name_max_length: 20
+```
+
+If the index name length is longer then `index_name_max_length`, the index name is shrinked and concatenated hashed string.

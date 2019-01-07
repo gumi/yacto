@@ -85,3 +85,20 @@ defmodule GenMigration.Coin do
     index([:player_id, :type_id, :platform], unique: true)
   end
 end
+
+defmodule GenMigration.ManyIndex do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname(), do: :default
+
+  schema @auto_source do
+    field(:aaaaaa, :string)
+    field(:bbbbbb, :string)
+    field(:cccccc, :string)
+    field(:dddddd, :string)
+
+    index([:aaaaaa, :bbbbbb, :cccccc, :dddddd])
+  end
+end
+

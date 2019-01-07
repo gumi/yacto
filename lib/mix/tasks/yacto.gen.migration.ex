@@ -16,7 +16,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
 
         _ = Application.load(app)
         schemas = Yacto.Migration.Util.get_all_schema(app)
-        Yacto.Migration.GenMigration.generate_migration(app, schemas, [], version)
+        Yacto.Migration.GenMigration.generate_migration(app, schemas, [], version, nil, Application.get_env(:yacto, :migration, []))
 
       {_, [_ | _], _} ->
         Mix.raise("Args error")
