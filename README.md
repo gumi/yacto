@@ -406,7 +406,7 @@ end
 Configure `:index_name_max_length` migration opts:
 
 ```elixir
-config :yacto, :migrations,
+config :yacto, :migration,
   index_name_max_length: 20
 ```
 
