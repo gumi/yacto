@@ -25,6 +25,10 @@ defmodule CustomTableNameTest do
     def __migration_version__() do
       20170424155528
     end
+
+    def __migration_preview_version__() do
+      nil
+    end
   end
   """
 
@@ -34,7 +38,7 @@ defmodule CustomTableNameTest do
        Yacto.Migration.Structure.from_schema(CustomTableName.Player.Schema.TestData)}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(CustomTableName, v1, 20_170_424_155_528)
+    source = Yacto.Migration.GenMigration.generate_source(CustomTableName, v1, 20_170_424_155_528, nil)
     assert @migrate == source
   end
 

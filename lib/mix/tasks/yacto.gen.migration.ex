@@ -16,6 +16,15 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
 
         _ = Application.load(app)
         schemas = Yacto.Migration.Util.get_all_schema(app)
+
+        validated = Yacto.Migration.Util.get_migration_files(app) |> Yacto.Migration.Util.load_migrations() |> Yacto.Migration.Util.sort_migrations()
+        case validated do
+          {:error, errors} ->
+            Mix.raise("マイグレーションファイルが不正な状態になっています。:\n----\n" <> Enum.join(errors, "\n----\n"))
+          _ ->
+            :ok
+        end
+
         Yacto.Migration.GenMigration.generate_migration(app, schemas, [], version, nil, Application.get_env(:yacto, :migration, []))
 
       {_, [_ | _], _} ->

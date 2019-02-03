@@ -11,8 +11,7 @@ defmodule Yacto.Migration.Migrator do
 
   defp difference_migration(migrations, versions) do
     migrations
-    |> Enum.filter(fn migration -> !Enum.member?(versions, migration.__migration_version__()) end)
-    |> Enum.sort(fn a, b -> a.__migration_version__() <= b.__migration_version__() end)
+    |> Enum.filter(fn migration -> !Enum.member?(versions, migration.version) end)
   end
 
   @doc """
@@ -24,13 +23,24 @@ defmodule Yacto.Migration.Migrator do
       Can be any of `Logger.level/0` values or `false`.
   """
   def up(app, repo, schemas, migrations, opts \\ []) do
+    sorted_migrations =
+      case Yacto.Migration.Util.sort_migrations(migrations) do
+        {:error, errors} ->
+          for error <- errors do
+            Logger.error(error)
+          end
+          raise inspect(errors)
+        {:ok, sorted_migrations} ->
+          sorted_migrations
+      end
+
     for schema <- schemas do
       if Yacto.Migration.Util.allow_migrate?(schema, repo) do
         versions = migrated_versions(repo, app, schema)
-        need_migrations = difference_migration(migrations, versions)
+        need_migrations = difference_migration(sorted_migrations, versions)
 
         for migration <- need_migrations do
-          do_up(app, repo, schema, migration, opts)
+          do_up(app, repo, schema, migration.module, opts)
         end
       end
     end
