@@ -208,6 +208,10 @@ defmodule Yacto.Migration.GenMigration do
       def __migration_version__() do
         <%= inspect @version %>
       end
+
+      def __migration_preview_version__() do
+        <%= inspect @preview_version %>
+      end
     end
     """
   end
@@ -273,7 +277,7 @@ defmodule Yacto.Migration.GenMigration do
     migration_version = migration_version || timestamp()
 
     app_prefix = app |> Atom.to_string() |> Macro.camelize() |> String.to_atom()
-    source = generate_source(app_prefix, structure_infos, migration_version, opts)
+    source = generate_source(app_prefix, structure_infos, migration_version, migration.__migration_version__(), opts)
 
     if source == :not_changed do
       Logger.info("All schemas are not changed. A migration file is not generated.")
@@ -290,7 +294,7 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
-  def generate_source(app_prefix, structure_infos, migration_version, opts \\ []) do
+  def generate_source(app_prefix, structure_infos, migration_version, migration_preview_version, opts \\ []) do
     structure_infos = Enum.sort(structure_infos)
 
     migration_name =
@@ -327,7 +331,8 @@ defmodule Yacto.Migration.GenMigration do
           migration_name: migration_name,
           schema_infos: schema_infos,
           structures: structures,
-          version: migration_version
+          version: migration_version,
+          preview_version: migration_preview_version
         ]
       )
     end
