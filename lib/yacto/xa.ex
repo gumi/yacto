@@ -1,4 +1,8 @@
 defmodule Yacto.XA do
+  @moduledoc """
+  XA トランザクションを行うためのモジュール
+  """
+
   defmodule RollbackError do
     defexception [:message, :reason]
   end

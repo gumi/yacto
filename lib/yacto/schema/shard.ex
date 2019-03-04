@@ -1,6 +1,8 @@
 defmodule Yacto.Schema.Shard do
   @moduledoc """
-  Horizontal partitioned schema
+  水平分割されたスキーマ
+
+  `Yacto.Schema` とほぼ同じだが、`Yacto.DB.repo(MySchema.dbname(), shard_key)` のショートハンドとして `MySchema.repo(shard_key)` が使える点のみが異なる。
   """
 
   defmacro __using__(opts) do

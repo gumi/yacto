@@ -1,25 +1,22 @@
 # Yacto
 
-[Ecto](https://hexdocs.pm/ecto/Ecto.html) is a very handy library handling databases.
-However, since there were some inconvenient parts to use on our own, I made a library called Yacto.
+Yacto は、[Ecto](https://hexdocs.pm/ecto/Ecto.html) で使いにくかった部分をサポートするためのライブラリです。
 
-[日本語ドキュメントはこちら](https://qiita.com/melpon/items/5c9b0645d5240cd22d0f)
+大まかに以下の機能があります。
 
-# About Yacto
+- マイグレーションファイルの自動生成
+- 別アプリケーションからのマイグレーションの利用
+- 水平分割したデータベースへのマイグレーション
+- 複数データベースを跨るトランザクション（XA トランザクション）
 
-Yacto is a library to support parts that were difficult to use with Ecto.
-It has the following features.
+## マイグレーションファイルの自動生成
 
-- Automatic generation of a migration file
-- Use of migration from another application
-- Migration to a horizontally partitioned database
-- Transaction across multiple databases (XA transaction)
+Yacto は、特にマイグレーション周りが Ecto と異なります。
+Ecto はスキーマとマイグレーションを別で定義していましたが、Yacto は **スキーマからマイグレーションファイルを自動的に出力します**。
 
-## Automatic generation of a migration file
+具体的には、以下の様にスキーマを定義したとして、
 
-Yacto's migration is different from Ecto. Although Ecto defined the schema and migration separately, *Yacto automatically outputs the migration file from the schema*.
-
-Specifically, when the schema is defined as follows,
+lib/my_app/player.ex:
 
 ```elixir
 defmodule MyApp.Player do
@@ -34,7 +31,9 @@ defmodule MyApp.Player do
 end
 ```
 
-If you run `mix yacto.gen.migration` in this state, the following migration file will be output.
+この状態で `mix yacto.gen.migration` を実行すると、以下の様なマイグレーションファイルが出力されます。
+
+priv/migrations/2017-11-22T045225_my_app.exs:
 
 ```elixir
 defmodule MyApp.Migration20171122045225 do
@@ -65,11 +64,12 @@ defmodule MyApp.Migration20171122045225 do
 end
 ```
 
-After that, if you run `mix yacto.migrate` command, this migration file will be applied in the database.
-You are not necessary to write a migration file.
+あとは `mix yacto.migrate` を実行すれば、このマイグレーションファイルがデータベースに反映されます。
+もうマイグレーションファイルを自分で記述する必要はありません。
 
-In addition, in this state, add the `:mp` field to the `MyApp.Player` schema and run `mix yacto.gen.migration`,
-the following migration file is generated.
+更に、この状態で `MyApp.Player` スキーマに `:mp` フィールドを追加して `mix yacto.gen.migration` を実行すると、以下のマイグレーションファイルが生成されます。
+
+lib/my_app/player.ex:
 
 ```elixir
 defmodule MyApp.Player do
@@ -85,6 +85,8 @@ defmodule MyApp.Player do
   end
 end
 ```
+
+priv/migrations/2017-11-22T045225_my_app.exs:
 
 ```elixir
 defmodule MyApp.Migration20171122052212 do
@@ -112,31 +114,30 @@ defmodule MyApp.Migration20171122052212 do
 end
 ```
 
-Only the previous differences are output to the migration file.
-If you run `mix yacto.migrate`, this migration file will be applied in the database.
+このように、以前からの差分だけがマイグレーションファイルに出力されます。
+`mix yacto.migrate` を実行すれば、このマイグレーションファイルがデータベースに反映されます。
 
+もしマイグレーションファイルが１つもデータベースに適用されていなかったら、上記の２つのマイグレーションファイルが順番に適用されます。
 
-If none of the migration files have been applied to the database,
-the above two migration files are applied sequentially.
+### 別アプリケーションからのマイグレーションの利用
 
-## Use of migration from another application
-
-Suppose there is an `other_app` application that uses the `my_app` application we created earlier.
-Since `my_app` uses the database, you need to migrate for `my_app` on `other_app`.
-With Yacto, after writing `config/config.exs`, you can migrate `my_app` just by executing the following command on `other_app`.
+先程作った `my_app` アプリケーションを利用する `other_app` アプリケーションがあったとします。
+`my_app` はデータベース利用しているので、`other_app` 上で `my_app` のためのマイグレーションを行う必要があります。
+Yacto を使えば、`config/config.exs` を適切に書いた後、`other_app` で以下のコマンドを実行するだけで `my_app` のマイグレーションができます。
 
 ```
 mix yacto.migrate --app my_app
 ```
 
-With Ecto, it was necessary to write a migration file myself that other applications needed,
-or to migrate in a different way specified by each application.
-For applications using Yacto, you can migrate all in the same way.
+Ecto では、他のアプリケーションが必要としているマイグレーションを自分で書くか、各アプリケーションが指定したバラバラな方法でマイグレーションを行う必要がありました。
+Yacto を使っているアプリケーションでは、全て同じ方法でマイグレーションができます。
 
-## Migration to a horizontally partitioned database
+### 水平分割したデータベースへのマイグレーション
 
-When partitioning the MyApp.Player schema horizontally, you should apply the migration file of this schema to multiple Repos.
-For that, write it in the configuration file as follows.
+例えば `MyApp.Player` スキーマを水平分割した場合、このスキーマのマイグレーションファイルを複数の Repo に適用する必要があります。
+これは、設定ファイルに以下の様に書くだけで出来ます。
+
+config/config.exs:
 
 ```elixir
 config :yacto, :databases,
@@ -152,47 +153,43 @@ config :yacto, :databases,
   }
 ```
 
-Recall that `MyApp.Player` was the following code.
+`MyApp.Player` に以下のコードがあったことを思い出して下さい。
+
+lib/my_app/player.ex:
 
 ```elixir
 defmodule MyApp.Player do
   use Yacto.Schema, dbname: :player
 
   ...
-end
 ```
 
-This `:player` is the group name of Repo to which` MyApp.Player` belongs.
-`MyApp.Player` belongs to the Repo group `:player`, and the `:player` Repo group is associated with Repos of `MyApp.Repo.Player0` and `MyApp.Repo.Player1` by the configuration file.
+この `:player` が、`MyApp.Player` が所属する Repo のグループ名です。
+`MyApp.Player` は `:player` という Repo グループに所属しており、`:player` Repo グループは設定ファイルから `MyApp.Repo.Player0` と `MyApp.Repo.Player1` の Repo に紐付いていることが分かります。
 
-After writing the configuration file, just run `mix yacto.migrate`.
-The migration file for `MyApp.Player` is applied to `MyApp.Repo.Player0` and `MyApp.Repo.Player1`.
+設定ファイルを書いたら、あとは `mix yacto.migrate` を実行するだけです。
+`MyApp.Player` のマイグレーションファイルが `MyApp.Repo.Player0` と `MyApp.Repo.Player1` に適用されます。
 
-When using a horizontally partitioned database, use `Yacto.DB.repo/2` to get a Repo.
+水平分割したデータベースを利用する時には、`Yacto.DB.repo/2` を使って Repo を取得します。
 
 ```elixir
 repo = Yacto.DB.repo(:player, player_id)
 MyApp.Player |> repo.all()
 ```
 
-Or you can use `schema.repo/1` if you use `Yacto.Schema.Shard`.
+あるいは、`schema.repo/1` を使っても構いません。
 
 ```elixir
-def MyApp.Player do
-  use Yacto.Schema.Shard, dbname: :player
-  # repo/1 is defined automatically
-
-  ...
-end
-
 repo = MyApp.Player.repo(player_id)
 MyApp.Player |> repo.all()
 ```
 
-### Use a horizontal partitioned application from other applications
+#### 他のアプリケーションから利用する
 
-Of course, you can also use this horizontally partitioned `my_app` application with `other_app`.
-In `other_app` write the configuration file like below,
+もちろん、この水平分割した `my_app` アプリケーションを `other_app` で利用することもできます。
+`other_app` で以下の様に設定ファイル書いて、
+
+config/config.exs:
 
 ```elixir
 config :yacto, :databases,
@@ -208,14 +205,14 @@ config :yacto, :databases,
   }
 ```
 
-When you run `mix yacto.migrate --app my_app`, the migration file for `MyApp.Player` schema is applied to `OtherApp.Repo.Player0`, `OtherApp.Repo.Player1` and `OtherApp.Repo.Player2`.
+`mix yacto.migrate --app my_app` を実行すると、`OtherApp.Repo.Player0` と `OtherApp.Repo.Player1` と `OtherApp.Repo.Player2` に `MyApp.Player` スキーマのマイグレーションファイルが適用されます。
 
-## Transaction across multiple databases (XA transaction)
+### 複数データベースを跨るトランザクション（XA トランザクション）
 
-With `Yacto.transaction/2`, transactions can be started to multiple databases.
+`Yacto.transaction/2` を使うと、複数のデータベースを指定してトランザクションを発行できます。
 
 ```elixir
-# Since two or more Repos are specified, an XA transaction is started
+# ２つ以上の Repo が指定されているので XA トランザクションを発行する
 Yacto.transaction([:default,
                    {:player, player_id1},
                    {:player, player_id2}], fn ->
@@ -223,47 +220,30 @@ Yacto.transaction([:default,
   player1_repo = Yacto.DB.repo(:player, player_id1)
   player2_repo = Yacto.DB.repo(:player, player_id2)
 
-  # Operate databases here
+  # ここら辺でデータベースを操作する
   ...
 
-# All XA transactions are committed here
+# ここで全ての XA トランザクションがコミットされる
 end)
 ```
 
-`Yacto.transaction/2` will make transactions for the following three Repos.
+以下の３つの Repo に対してトランザクションを行います。
 
-- Repo `MyApp.Repo.Default` of`: default`
-- Repo sharded with `player_id1`
-- Repo sharded with `player_id2`
+- `:default` の Repo `MyApp.Repo.Default`
+- `player_id1` でシャーディングされた Repo
+- `player_id2` でシャーディングされた Repo
 
-The last two may have the same Repo depending on the shard key, so Repo to use is either 2 or 3.
-When you start transactions using more than one Repo, those transactions automatically become XA transactions.
+後ろの２つは、シャードキーによっては同じ Repo になる可能性があるので、利用する Repo は２つか３つのどちらかです。
+２つ以上の Repo を利用してトランザクションを開始する場合、自動的に XA トランザクションになります。
 
-XA transactions can not reliably prevent inconsistencies, but they can be prevented than starting separate transactions.
-However, since this library does not provide a mechanism to solve the transactions left in `XA RECOVER`, it needs to be prepared separately.
+XA トランザクションは確実に不整合が防げる訳ではありませんが、別々でトランザクションを発行するよりは防げます。
+ただしこのライブラリでは `XA RECOVER` に残ったトランザクションを解決する仕組みを提供していないので、別途用意する必要があります。
 
-If you want to roll back, you can use `Yacto.XA.rollback/2`.
+## Yacto のスキーマ
 
-```elixir
-Yacto.transaction([:default,
-                   {:player, player_id1},
-                   {:player, player_id2}], fn ->
-  ...
+Yacto のスキーマについて、まだ説明していない部分があるので、もう少し詳しく説明します。
 
-  # It raises Yacto.XA.RollbackError
-  Yacto.XA.rollback(MyApp.Player.repo(player_id1), :error)
-end)
-```
-
-`Yacto.transaction/2` raises `Yacto.XA.RollbackError` and all database operations are rolled back.
-
-If you do not want to use XA transaction, you can specify `noxa: true` opts in `Yacto.transaction/3`.
-
-# Details of Yacto Schema
-
-There is a part not yet explained about Yacto's schema, so I will explain it in more detail.
-
-As I wrote in the beginning, Yacto's schema is defined as follows.
+最初に書いたように、Yacto のスキーマは以下の様に定義します。
 
 ```elixir
 defmodule MyApp.Player do
@@ -277,54 +257,53 @@ defmodule MyApp.Player do
 end
 ```
 
-Basically it is the same as `Ecto.Schema`.
-The schema generated by `Yacto.Schema` is compatible with the schema generated by` Ecto.Schema`.
-However, since the migration setting is necessary, the amount of description increases more than `Ecto.Schema`.
+基本的には `Ecto.Schema` と変わりません。
+`Yacto.Schema` で生成したスキーマは、`Ecto.Schema` で生成したスキーマと互換性があります。
+ただしマイグレーションに関する設定が含まれるので、`Ecto.Schema` よりもいくつか設定が増えています。
 
-## Automatic generation of table name
+### テーブル名の自動生成
 
-`@auto_source` defines the table name automatically generated from the module name.
-In most cases, using `@auto_source` will always be fine.
+`@auto_source` には、モジュール名から自動的に生成したテーブル名が定義されています。
+大抵の場合、自動的に決まった名前で問題ないと思うので、常に `@auto_source` を使うので問題ないでしょう。
 
-## Meta information
+### メタ情報
 
 ```elixir
     field :player_id, :string, meta: [null: false, size: 64]
     field :hp, :integer, default: 0, meta: [null: false]
 ```
 
-This is almost the same as the `field/3` function of `Ecto.Schema`, except that it has a `:meta` option.
-The `:meta` option is a place to store information on migration, specifying whether the field is nullable, the size of the string, and so on.
+ここは `Ecto.Schema` の `field/3` 関数とほとんど同じですが、`:meta` オプションがあるという点で異なります。
+`:meta` オプションはマイグレーションに関する情報を入れる場所で、そのフィールドが null 可能かどうかや、文字列のサイズ等を指定します。
 
-The options that can be specified are as follows.
+指定可能なオプションは以下の通りです。
 
-- `:null`: Whether the field is nullable (`true` by default)
-- `:size`: The size of the string (It is used like `VARCHAR (<size>)`) (`255` by default)
-- `:default`: Default value for that field (`opts[:default]` or the initial value of each type by default)
-- `:index`: Whether to index in this field (`false` by default)
-- `:type`: Specify the type at migration (type specified by `field/3` by default)
+- `:null`: そのフィールドが null 可能かどうか（デフォルトでは `true`）
+- `:size`: 文字列のサイズ（`VARCHAR(255)` の `255` に相当する部分）（デフォルトでは `255`）
+- `:default`: そのフィールドのデフォルト値（デフォルトでは各型の初期値か、`opts[:default]` が存在している場合はその値が入る）
+- `:index`: このフィールドでインデックスを張るかどうか（デフォルトでは `false`）
+- `:type`: マイグレーション時の型を指定する（デフォルトでは `field/3` で指定した型）
 
-## Index
+### インデックス
 
 ```elixir
     index :player_id, unique: true
 ```
 
-You can generate an index with `index/2`.
-Although you can specify an index in the `:meta` option of `field/3`, you can also generate composite indexes and unique indexes using `index/2`.
+`index/2` でインデックスを生成できます。
+`field/3` の `:meta` オプションの中でもインデックスを指定できますが、`index/2` を使うと複合インデックスやユニークインデックスも生成できます。
 
-To make it a composite index, specify it as a list like `index [:player_id, :hp]`.
-To change the index to a unique index, specify `unique: true` as an option.
+複合インデックスにするなら `index [:player_id, :hp]` のようにリストで指定します。
+ユニークインデックスにするならオプションで `unique: true` を指定します。
 
-## Foreign key constraint
+### 外部キー制約
 
-Not supported.
+対応していません。
+必要だと思ったのであれば、ぜひ実装して pull req 下さい。
 
-I think it is generally necessary, but I do not need it yet.
+## 便利関数
 
-# Convenient Functions
-
-Yacto provides `Yacto.Repo.Helper` which defines convinient functions for Repo.
+Yacto は、Repo に便利な関数を定義する `Yacto.Repo.Helper` を提供しています。
 
 ```elixir
 defmodule MyApp.Repo do
@@ -333,81 +312,41 @@ defmodule MyApp.Repo do
 end
 ```
 
-This defines the following functions:
+これによって、以下の関数が定義されます。
 
-- `count(queryable, clauses, opts \\ [])`
+- `def count(queryable, clauses, opts \\ [])`
 
-Return the number of elements filtered by `Ecto.Query.where`.
+`Ecto.Query.where` で絞り込んで要素数を返します。
 
-- `find(queryable, clauses, opts \\ [])`
+- `def find(queryable, clauses, opts \\ [])`
 
-Return elements filtered by `Ecto.Query.where`.
+`Ecto.Query.where` で絞り込んで Repo から取得します。
 
 - `def delete_by(queryable, clauses, opts \\ [])`
 - `def delete_by!(queryable, clauses, opts \\ [])`
 
-Delete elements filtered by `Ecto.Query.where`.
-`delete_by!/3` throws `Ecto.NoResultsError` when the deleted count is 0.
+`Ecto.Query.where` で絞り込んで Repo から削除します。
+`delete_by!/3` は、削除した件数が 0 だった時に `Ecto.NoResultsError` 例外を投げます。
 
-- `find_for_update(queryable, clauses, opts \\ [])`
+- `def find_for_update(queryable, clauses, opts \\ [])`
 - `get_for_update(queryable, id, opts \\ [])`
 - `get_for_update!(queryable, id, opts \\ [])`
 - `get_by_for_update(queryable, clauses, opts \\ [])`
 - `get_by_for_update!(queryable, clauses, opts \\ [])`
 
-Get (an) element(s) by a query of `SELECT ... FOR UPDATE`.
+`SELECT ... FOR UPDATE` のクエリを使って要素を取得する関数です。
 
-`find_for_update/3` is `find/3` with `Ecto.Query.lock("FOR UPDATE")`.
-`get_for_update/3` and `get_by_for_update/3` are `Ecto.Repo.get` and `Ecto.Repo.get_by` with `Ecto.Query.lock("FOR UPDATE")`.
+`find_for_update/3` は `find/3` のクエリに `Ecto.Query.lock("FOR UPDATE")` を付けただけの関数です。
+`get_for_update/3` や `get_by_for_update/3` 関数は、`Ecto.Repo.get` や `Ecto.Repo.get_by` のクエリに `Ecto.Query.lock("FOR UPDATE")` を付けただけの関数です。
+
 
 - `get_by_or_new(queryable, clauses, default_struct, opts \\ [])`
 - `get_by_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ [])`
 
-`get_by_or_new/4` is tried to get the record and returns that record if exists, otherwise it returns the default value `default_struct`. Even if a record does not exist, it is not inserted into the database.
-The function does not take a exclusive lock, so do not insert or update into the database using the value obtained with `get_by_or_new/4`.
+`get_by_or_new/4` は、まずレコードを取得してみて、あればそのレコードを、無ければデフォルト値 `default_struct` を返します。無かった場合でもデータベースへの挿入は行いません。
+ロックを取らないので、この `get_by_or_new/4` で得られた値を使ってデータベースへ挿入や更新をしてはいけません。
+戻り値は `{record, defaulted}` の２要素のタプルになっていて、1要素目には取得できたレコード（あるいはデフォルト値）が、2要素目にはデフォルト値を返したかどうかのフラグが設定されます。
 
-`get_by_or_insert_for_update/4` is `get_by_or_new/4` with exclusive lock.
-`get_by_or_insert_for_update/4` is tried to get the record and returns that record if exists, otherwise it add new `default_struct_or_changeset` and return it. The returned record is exclusively locked.
-
-## Misc
-
-### @auto_source table name is too long
-
-`@auto_source` generates from a module name automatically.
-For example, when the module name is `MyApp.Foo.Models.Bar.Player`, `@auto_source` is `"myapp_foo_models_bar_player"` by default.
-
-You can replace table names generated by `@auto_source` by using `config :yacto, :table_name_converter`.
-
-```elixir
-config :yacto, table_name_converter: {"^(.*)_foo_models(.*)", "\\1\\2"}
-```
-
-If this config is set, the `@auto_source` will be `"myapp_bar_player"`.
-
-### Generated index name is too long
-
-Index name is generated automatically from index fields.
-If it is too long, there are two ways.
-
-Specify `:name` opts:
-
-```elixir
-defmodule MyApp.ShortIndex do
-  use Yacto.Schema, dbname: :default
-
-  schema @auto_source do
-    field :too_long_field_name, :string
-    field :too_long_long_long_field_name, :string
-    index [:too_long_field_name, :too_long_long_long_field_name], name: "short_index_name"
-  end
-end
-```
-
-Configure `:index_name_max_length` migration opts:
-
-```elixir
-config :yacto, :migration,
-  index_name_max_length: 20
-```
-
-If the index name length is longer then `index_name_max_length`, the index name is shrinked and concatenated hashed string.
+`get_by_or_insert_for_update/4` は、`get_by_or_new/4` の排他ロックを取るバージョンです。
+まずレコードを取得してみて、あればそのレコードを、無ければ新規に `default_struct_or_changeset` を挿入して返します。この時、返されるレコードは排他ロックされます。
+戻り値は `{record, created}` の２要素のタプルになっていて、1要素目には取得できたレコード（あるいは挿入したデフォルト値）が、2要素目には新しく挿入したかどうかのフラグが設定されます。

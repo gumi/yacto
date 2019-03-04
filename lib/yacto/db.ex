@@ -1,4 +1,11 @@
 defmodule Yacto.DB do
+  @moduledoc """
+  Yacto の repo を取得するためのモジュール
+
+  水平分割をしている場合、シャーディングキーによって利用する repo が変わるため、
+  直接 repo を利用するのではなく、`Yacto.repo/{1-2}` を利用する必要がある。
+  """
+
   @callback repos(atom) :: [module]
   @callback repo(atom, any) :: module
 

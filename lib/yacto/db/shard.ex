@@ -13,6 +13,8 @@ defmodule Yacto.DB.Shard do
       |> Enum.map(fn {repo, index} -> {index, repo} end)
       |> Enum.into(%{})
 
+    # 設定にハッシュ関数が指定されていた場合は、そちらを利用する。
+    # デフォルトは :erlang.phash2/2 となる。
     {m, f, a} =
       case Map.fetch(config, :hash_mfa) do
         :error -> {:erlang, :phash2, []}

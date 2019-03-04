@@ -1,13 +1,12 @@
 defmodule Yacto.Schema do
   @moduledoc """
-  example:
+  Yacto 用のスキーマ
+
+  以下のように利用する。
 
   ```
   defmodule MyApp.Schema.Item do
-    use Yacto.Schema
-
-    @impl Yacto.Schema
-    def dbname(), do: :default
+    use Yacto.Schema, dbname: :default
 
     schema @auto_source do
       field :name, :string, meta: [null: false, size: 16, index: true]
@@ -15,10 +14,7 @@ defmodule Yacto.Schema do
   end
 
   defmodule MyApp.Schema.Player do
-    use Yacto.Schema
-
-    @impl Yacto.Schema
-    def dbname(), do: :player
+    use Yacto.Schema, dbname: :player
 
     schema @auto_source do
       field :name, :string, meta: [null: false, size: 16, index: true]
