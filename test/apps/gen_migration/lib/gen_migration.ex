@@ -101,4 +101,3 @@ defmodule GenMigration.ManyIndex do
     index([:aaaaaa, :bbbbbb, :cccccc, :dddddd])
   end
 end
-

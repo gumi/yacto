@@ -105,7 +105,11 @@ defmodule Yacto.Migration.Util do
         file: migration_file,
         module: module,
         version: module.__migration_version__(),
-        preview_version: if(function_exported?(module, :__migration_preview_version__, 0), do: module.__migration_preview_version__(), else: :unspecified)
+        preview_version:
+          if(function_exported?(module, :__migration_preview_version__, 0),
+            do: module.__migration_preview_version__(),
+            else: :unspecified
+          )
       }
     end
   end
@@ -129,30 +133,41 @@ defmodule Yacto.Migration.Util do
   旧マイグレーションファイルには直前のマイグレーションバージョンが存在しないが、その場合には `:unspecified` を指定すること。
   """
   def sort_migrations(migrations) do
-    migrations = migrations |> Enum.sort_by(&(&1.version))
-    migration_dic = migrations |> Enum.map(fn migration -> {migration.version, migration} end) |> Enum.into(%{})
+    migrations = migrations |> Enum.sort_by(& &1.version)
+
+    migration_dic =
+      migrations |> Enum.map(fn migration -> {migration.version, migration} end) |> Enum.into(%{})
+
     # 旧バージョンのマイグレーションファイルの一覧
-    unspecified_migrations = migrations |> Enum.filter(&(&1.preview_version == :unspecified)) |> Enum.sort_by(&(&1.version))
+    unspecified_migrations =
+      migrations
+      |> Enum.filter(&(&1.preview_version == :unspecified))
+      |> Enum.sort_by(& &1.version)
 
     try do
       if length(migrations) != 0 do
         # 同じバージョンがあったらエラー
         errors =
-          for {migration1, migration2} <- Enum.zip(migrations, tl(migrations)), migration1.version == migration2.version do
+          for {migration1, migration2} <- Enum.zip(migrations, tl(migrations)),
+              migration1.version == migration2.version do
             "同じバージョン #{migration1.version} があります。#{migration1.file} と #{migration2.file}"
           end
+
         if length(errors) != 0 do
-          throw {:error, errors}
+          throw({:error, errors})
         end
       end
 
       # 存在しないバージョンがあったらエラー
       errors =
-        for migration <- migrations, is_integer(migration.preview_version), not Map.has_key?(migration_dic, migration.preview_version) do
+        for migration <- migrations,
+            is_integer(migration.preview_version),
+            not Map.has_key?(migration_dic, migration.preview_version) do
           "#{migration.file} が指定している直前のバージョン #{migration.preview_version} が存在しません"
         end
+
       if length(errors) != 0 do
-        throw {:error, errors}
+        throw({:error, errors})
       end
 
       # 誰から参照されているかを調べる
@@ -178,30 +193,39 @@ defmodule Yacto.Migration.Util do
 
       # ２個以上参照されている場合は正しくマイグレーションファイルが生成されていない
       errors =
-        for {version, referenced_versions} <- referenced_migrations, length(referenced_versions) >= 2 do
-          files = referenced_versions |> Enum.map(&"- #{migration_dic[&1].file}") |> Enum.join("\n")
+        for {version, referenced_versions} <- referenced_migrations,
+            length(referenced_versions) >= 2 do
+          files =
+            referenced_versions |> Enum.map(&"- #{migration_dic[&1].file}") |> Enum.join("\n")
+
           "直前のバージョンが #{migration_dic[version].file} であるマイグレーションファイルが複数あります。\n#{files}"
         end
+
       if length(errors) != 0 do
-        throw {:error, errors}
+        throw({:error, errors})
       end
 
       # ルートとなるバージョンが１個ではない
       root =
         migrations
         |> Enum.filter(fn migration -> migration.preview_version != :unspecified end)
-        |> Enum.filter(fn migration -> length(Map.get(referenced_migrations, migration.version, [])) == 0 end)
+        |> Enum.filter(fn migration ->
+          length(Map.get(referenced_migrations, migration.version, [])) == 0
+        end)
+
       if length(root) >= 2 do
         files = root |> Enum.map(fn migration -> "- #{migration.file}" end) |> Enum.join("\n")
+
         message =
           "ルートが一意に決定できません。\n" <>
-          "新旧のマイグレーションファイルが混ざっている可能性があります。\n" <>
-          "ルート候補:\n" <> files
+            "新旧のマイグレーションファイルが混ざっている可能性があります。\n" <>
+            "ルート候補:\n" <> files
 
-        throw {:error, [message]}
+        throw({:error, [message]})
       end
+
       if Map.size(referenced_migrations) != 0 && length(root) == 0 do
-        throw {:error, ["マイグレーションファイルの指定が循環しています。"]}
+        throw({:error, ["マイグレーションファイルの指定が循環しています。"]})
       end
 
       # 全てが綺麗につながったソート済みのマイグレーション情報が返される
@@ -220,16 +244,22 @@ defmodule Yacto.Migration.Util do
               f.(f, migration.preview_version, [migration | results])
             end
           end
+
           sorted_migrations = f.(f, root.version, [])
 
           preview_version = hd(sorted_migrations).preview_version
+
           case preview_version do
             # 最後の要素の前のバージョンが nil なら完成
             nil ->
               # この場合は旧バージョンのマイグレーションファイルは存在しないはず
               if length(unspecified_migrations) != 0 do
-                files = unspecified_migrations |> Enum.map(fn migration -> "- #{migration.file}" end) |> Enum.join("\n")
-                throw {:error, ["用途不明のマイグレーションファイルが存在しています。\n" <> files]}
+                files =
+                  unspecified_migrations
+                  |> Enum.map(fn migration -> "- #{migration.file}" end)
+                  |> Enum.join("\n")
+
+                throw({:error, ["用途不明のマイグレーションファイルが存在しています。\n" <> files]})
               end
 
               sorted_migrations
@@ -238,21 +268,25 @@ defmodule Yacto.Migration.Util do
             :unspecified ->
               # unspecified_migrations の長さは絶対 1 以上のはず
               if length(unspecified_migrations) == 0 do
-                throw {:error, ["何かが間違っている"]}
+                throw({:error, ["何かが間違っている"]})
               end
 
               # この２つは同じものを参照しているはず
               if List.last(unspecified_migrations).version != hd(sorted_migrations).version do
-                message = "旧バージョンのマイグレーションファイルの順序が間違っています。\n" <>
-                  "最新は #{hd(sorted_migrations).file} であるはずなのに #{List.last(unspecified_migrations).file} になっています。"
-                throw {:error, [message]}
+                message =
+                  "旧バージョンのマイグレーションファイルの順序が間違っています。\n" <>
+                    "最新は #{hd(sorted_migrations).file} であるはずなのに #{
+                      List.last(unspecified_migrations).file
+                    } になっています。"
+
+                throw({:error, [message]})
               end
 
               unspecified_migrations ++ tl(sorted_migrations)
 
             # ここに来るのはおかしい
             _ ->
-              throw {:error, ["何かが間違っている"]}
+              throw({:error, ["何かが間違っている"]})
           end
         end
 

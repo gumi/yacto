@@ -186,13 +186,39 @@ defmodule GenMigrationTest do
        %Yacto.Migration.Structure{}}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil)
+    source =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil)
+
     assert @migrate1 == source
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v2, 20_170_424_155_530, 20_170_424_155_528)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        GenMigration,
+        v2,
+        20_170_424_155_530,
+        20_170_424_155_528
+      )
+
     assert @migrate2 == source
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v3, 20_170_424_155_532, 20_170_424_155_530)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        GenMigration,
+        v3,
+        20_170_424_155_532,
+        20_170_424_155_530
+      )
+
     assert @migrate3 == source
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v4, 20_170_424_155_533, 20_170_424_155_532)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        GenMigration,
+        v4,
+        20_170_424_155_533,
+        20_170_424_155_532
+      )
+
     assert @migrate4 == source
   end
 
@@ -239,7 +265,9 @@ defmodule GenMigrationTest do
        Yacto.Migration.Structure.from_schema(GenMigration.Item)}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil)
+    source =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil)
+
     assert @migrate5 == source
   end
 
@@ -284,7 +312,11 @@ defmodule GenMigrationTest do
        Yacto.Migration.Structure.from_schema(GenMigration.ManyIndex)}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil, index_name_max_length: 20)
+    source =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil,
+        index_name_max_length: 20
+      )
+
     assert @migrate6 == source
   end
 end

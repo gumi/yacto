@@ -163,7 +163,14 @@ defmodule Yacto.Migration.GenMigration do
                 if Keyword.has_key?(opts, :name) do
                   opts
                 else
-                  [{:name, create_index_name(fields, Keyword.get(migration_opts, :index_name_max_length, :infinity))} | opts]
+                  [
+                    {:name,
+                     create_index_name(
+                       fields,
+                       Keyword.get(migration_opts, :index_name_max_length, :infinity)
+                     )}
+                    | opts
+                  ]
                 end
 
               "drop index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
@@ -175,7 +182,14 @@ defmodule Yacto.Migration.GenMigration do
                 if Keyword.has_key?(opts, :name) do
                   opts
                 else
-                  [{:name, create_index_name(fields, Keyword.get(migration_opts, :index_name_max_length, :infinity))} | opts]
+                  [
+                    {:name,
+                     create_index_name(
+                       fields,
+                       Keyword.get(migration_opts, :index_name_max_length, :infinity)
+                     )}
+                    | opts
+                  ]
                 end
 
               "create index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
@@ -296,7 +310,15 @@ defmodule Yacto.Migration.GenMigration do
     migration_preview_version = if migration, do: migration.__migration_version__(), else: nil
 
     app_prefix = app |> Atom.to_string() |> Macro.camelize() |> String.to_atom()
-    source = generate_source(app_prefix, structure_infos, migration_version, migration_preview_version, opts)
+
+    source =
+      generate_source(
+        app_prefix,
+        structure_infos,
+        migration_version,
+        migration_preview_version,
+        opts
+      )
 
     if source == :not_changed do
       Logger.info("All schemas are not changed. A migration file is not generated.")
@@ -313,7 +335,13 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
-  def generate_source(app_prefix, structure_infos, migration_version, migration_preview_version, opts \\ []) do
+  def generate_source(
+        app_prefix,
+        structure_infos,
+        migration_version,
+        migration_preview_version,
+        opts \\ []
+      ) do
     structure_infos = Enum.sort(structure_infos)
 
     migration_name =

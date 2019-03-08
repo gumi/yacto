@@ -38,7 +38,9 @@ defmodule CustomTableNameTest do
        Yacto.Migration.Structure.from_schema(CustomTableName.Player.Schema.TestData)}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(CustomTableName, v1, 20_170_424_155_528, nil)
+    source =
+      Yacto.Migration.GenMigration.generate_source(CustomTableName, v1, 20_170_424_155_528, nil)
+
     assert @migrate == source
   end
 

@@ -29,7 +29,9 @@ defmodule Yacto.Migration.Migrator do
           for error <- errors do
             Logger.error(error)
           end
+
           raise inspect(errors)
+
         {:ok, sorted_migrations} ->
           sorted_migrations
       end

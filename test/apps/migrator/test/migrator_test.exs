@@ -26,9 +26,11 @@ defmodule MigratorTest do
       for {v, version, preview_version, save_file, load_files} <- [
             {v1, 20_170_424_162_530, nil, "mig_1.exs", ["mig_1.exs"]},
             {v2, 20_170_424_162_533, 20_170_424_162_530, "mig_2.exs", ["mig_1.exs", "mig_2.exs"]},
-            {v3, 20_170_424_162_534, 20_170_424_162_533, "mig_3.exs", ["mig_1.exs", "mig_2.exs", "mig_3.exs"]}
+            {v3, 20_170_424_162_534, 20_170_424_162_533, "mig_3.exs",
+             ["mig_1.exs", "mig_2.exs", "mig_3.exs"]}
           ] do
-        source = Yacto.Migration.GenMigration.generate_source(Migrator, v, version, preview_version)
+        source =
+          Yacto.Migration.GenMigration.generate_source(Migrator, v, version, preview_version)
 
         File.write!(save_file, source)
         migrations = Yacto.Migration.Util.load_migrations(load_files)
@@ -92,7 +94,15 @@ defmodule MigratorTest do
 
     source = Yacto.Migration.GenMigration.generate_source(Migrator, v1, 20_170_424_162_530, nil)
     File.write!("migration_test_1.exs", source)
-    source = Yacto.Migration.GenMigration.generate_source(Migrator, v2, 20_170_424_162_533, 20_170_424_162_530)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        Migrator,
+        v2,
+        20_170_424_162_533,
+        20_170_424_162_530
+      )
+
     File.write!("migration_test_2.exs", source)
 
     try do
