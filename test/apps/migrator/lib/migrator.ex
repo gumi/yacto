@@ -82,7 +82,19 @@ defmodule Migrator.CompositePrimaryKey do
 
   schema @auto_source do
     field(:player_id, :string, primary_key: true)
-    field(:quest_id, :string, primary_key: true)
+    field(:guild_id, :string, primary_key: true)
+    field(:name, :string)
+  end
+end
+
+defmodule Migrator.NoPrimaryKey do
+  use Yacto.Schema, dbname: :default
+
+  @primary_key false
+
+  schema @auto_source do
+    field(:player_id, :string)
+    field(:guild_id, :string)
     field(:name, :string)
   end
 end

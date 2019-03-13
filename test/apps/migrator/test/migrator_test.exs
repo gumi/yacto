@@ -214,10 +214,70 @@ defmodule MigratorTest do
     Mix.Task.rerun("yacto.gen.migration", [])
     Mix.Task.rerun("yacto.migrate", ["--repo", "Migrator.Repo1", "--app", "migrator"])
 
-    record1 = %Migrator.CompositePrimaryKey{player_id: "tanaka", quest_id: "gumi", name: "1234"}
-    # record2 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "1235"}
-    record = Migrator.Repo1.insert!(record1)
-    # record = Migrator.Repo1.insert!(record2)
-    assert "tanaka" == record.player_id
+    record1 = %Migrator.CompositePrimaryKey{player_id: "tanaka", guild_id: "gumi", name: "1234"}
+    record1 = Migrator.Repo1.insert!(record1)
+    assert "tanaka" == record1.player_id
+
+    record2 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "1235"}
+    record2 = Migrator.Repo1.insert!(record2)
+    assert "saito" == record2.player_id
+
+    # 複合主キーが同じデータを追加しようとすると Ecto.ConstraintError が発生する。
+    record3 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "12345"}
+    assert_raise Ecto.ConstraintError, fn -> Migrator.Repo1.insert(record3) end
+  end
+
+  test "Migrator.NoPrimaryKey" do
+    Mix.Task.rerun("ecto.drop")
+    Mix.Task.rerun("ecto.create")
+
+    {:ok, _} = Migrator.Repo1.start_link()
+
+    v1 = [
+      {Migrator.NoPrimaryKey, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(Migrator.NoPrimaryKey)}
+    ]
+
+    v2 = [
+      {Migrator.NoPrimaryKey, Yacto.Migration.Structure.from_schema(Migrator.NoPrimaryKey),
+       Yacto.Migration.Structure.from_schema(Migrator.CompositePrimaryKey)}
+    ]
+
+    source = Yacto.Migration.GenMigration.generate_source(Migrator, v1, 20_190_424_162_530, nil)
+    File.write!("migration_test_1.exs", source)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        Migrator,
+        v2,
+        20_190_424_162_533,
+        20_190_424_162_530
+      )
+
+    File.write!("migration_test_2.exs", source)
+
+    try do
+      migrations =
+        Yacto.Migration.Util.load_migrations(["migration_test_1.exs", "migration_test_2.exs"])
+
+      schemas = Yacto.Migration.Util.get_all_schema(:migrator)
+      :ok = Yacto.Migration.Migrator.up(:migrator, Migrator.Repo1, schemas, migrations)
+    after
+#      File.rm!("migration_test_1.exs")
+#      File.rm!("migration_test_2.exs")
+      Code.unload_files(["migration_test_1.exs", "migration_test_2.exs"])
+    end
+
+    record1 = %Migrator.CompositePrimaryKey{player_id: "tanaka", guild_id: "gumi", name: "1234"}
+    record1 = Migrator.Repo1.insert!(record1)
+    assert "tanaka" == record1.player_id
+
+    record2 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "1235"}
+    record2 = Migrator.Repo1.insert!(record2)
+    assert "saito" == record2.player_id
+
+    # 複合主キーが同じデータを追加しようとすると Ecto.ConstraintError が発生する。
+    record3 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "12345"}
+    assert_raise Ecto.ConstraintError, fn -> Migrator.Repo1.insert(record3) end
   end
 end

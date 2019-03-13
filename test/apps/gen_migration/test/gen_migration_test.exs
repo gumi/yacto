@@ -316,7 +316,7 @@ defmodule GenMigrationTest do
       Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil,
         index_name_max_length: 20
       )
-      
+
     assert @migrate6 == source
   end
 end
