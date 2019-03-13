@@ -102,3 +102,16 @@ defmodule GenMigration.ManyIndex do
   end
 end
 
+defmodule GenMigration.CompositePrimaryKey1 do
+  use Yacto.Schema
+
+  @primary_key false
+
+  @impl Yacto.Schema
+  def dbname(), do: :default
+
+  schema @auto_source do
+    field(:aaaaaa, :string, primary_key: true)
+    field(:bbbbbb, :string, primary_key: true)
+  end
+end
