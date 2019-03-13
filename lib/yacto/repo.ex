@@ -42,7 +42,7 @@ end
 
 defmodule Yacto.Repo.Helper do
   @moduledoc """
-  Helper functions for your repo.
+  repo のためのヘルパ関数
 
   ```
   defmodule MyApp.Repo do
@@ -51,7 +51,7 @@ defmodule Yacto.Repo.Helper do
   end
 
   person = MyApp.Repo.get_or_insert_for_update(Person, [name: "foo"], %Person{name: "foo", value: 10})
-  # person is exclusive locked.
+  # これで person は排他ロックになる
 
   changeset = Person.changeset(person, [value: person.value + 5])
   _person = MyApp.Repo.update!(changeset)

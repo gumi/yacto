@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-pre.8
+
+- マイグレーションファイルを検証する機能を実装
+  - 複数のブランチからマージした場合に矛盾が起きる可能性があったので、それを検出してエラーにする
+- 全体的に日本語でやることにした
+
+## 2.0.0-pre.7
+
+- Update dependencied
+
 ## 2.0.0-pre.6
 
 - Shrink index name if configured

@@ -1,6 +1,8 @@
 defmodule Yacto.Schema.Single do
   @moduledoc """
-  Normal (non horizontal partitioned) schema
+  通常の（水平分割されていない）スキーマ
+
+  `Yacto.Schema` とほぼ同じだが、`Yacto.DB.repo(MySchema.dbname())` のショートハンドとして `MySchema.repo()` が使える点のみが異なる。
   """
 
   defmacro __using__(opts) do

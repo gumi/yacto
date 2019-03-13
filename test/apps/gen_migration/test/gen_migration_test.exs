@@ -60,6 +60,10 @@ defmodule GenMigrationTest do
     def __migration_version__() do
       20170424155528
     end
+
+    def __migration_preview_version__() do
+      nil
+    end
   end
   """
 
@@ -92,6 +96,10 @@ defmodule GenMigrationTest do
     def __migration_version__() do
       20170424155530
     end
+
+    def __migration_preview_version__() do
+      20170424155528
+    end
   end
   """
 
@@ -122,6 +130,10 @@ defmodule GenMigrationTest do
     def __migration_version__() do
       20170424155532
     end
+
+    def __migration_preview_version__() do
+      20170424155530
+    end
   end
   """
 
@@ -145,6 +157,10 @@ defmodule GenMigrationTest do
 
     def __migration_version__() do
       20170424155533
+    end
+
+    def __migration_preview_version__() do
+      20170424155532
     end
   end
   """
@@ -170,13 +186,39 @@ defmodule GenMigrationTest do
        %Yacto.Migration.Structure{}}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528)
+    source =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil)
+
     assert @migrate1 == source
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v2, 20_170_424_155_530)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        GenMigration,
+        v2,
+        20_170_424_155_530,
+        20_170_424_155_528
+      )
+
     assert @migrate2 == source
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v3, 20_170_424_155_532)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        GenMigration,
+        v3,
+        20_170_424_155_532,
+        20_170_424_155_530
+      )
+
     assert @migrate3 == source
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v4, 20_170_424_155_533)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        GenMigration,
+        v4,
+        20_170_424_155_533,
+        20_170_424_155_532
+      )
+
     assert @migrate4 == source
   end
 
@@ -210,6 +252,10 @@ defmodule GenMigrationTest do
     def __migration_version__() do
       20170424155528
     end
+
+    def __migration_preview_version__() do
+      nil
+    end
   end
   """
 
@@ -219,7 +265,9 @@ defmodule GenMigrationTest do
        Yacto.Migration.Structure.from_schema(GenMigration.Item)}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528)
+    source =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil)
+
     assert @migrate5 == source
   end
 
@@ -251,6 +299,10 @@ defmodule GenMigrationTest do
     def __migration_version__() do
       20170424155528
     end
+
+    def __migration_preview_version__() do
+      nil
+    end
   end
   """
 
@@ -261,21 +313,10 @@ defmodule GenMigrationTest do
     ]
 
     source =
-      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528,
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil,
         index_name_max_length: 20
       )
-
-    assert @migrate6 == source
-  end
-
-  test "Composite Primary Key" do
-    v1 = [
-      {GenMigration.CompositePrimaryKey1, %Yacto.Migration.Structure{},
-       Yacto.Migration.Structure.from_schema(GenMigration.CompositePrimaryKey1)}
-    ]
-
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528)
-
+      
     assert @migrate6 == source
   end
 end

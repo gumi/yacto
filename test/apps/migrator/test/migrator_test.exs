@@ -22,22 +22,29 @@ defmodule MigratorTest do
        Yacto.Migration.Structure.from_schema(Migrator.Player3)}
     ]
 
-    for {v, version} <- [
-          {v1, 20_170_424_162_530},
-          {v2, 20_170_424_162_533},
-          {v3, 20_170_424_162_534}
-        ] do
-      source = Yacto.Migration.GenMigration.generate_source(Migrator, v, version)
+    try do
+      for {v, version, preview_version, save_file, load_files} <- [
+            {v1, 20_170_424_162_530, nil, "mig_1.exs", ["mig_1.exs"]},
+            {v2, 20_170_424_162_533, 20_170_424_162_530, "mig_2.exs", ["mig_1.exs", "mig_2.exs"]},
+            {v3, 20_170_424_162_534, 20_170_424_162_533, "mig_3.exs",
+             ["mig_1.exs", "mig_2.exs", "mig_3.exs"]}
+          ] do
+        source =
+          Yacto.Migration.GenMigration.generate_source(Migrator, v, version, preview_version)
 
-      try do
-        File.write!("migration_test.exs", source)
-        migrations = Yacto.Migration.Util.load_migrations(["migration_test.exs"])
+        File.write!(save_file, source)
+        migrations = Yacto.Migration.Util.load_migrations(load_files)
+
         schemas = Yacto.Migration.Util.get_all_schema(:migrator)
         :ok = Yacto.Migration.Migrator.up(:migrator, Migrator.Repo0, schemas, migrations)
-      after
-        File.rm!("migration_test.exs")
-        Code.unload_files(["migration_test.exs"])
       end
+    after
+      File.rm("mig_1.exs")
+      File.rm("mig_2.exs")
+      File.rm("mig_3.exs")
+      Code.unload_files(["mig_1.exs"])
+      Code.unload_files(["mig_2.exs"])
+      Code.unload_files(["mig_3.exs"])
     end
 
     player = %Migrator.Player3{value: "bar", text: ""}
@@ -85,9 +92,17 @@ defmodule MigratorTest do
        Yacto.Migration.Structure.from_schema(Migrator.Player2)}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(Migrator, v1, 20_170_424_162_530)
+    source = Yacto.Migration.GenMigration.generate_source(Migrator, v1, 20_170_424_162_530, nil)
     File.write!("migration_test_1.exs", source)
-    source = Yacto.Migration.GenMigration.generate_source(Migrator, v2, 20_170_424_162_533)
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(
+        Migrator,
+        v2,
+        20_170_424_162_533,
+        20_170_424_162_530
+      )
+
     File.write!("migration_test_2.exs", source)
 
     try do

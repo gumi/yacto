@@ -228,6 +228,10 @@ defmodule Yacto.Migration.GenMigration do
       def __migration_version__() do
         <%= inspect @version %>
       end
+
+      def __migration_preview_version__() do
+        <%= inspect @preview_version %>
+      end
     end
     """
   end
@@ -240,6 +244,11 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
+  @doc """
+  最新のマイグレーションモジュールを取得する
+
+  マイグレーションモジュールが１件も存在しなかった場合は `nil` を返す。
+  """
   def get_latest_migration(migration_dir \\ nil) do
     dir = Yacto.Migration.Util.get_migration_dir_for_gen(migration_dir)
     paths = Path.wildcard(Path.join(dir, '*.exs'))
@@ -252,6 +261,19 @@ defmodule Yacto.Migration.GenMigration do
     Enum.max_by(mods, & &1.__migration_version__(), fn -> nil end)
   end
 
+  @doc """
+  マイグレーションファイルを生成する
+
+  - app: 対象のアプリケーション
+  - schemas: このアプリケーションに存在するスキーマの一覧
+  - delete_schemas: このアプリケーションから削除されたスキーマの一覧
+  - migration_version: 生成するマイグレーションファイルのバージョン。nil の場合はタイムスタンプから自動生成される。
+  - migration_dir: マイグレーションファイルを出力するディレクトリ
+  - opts: オプション
+    - `:index_name_max_length`: インデックス名の最大長。
+      自動的に生成されたインデックス名がこの長さを超えてしまう場合、ハッシュ化した名前に変換される。
+      `:infinity` の場合、決してハッシュ化を行わない。デフォルトは `:infinity`。
+  """
   def generate_migration(
         app,
         schemas,
@@ -291,9 +313,18 @@ defmodule Yacto.Migration.GenMigration do
     structure_infos = structure_infos ++ delete_structure_infos
 
     migration_version = migration_version || timestamp()
+    migration_preview_version = if migration, do: migration.__migration_version__(), else: nil
 
     app_prefix = app |> Atom.to_string() |> Macro.camelize() |> String.to_atom()
-    source = generate_source(app_prefix, structure_infos, migration_version, opts)
+
+    source =
+      generate_source(
+        app_prefix,
+        structure_infos,
+        migration_version,
+        migration_preview_version,
+        opts
+      )
 
     if source == :not_changed do
       Logger.info("All schemas are not changed. A migration file is not generated.")
@@ -310,7 +341,13 @@ defmodule Yacto.Migration.GenMigration do
     end
   end
 
-  def generate_source(app_prefix, structure_infos, migration_version, opts \\ []) do
+  def generate_source(
+        app_prefix,
+        structure_infos,
+        migration_version,
+        migration_preview_version,
+        opts \\ []
+      ) do
     structure_infos = Enum.sort(structure_infos)
 
     migration_name =
@@ -347,7 +384,8 @@ defmodule Yacto.Migration.GenMigration do
           migration_name: migration_name,
           schema_infos: schema_infos,
           structures: structures,
-          version: migration_version
+          version: migration_version,
+          preview_version: migration_preview_version
         ]
       )
     end
