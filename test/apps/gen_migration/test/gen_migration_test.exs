@@ -260,7 +260,22 @@ defmodule GenMigrationTest do
        Yacto.Migration.Structure.from_schema(GenMigration.ManyIndex)}
     ]
 
-    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, index_name_max_length: 20)
+    source =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528,
+        index_name_max_length: 20
+      )
+
+    assert @migrate6 == source
+  end
+
+  test "Composite Primary Key" do
+    v1 = [
+      {GenMigration.CompositePrimaryKey1, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(GenMigration.CompositePrimaryKey1)}
+    ]
+
+    source = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528)
+
     assert @migrate6 == source
   end
 end

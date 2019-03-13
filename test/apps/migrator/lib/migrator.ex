@@ -75,6 +75,18 @@ defmodule Migrator.CustomPrimaryKey do
   end
 end
 
+defmodule Migrator.CompositePrimaryKey do
+  use Yacto.Schema, dbname: :default
+
+  @primary_key false
+
+  schema @auto_source do
+    field(:player_id, :string, primary_key: true)
+    field(:quest_id, :string, primary_key: true)
+    field(:name, :string)
+  end
+end
+
 defmodule Migrator.CoinType do
   @behaviour Ecto.Type
 

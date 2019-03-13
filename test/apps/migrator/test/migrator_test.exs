@@ -188,4 +188,21 @@ defmodule MigratorTest do
     record = Migrator.Repo1.insert!(record)
     assert record.type == :common_coin
   end
+
+  test "Migrator.CompositePrimaryKey" do
+    Mix.Task.rerun("ecto.drop")
+    Mix.Task.rerun("ecto.create")
+
+    _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:migrator))
+    _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
+
+    Mix.Task.rerun("yacto.gen.migration", [])
+    Mix.Task.rerun("yacto.migrate", ["--repo", "Migrator.Repo1", "--app", "migrator"])
+
+    record1 = %Migrator.CompositePrimaryKey{player_id: "tanaka", quest_id: "gumi", name: "1234"}
+    # record2 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "1235"}
+    record = Migrator.Repo1.insert!(record1)
+    # record = Migrator.Repo1.insert!(record2)
+    assert "tanaka" == record.player_id
+  end
 end

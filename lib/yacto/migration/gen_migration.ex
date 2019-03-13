@@ -85,44 +85,50 @@ defmodule Yacto.Migration.GenMigration do
   def generate_fields(types, attrs, structure_to, _migration_opts) do
     ops = convert_fields(types, attrs)
 
+    {remove_ops, other_ops} = Enum.split_with(ops, fn {_, op} -> op == :remove end)
+
     lines =
-      for {field, op} <- ops do
-        case op do
-          {:add, type, attr} ->
-            opts = attr
+      if length(remove_ops) > 0 do
+        lines =
+          for {field, :remove} <- remove_ops do
+            ["  remove(:#{field})"]
+          end
 
-            is_primary_key = Enum.find(structure_to.primary_key, &(&1 == field)) != nil
-            opts = opts ++ if(is_primary_key, do: [primary_key: true], else: [])
-
-            is_autogenerate =
-              if(
-                structure_to.autogenerate_id,
-                do: elem(structure_to.autogenerate_id, 0) == field,
-                else: false
-              )
-
-            opts = opts ++ if(is_autogenerate, do: [autogenerate: true], else: [])
-
-            ["  add(:#{field}, #{inspect(type)}, #{inspect(opts)})"]
-
-          :remove ->
-            lines = ["  remove(:#{field})"]
-
-            if field == :id do
-              ["  add(:_gen_migration_dummy, :integer, [])"] ++
-                lines ++
-                ["end"] ++
-                ["alter table(#{inspect(structure_to.source)}) do"] ++
-                ["  remove(:_gen_migration_dummy)"]
-            else
-              lines
-            end
-
-          {:modify, attr} ->
-            type = Map.fetch!(structure_to.types, field)
-            ["  modify(:#{field}, :#{type}, #{inspect(attr)})"]
-        end
+        ["  add(:_gen_migration_dummy, :integer, [])"] ++
+          lines ++
+          ["end"] ++
+          ["alter table(#{inspect(structure_to.source)}) do"] ++
+          ["  remove(:_gen_migration_dummy)"]
+      else
+        []
       end
+
+    lines =
+      lines ++
+        for {field, op} <- other_ops do
+          case op do
+            {:add, type, attr} ->
+              opts = attr
+
+              is_primary_key = Enum.find(structure_to.primary_key, &(&1 == field)) != nil
+              opts = opts ++ if(is_primary_key, do: [primary_key: true], else: [])
+
+              is_autogenerate =
+                if(
+                  structure_to.autogenerate_id,
+                  do: elem(structure_to.autogenerate_id, 0) == field,
+                  else: false
+                )
+
+              opts = opts ++ if(is_autogenerate, do: [autogenerate: true], else: [])
+
+              ["  add(:#{field}, #{inspect(type)}, #{inspect(opts)})"]
+
+            {:modify, attr} ->
+              type = Map.fetch!(structure_to.types, field)
+              ["  modify(:#{field}, :#{type}, #{inspect(attr)})"]
+          end
+        end
 
     List.flatten(lines)
   end
@@ -163,7 +169,14 @@ defmodule Yacto.Migration.GenMigration do
                 if Keyword.has_key?(opts, :name) do
                   opts
                 else
-                  [{:name, create_index_name(fields, Keyword.get(migration_opts, :index_name_max_length, :infinity))} | opts]
+                  [
+                    {:name,
+                     create_index_name(
+                       fields,
+                       Keyword.get(migration_opts, :index_name_max_length, :infinity)
+                     )}
+                    | opts
+                  ]
                 end
 
               "drop index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
@@ -175,7 +188,14 @@ defmodule Yacto.Migration.GenMigration do
                 if Keyword.has_key?(opts, :name) do
                   opts
                 else
-                  [{:name, create_index_name(fields, Keyword.get(migration_opts, :index_name_max_length, :infinity))} | opts]
+                  [
+                    {:name,
+                     create_index_name(
+                       fields,
+                       Keyword.get(migration_opts, :index_name_max_length, :infinity)
+                     )}
+                    | opts
+                  ]
                 end
 
               "create index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
