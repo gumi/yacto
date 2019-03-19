@@ -22,18 +22,29 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
           |> Yacto.Migration.Util.load_migrations()
           |> Yacto.Migration.Util.sort_migrations()
 
-        case validated do
-          {:error, errors} ->
-            Mix.raise("マイグレーションファイルが不正な状態になっています。:\n----\n" <> Enum.join(errors, "\n----\n"))
+        sorted_migrations =
+          case validated do
+            {:error, errors} ->
+              Mix.raise("マイグレーションファイルが不正な状態になっています。:\n----\n" <> Enum.join(errors, "\n----\n"))
 
-          _ ->
-            :ok
-        end
+            {:ok, sorted_migrations} ->
+              sorted_migrations
+          end
+
+        deleted_schemas =
+          if length(sorted_migrations) != 0 do
+            latest_migration = List.last(sorted_migrations)
+            preview_schemas = Enum.map(latest_migration.module.__migration_structures__(), fn {a, _} -> a end)
+            # preview_schemas に存在していて、schemas に存在していないモデルを探す
+            preview_schemas -- schemas
+          else
+            []
+          end
 
         Yacto.Migration.GenMigration.generate_migration(
           app,
           schemas,
-          [],
+          deleted_schemas,
           version,
           nil,
           Application.get_env(:yacto, :migration, [])
