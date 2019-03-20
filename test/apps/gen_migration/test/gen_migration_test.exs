@@ -27,8 +27,8 @@ defmodule GenMigrationTest do
                del: %{name: :string, value: :integer},
                ins: %{name2: :string, value: :string}
              },
-             primary_key: [del: [:id], ins: [:id2]],
-             autogenerate_id: {:changed, {:id, :id, :id}, {:id2, :id2, :binary_id}},
+             primary_key: [ins: [:id2]],
+             autogenerate_id: {:create, {:id2, :id2, :binary_id}},
              meta: %{attrs: %{del: %{}, ins: %{}}, indices: %{del: %{}, ins: %{}}}
            } == diff
   end
@@ -38,8 +38,11 @@ defmodule GenMigrationTest do
     use Ecto.Migration
 
     def change(GenMigration.Player) do
-      create table("player")
+      create table("player", primary_key: false) do
+        add(:id, :id)
+      end
       alter table("player") do
+        modify(:id, :bigserial, [primary_key: true])
         add(:inserted_at, :naive_datetime, [])
         add(:name, :string, [])
         add(:updated_at, :naive_datetime, [])
@@ -53,7 +56,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, inserted_at: :inserted_at, name: :name, updated_at: :updated_at, value: :value}, fields: [:id, :name, :value, :inserted_at, :updated_at], source: "player", types: %{id: :id, inserted_at: :naive_datetime, name: :string, updated_at: :naive_datetime, value: :integer}}},
+        {GenMigration.Player, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :id}, field_sources: %{id: :id, inserted_at: :inserted_at, name: :name, updated_at: :updated_at, value: :value}, fields: [:id, :name, :value, :inserted_at, :updated_at], primary_key: [:id], source: "player", types: %{id: :id, inserted_at: :naive_datetime, name: :string, updated_at: :naive_datetime, value: :integer}}},
       ]
     end
 
@@ -235,14 +238,16 @@ defmodule GenMigrationTest do
     use Ecto.Migration
 
     def change(GenMigration.Item) do
-      create table("genmigration_item")
+      create table("genmigration_item", primary_key: false) do
+        add(:id, :id)
+      end
       alter table("genmigration_item") do
         add(:_gen_migration_dummy, :integer, [])
         remove(:id)
       end
       alter table("genmigration_item") do
         remove(:_gen_migration_dummy)
-        add(:id, :binary_id, [primary_key: true, autogenerate: true])
+        add(:id, :binary_id, [primary_key: true])
         add(:name, :string, [])
       end
     end
@@ -284,15 +289,19 @@ defmodule GenMigrationTest do
     use Ecto.Migration
 
     def change(GenMigration.ManyIndex) do
-      create table("genmigration_manyindex")
+      create table("genmigration_manyindex", primary_key: false) do
+        add(:id, :id)
+      end
       alter table("genmigration_manyindex") do
         add(:aaaaaa, :string, [])
         add(:bbbbbb, :string, [])
         add(:cccccc, :string, [])
         add(:dddddd, :string, [])
+        modify(:id, :bigserial, [primary_key: true])
       end
       create index("genmigration_manyindex", [:aaaaaa, :bbbbbb, :cccccc, :dddddd], [name: "aaaaaa_bbbb_9a4e1a2f"])
     end
+
 
     def change(_other) do
       :ok

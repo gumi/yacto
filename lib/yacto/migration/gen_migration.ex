@@ -1,7 +1,7 @@
 defmodule Yacto.Migration.GenMigration do
   require Logger
 
-  defp convert_fields(types, attrs, primary_keys) do
+  defp convert_fields(types, attrs, primary_keys, autogenerate_id) do
     # types:
     #   %{del: %{field: type},
     #     ins: %{field: type}}
@@ -12,10 +12,14 @@ defmodule Yacto.Migration.GenMigration do
     #   [eq: [field]]
     #    or
     #   [ins: [field]]
+    # autogenerate_id:
+    #   :not_changed
+    #   or
+    #   {:create, {ecto_schema_field_name, database_field_name, type}}
     # result:
-    #   [{field, {:add, {type, attr, primary_key}} |
+    #   [{field, {:add, {type, attr, is_primary_key, is_autogenerate}} |
     #            :remove |
-    #            {:modify, attr, primary_key}}]
+    #            {:modify, attr, is_primary_key, is_autogenerate}}]
 
     # get all field names
     type_fields =
@@ -31,7 +35,14 @@ defmodule Yacto.Migration.GenMigration do
       end
 
     primary_key_fields = Keyword.get(primary_keys, :ins, [])
-    fields = type_fields ++ attr_fields ++ primary_key_fields
+
+    autogenerate_field =
+      case autogenerate_id do
+        {:create, {_, field, _}} -> [field]
+        :not_changed -> []
+      end
+
+    fields = type_fields ++ attr_fields ++ primary_key_fields ++ autogenerate_field
     fields = fields |> Enum.sort() |> Enum.dedup()
 
     changes =
@@ -39,6 +50,7 @@ defmodule Yacto.Migration.GenMigration do
         in_type_del = Map.has_key?(types.del, field)
         in_type_ins = Map.has_key?(types.ins, field)
         is_primary_key = Enum.member?(primary_key_fields, field)
+        is_autogenerate = Enum.member?(autogenerate_field, field)
 
         cond do
           in_type_del && in_type_ins ->
@@ -52,7 +64,7 @@ defmodule Yacto.Migration.GenMigration do
                 []
               end
 
-            [{field, :remove}, {field, {:add, type, attr, is_primary_key}}]
+            [{field, :remove}, {field, {:add, type, attr, is_primary_key, is_autogenerate}}]
 
           in_type_del && !in_type_ins ->
             # :remove
@@ -69,7 +81,7 @@ defmodule Yacto.Migration.GenMigration do
                 []
               end
 
-            [{field, {:add, type, attr, is_primary_key}}]
+            [{field, {:add, type, attr, is_primary_key, is_autogenerate}}]
 
           !in_type_del && !in_type_ins ->
             # :modify
@@ -81,15 +93,15 @@ defmodule Yacto.Migration.GenMigration do
                 []
               end
 
-            [{field, {:modify, attr, is_primary_key}}]
+            [{field, {:modify, attr, is_primary_key, is_autogenerate}}]
         end
       end
 
     List.flatten(changes)
   end
 
-  def generate_fields(types, attrs, primary_keys, structure_to, _migration_opts) do
-    ops = convert_fields(types, attrs, primary_keys)
+  def generate_fields(types, attrs, primary_keys, autogenerate_id, structure_to, _migration_opts) do
+    ops = convert_fields(types, attrs, primary_keys, autogenerate_id)
 
     {remove_ops, other_ops} = Enum.split_with(ops, fn {_, op} -> op == :remove end)
 
@@ -113,26 +125,21 @@ defmodule Yacto.Migration.GenMigration do
       lines ++
         for {field, op} <- other_ops do
           case op do
-            {:add, type, attr, is_primary_key} ->
+            {:add, type, attr, is_primary_key, is_autogenerate} ->
               opts = attr
 
               opts = opts ++ if(is_primary_key, do: [primary_key: true], else: [])
 
-              is_autogenerate =
-                if(
-                  structure_to.autogenerate_id,
-                  do: elem(structure_to.autogenerate_id, 0) == field,
-                  else: false
-                )
-
-              opts = opts ++ if(is_autogenerate, do: [autogenerate: true], else: [])
+              type = if type == :id && is_autogenerate, do: :bigserial, else: type
 
               ["  add(:#{field}, #{inspect(type)}, #{inspect(opts)})"]
 
-            {:modify, attr, is_primary_key} ->
+            {:modify, attr, is_primary_key, is_autogenerate} ->
               type = Map.fetch!(structure_to.types, field)
               opts = attr
               opts = opts ++ if(is_primary_key, do: [primary_key: true], else: [])
+
+              type = if type == :id && is_autogenerate, do: :bigserial, else: type
 
               ["  modify(:#{field}, :#{type}, #{inspect(opts)})"]
           end
@@ -366,10 +373,6 @@ defmodule Yacto.Migration.GenMigration do
 
     schema_infos =
       for {schema, from, to} <- structure_infos do
-        if from.primary_key != to.primary_key && from.primary_key != [] do
-          raise "error"
-        end
-
         case generate_lines(from, to, opts) do
           :not_changed -> :not_changed
           lines -> %{schema: schema, lines: lines}
@@ -407,6 +410,17 @@ defmodule Yacto.Migration.GenMigration do
     diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
     rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
 
+    if structure_from.primary_key != structure_to.primary_key && structure_from.primary_key != [] do
+      raise "error"
+    end
+
+    case diff.autogenerate_id do
+      :not_changed -> :ok
+      {:create, _to_value} -> :ok
+      {:delete, _from_value} -> raise "error"
+      {:changed, _from_value, _to_value} -> raise "error"
+    end
+
     if diff == rdiff do
       :not_changed
     else
@@ -424,7 +438,7 @@ defmodule Yacto.Migration.GenMigration do
           {:create, _to_value} ->
             [
               "create table(#{inspect(structure_to.source)}, primary_key: false) do",
-              "  add(:id, :integer)",
+              "  add(:id, :id)",
               "end"
             ]
         end
@@ -437,7 +451,14 @@ defmodule Yacto.Migration.GenMigration do
 
             _ ->
               ["alter table(#{inspect(structure_to.source)}) do"] ++
-                generate_fields(diff.types, diff.meta.attrs, diff.primary_key, structure_to, migration_opts) ++
+                generate_fields(
+                  diff.types,
+                  diff.meta.attrs,
+                  diff.primary_key,
+                  diff.autogenerate_id,
+                  structure_to,
+                  migration_opts
+                ) ++
                 ["end"] ++ generate_indices(diff.meta.indices, structure_to, migration_opts)
           end
 

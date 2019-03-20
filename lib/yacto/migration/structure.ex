@@ -8,7 +8,7 @@ defmodule Yacto.Migration.Structure do
             associations: [],
             embeds: [],
             read_after_writes: [],
-            autogenerate_id: {:id, :id, :id},
+            autogenerate_id: nil,
             meta: %{attrs: %{}, indices: %{}}
 
   # undocumented keys:

@@ -61,8 +61,8 @@ defmodule Yacto.Migration.Migrator do
   end
 
   defp run(repo, schema, migration, direction, operation, migrator_direction, opts) do
-    level = Keyword.get(opts, :log, :info)
-    sql = Keyword.get(opts, :log_sql, false)
+    level = Keyword.get(opts, :log, :debug)
+    sql = Keyword.get(opts, :log_sql, true)
     log = %{level: level, sql: sql}
     args = [self(), repo, direction, migrator_direction, log]
 
