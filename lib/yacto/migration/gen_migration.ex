@@ -1,17 +1,21 @@
 defmodule Yacto.Migration.GenMigration do
   require Logger
 
-  defp convert_fields(types, attrs) do
+  defp convert_fields(types, attrs, primary_keys) do
     # types:
     #   %{del: %{field: type},
     #     ins: %{field: type}}
     # attrs:
     #   %{ins: %{field: attr},
     #     del: %{field: attr}}
+    # primary_keys:
+    #   [eq: [field]]
+    #    or
+    #   [ins: [field]]
     # result:
-    #   [{field, {:add, {type, attr}} |
+    #   [{field, {:add, {type, attr, primary_key}} |
     #            :remove |
-    #            {:modify, attr}}]
+    #            {:modify, attr, primary_key}}]
 
     # get all field names
     type_fields =
@@ -26,13 +30,15 @@ defmodule Yacto.Migration.GenMigration do
         field
       end
 
-    fields = type_fields ++ attr_fields
+    primary_key_fields = Keyword.get(primary_keys, :ins, [])
+    fields = type_fields ++ attr_fields ++ primary_key_fields
     fields = fields |> Enum.sort() |> Enum.dedup()
 
     changes =
       for field <- fields do
         in_type_del = Map.has_key?(types.del, field)
         in_type_ins = Map.has_key?(types.ins, field)
+        is_primary_key = Enum.member?(primary_key_fields, field)
 
         cond do
           in_type_del && in_type_ins ->
@@ -46,7 +52,7 @@ defmodule Yacto.Migration.GenMigration do
                 []
               end
 
-            [{field, :remove}, {field, {:add, type, attr}}]
+            [{field, :remove}, {field, {:add, type, attr, is_primary_key}}]
 
           in_type_del && !in_type_ins ->
             # :remove
@@ -63,7 +69,7 @@ defmodule Yacto.Migration.GenMigration do
                 []
               end
 
-            [{field, {:add, type, attr}}]
+            [{field, {:add, type, attr, is_primary_key}}]
 
           !in_type_del && !in_type_ins ->
             # :modify
@@ -75,15 +81,15 @@ defmodule Yacto.Migration.GenMigration do
                 []
               end
 
-            [{field, {:modify, attr}}]
+            [{field, {:modify, attr, is_primary_key}}]
         end
       end
 
     List.flatten(changes)
   end
 
-  def generate_fields(types, attrs, structure_to, _migration_opts) do
-    ops = convert_fields(types, attrs)
+  def generate_fields(types, attrs, primary_keys, structure_to, _migration_opts) do
+    ops = convert_fields(types, attrs, primary_keys)
 
     {remove_ops, other_ops} = Enum.split_with(ops, fn {_, op} -> op == :remove end)
 
@@ -107,10 +113,9 @@ defmodule Yacto.Migration.GenMigration do
       lines ++
         for {field, op} <- other_ops do
           case op do
-            {:add, type, attr} ->
+            {:add, type, attr, is_primary_key} ->
               opts = attr
 
-              is_primary_key = Enum.find(structure_to.primary_key, &(&1 == field)) != nil
               opts = opts ++ if(is_primary_key, do: [primary_key: true], else: [])
 
               is_autogenerate =
@@ -124,9 +129,12 @@ defmodule Yacto.Migration.GenMigration do
 
               ["  add(:#{field}, #{inspect(type)}, #{inspect(opts)})"]
 
-            {:modify, attr} ->
+            {:modify, attr, is_primary_key} ->
               type = Map.fetch!(structure_to.types, field)
-              ["  modify(:#{field}, :#{type}, #{inspect(attr)})"]
+              opts = attr
+              opts = opts ++ if(is_primary_key, do: [primary_key: true], else: [])
+
+              ["  modify(:#{field}, :#{type}, #{inspect(opts)})"]
           end
         end
 
@@ -361,6 +369,7 @@ defmodule Yacto.Migration.GenMigration do
         if from.primary_key != to.primary_key && from.primary_key != [] do
           raise "error"
         end
+
         case generate_lines(from, to, opts) do
           :not_changed -> :not_changed
           lines -> %{schema: schema, lines: lines}
@@ -415,7 +424,7 @@ defmodule Yacto.Migration.GenMigration do
           {:create, _to_value} ->
             [
               "create table(#{inspect(structure_to.source)}, primary_key: false) do",
-              "add(:id, :integer)",
+              "  add(:id, :integer)",
               "end"
             ]
         end
@@ -428,7 +437,7 @@ defmodule Yacto.Migration.GenMigration do
 
             _ ->
               ["alter table(#{inspect(structure_to.source)}) do"] ++
-                generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts) ++
+                generate_fields(diff.types, diff.meta.attrs, diff.primary_key, structure_to, migration_opts) ++
                 ["end"] ++ generate_indices(diff.meta.indices, structure_to, migration_opts)
           end
 
