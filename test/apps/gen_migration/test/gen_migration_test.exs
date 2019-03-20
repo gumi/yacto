@@ -74,11 +74,15 @@ defmodule GenMigrationTest do
     def change(GenMigration.Player) do
       rename table("player"), to: table("player2")
       alter table("player2") do
+        add(:_gen_migration_dummy, :integer, [])
         remove(:inserted_at)
         remove(:name)
-        add(:name2, :string, [])
         remove(:updated_at)
         remove(:value)
+      end
+      alter table("player2") do
+        remove(:_gen_migration_dummy)
+        add(:name2, :string, [])
         add(:value, :string, [])
       end
     end
@@ -110,7 +114,11 @@ defmodule GenMigrationTest do
     def change(GenMigration.Player) do
       rename table("player2"), to: table("genmigration_player3")
       alter table("genmigration_player3") do
+        add(:_gen_migration_dummy, :integer, [])
         remove(:name2)
+      end
+      alter table("genmigration_player3") do
+        remove(:_gen_migration_dummy)
         add(:name3, :string, [null: false, size: 100])
       end
       create index("genmigration_player3", [:name3, :value], [name: "name3_value_index", unique: true])

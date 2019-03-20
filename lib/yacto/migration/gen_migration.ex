@@ -358,6 +358,9 @@ defmodule Yacto.Migration.GenMigration do
 
     schema_infos =
       for {schema, from, to} <- structure_infos do
+        if from.primary_key != to.primary_key && from.primary_key != [] do
+          raise "error"
+        end
         case generate_lines(from, to, opts) do
           :not_changed -> :not_changed
           lines -> %{schema: schema, lines: lines}
@@ -410,7 +413,11 @@ defmodule Yacto.Migration.GenMigration do
             ["drop table(#{inspect(from_value)})"]
 
           {:create, _to_value} ->
-            ["create table(#{inspect(structure_to.source)})"]
+            [
+              "create table(#{inspect(structure_to.source)}, primary_key: false) do",
+              "add(:id, :integer)",
+              "end"
+            ]
         end
 
       lines =

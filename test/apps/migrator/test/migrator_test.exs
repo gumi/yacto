@@ -278,6 +278,6 @@ defmodule MigratorTest do
 
     # 複合主キーが同じデータを追加しようとすると Ecto.ConstraintError が発生する。
     record3 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "12345"}
-    assert_raise Ecto.ConstraintError, fn -> Migrator.Repo1.insert(record3) end
+    assert_raise Ecto.ConstraintError, fn -> IO.inspect Migrator.Repo1.insert!(record3) end
   end
 end

@@ -1,7 +1,7 @@
 defmodule Yacto.Migration.Structure do
   defstruct source: nil,
             prefix: nil,
-            primary_key: [:id],
+            primary_key: [],
             fields: [:id],
             field_sources: %{id: :id},
             types: %{id: :id},
