@@ -319,4 +319,49 @@ defmodule GenMigrationTest do
 
     assert @migrate6 == source
   end
+
+  @migrate7 """
+  defmodule GenMigration.Migration20190401125611 do
+    use Ecto.Migration
+
+    def change(GenMigration.DecimalOption) do
+      create table("genmigration_decimaloption")
+      alter table("genmigration_decimaloption") do
+        add(:decimal_field, :decimal, [precision: 7, scale: 3])
+        add(:name, :string, [null: true])
+        add(:player_id, :string, [])
+      end
+    end
+
+    def change(_other) do
+      :ok
+    end
+
+    def __migration_structures__() do
+      [
+        {GenMigration.DecimalOption, %Yacto.Migration.Structure{field_sources: %{decimal_field: :decimal_field, id: :id, name: :name, player_id: :player_id}, fields: [:id, :player_id, :decimal_field, :name], meta: %{attrs: %{decimal_field: %{precision: 7, scale: 3}, name: %{null: true}}, indices: %{}}, source: "genmigration_decimaloption", types: %{decimal_field: :decimal, id: :id, name: :string, player_id: :string}}},
+      ]
+    end
+
+    def __migration_version__() do
+      20190401125611
+    end
+
+    def __migration_preview_version__() do
+      nil
+    end
+  end
+  """
+
+  test "Yacto.Migration.GenMigration decimal field option." do
+    v1 = [
+      {GenMigration.DecimalOption, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(GenMigration.DecimalOption)}
+    ]
+
+    source =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_190_401_125_611, nil)
+
+    assert @migrate7 == source
+  end
 end

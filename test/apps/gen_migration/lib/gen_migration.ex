@@ -101,3 +101,16 @@ defmodule GenMigration.ManyIndex do
     index([:aaaaaa, :bbbbbb, :cccccc, :dddddd])
   end
 end
+
+defmodule GenMigration.DecimalOption do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname(), do: :player
+
+  schema @auto_source do
+    field(:player_id, :string)
+    field(:decimal_field, :decimal, meta: [precision: 7, scale: 3])
+    field(:name, :string, meta: [null: true])
+  end
+end
