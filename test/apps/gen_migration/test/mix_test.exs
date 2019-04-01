@@ -26,7 +26,9 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
       {GenMigration.Coin, %Yacto.Migration.Structure{},
        Yacto.Migration.Structure.from_schema(GenMigration.Coin)},
       {GenMigration.ManyIndex, %Yacto.Migration.Structure{},
-       Yacto.Migration.Structure.from_schema(GenMigration.ManyIndex)}
+       Yacto.Migration.Structure.from_schema(GenMigration.ManyIndex)},
+      {GenMigration.DecimalOption, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(GenMigration.DecimalOption)}
     ]
 
     expected =

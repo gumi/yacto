@@ -271,6 +271,7 @@ end
 ```elixir
     field :player_id, :string, meta: [null: false, size: 64]
     field :hp, :integer, default: 0, meta: [null: false]
+    field :height, :decimal, meta: [precision: 10, scale: 3]
 ```
 
 ここは `Ecto.Schema` の `field/3` 関数とほとんど同じですが、`:meta` オプションがあるという点で異なります。
@@ -281,6 +282,8 @@ end
 - `:null`: そのフィールドが null 可能かどうか（デフォルトでは `true`）
 - `:size`: 文字列のサイズ（`VARCHAR(255)` の `255` に相当する部分）（デフォルトでは `255`）
 - `:default`: そのフィールドのデフォルト値（デフォルトでは各型の初期値か、`opts[:default]` が存在している場合はその値が入る）
+- `:precision`: `field/3` に渡す型が `:decimal` の場合の最大桁数を指定する（デフォルト値は利用する DB の仕様に従う）
+- `:scale`: `field/3` に渡す型が `:decimal` の場合の小数部の桁数を指定する（デフォルト値は利用する DB の仕様に従う）
 - `:index`: このフィールドでインデックスを張るかどうか（デフォルトでは `false`）
 - `:type`: マイグレーション時の型を指定する（デフォルトでは `field/3` で指定した型）
 

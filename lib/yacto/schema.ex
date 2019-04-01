@@ -144,7 +144,7 @@ defmodule Yacto.Schema do
           meta
         end
 
-      for {key, value} <- meta, key in [:null, :size, :default] do
+      for {key, value} <- meta, key in [:null, :size, :default, :precision, :scale] do
         new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
         @yacto_attrs Map.put(@yacto_attrs, name, new_value)
       end
