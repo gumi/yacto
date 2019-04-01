@@ -282,8 +282,8 @@ end
 - `:null`: そのフィールドが null 可能かどうか（デフォルトでは `true`）
 - `:size`: 文字列のサイズ（`VARCHAR(255)` の `255` に相当する部分）（デフォルトでは `255`）
 - `:default`: そのフィールドのデフォルト値（デフォルトでは各型の初期値か、`opts[:default]` が存在している場合はその値が入る）
-- `:precision`: field の type が Decimal の場合の精度。整数部の桁数は :precision と :scale の差になります。
-- `:scale`: field の type が Decimal の場合の、少数部の桁数
+- `:precision`: `field/3` に渡す型が `:decimal` の場合の最大桁数を指定する（デフォルト値は利用する DB の仕様に従う）
+- `:scale`: `field/3` に渡す型が `:decimal` の場合の小数部の桁数を指定する（デフォルト値は利用する DB の仕様に従う）
 - `:index`: このフィールドでインデックスを張るかどうか（デフォルトでは `false`）
 - `:type`: マイグレーション時の型を指定する（デフォルトでは `field/3` で指定した型）
 
