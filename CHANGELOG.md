@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-pre.10
+
+- `field/3` のマイグレーション用メタ情報に `:precision` と `:scale` を追加
+
 ## 2.0.0-pre.9
 
 - モデルを削除した時に drop table する機能を実装
