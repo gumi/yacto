@@ -85,6 +85,23 @@ defmodule Yacto.Migration.GenMigration do
   def generate_fields(types, attrs, structure_to, _migration_opts) do
     ops = convert_fields(types, attrs)
 
+    # ops の :add 系とそれ以外を分ける
+    {add_ops, other_ops} =
+      ops
+      |> Enum.split_with(fn
+        {_, {:add, _, _}} -> true
+        _ -> false
+      end)
+
+    # add_ops の順序をフィールドの定義順に並び替える（計算量は O(N^2)）
+    add_ops =
+      structure_to.fields
+      |> Enum.flat_map(fn field ->
+        Enum.filter(add_ops, fn {opfield, _} -> structure_to.field_sources[field] == opfield end)
+      end)
+
+    ops = other_ops ++ add_ops
+
     lines =
       for {field, op} <- ops do
         case op do

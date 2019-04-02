@@ -40,10 +40,10 @@ defmodule GenMigrationTest do
     def change(GenMigration.Player) do
       create table("player")
       alter table("player") do
-        add(:inserted_at, :naive_datetime, [])
         add(:name, :string, [])
-        add(:updated_at, :naive_datetime, [])
         add(:value, :integer, [])
+        add(:inserted_at, :naive_datetime, [])
+        add(:updated_at, :naive_datetime, [])
       end
     end
 
@@ -76,9 +76,9 @@ defmodule GenMigrationTest do
       alter table("player2") do
         remove(:inserted_at)
         remove(:name)
-        add(:name2, :string, [])
         remove(:updated_at)
         remove(:value)
+        add(:name2, :string, [])
         add(:value, :string, [])
       end
     end
@@ -327,9 +327,9 @@ defmodule GenMigrationTest do
     def change(GenMigration.DecimalOption) do
       create table("genmigration_decimaloption")
       alter table("genmigration_decimaloption") do
+        add(:player_id, :string, [])
         add(:decimal_field, :decimal, [precision: 7, scale: 3])
         add(:name, :string, [null: true])
-        add(:player_id, :string, [])
       end
     end
 

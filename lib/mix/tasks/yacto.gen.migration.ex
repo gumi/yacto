@@ -34,7 +34,10 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
         deleted_schemas =
           if length(sorted_migrations) != 0 do
             latest_migration = List.last(sorted_migrations)
-            preview_schemas = Enum.map(latest_migration.module.__migration_structures__(), fn {a, _} -> a end)
+
+            preview_schemas =
+              Enum.map(latest_migration.module.__migration_structures__(), fn {a, _} -> a end)
+
             # preview_schemas に存在していて、schemas に存在していないモデルを探す
             preview_schemas -- schemas
           else

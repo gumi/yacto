@@ -66,16 +66,22 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
        Yacto.Migration.Structure.from_schema(GenMigration.ManyIndex)}
     ]
 
-    migration = Yacto.Migration.GenMigration.generate_source(GenMigration, v1, @migration_version_del, nil)
+    migration =
+      Yacto.Migration.GenMigration.generate_source(GenMigration, v1, @migration_version_del, nil)
 
     path = Yacto.Migration.Util.get_migration_path_for_gen(:gen_migration, @migration_version_del)
     File.write!(path, migration)
 
     # 上記のマイグレーションの状態から、新しいマイグレーションファイルを生成する
-    Mix.Task.rerun("yacto.gen.migration", ["--version", Integer.to_string(@migration_version_del2)])
+    Mix.Task.rerun("yacto.gen.migration", [
+      "--version",
+      Integer.to_string(@migration_version_del2)
+    ])
 
     # GenMigration.PlayerUnknown のモデルは存在しないので、マイグレートした時に削除されるはず
-    path2 = Yacto.Migration.Util.get_migration_path_for_gen(:gen_migration, @migration_version_del2)
+    path2 =
+      Yacto.Migration.Util.get_migration_path_for_gen(:gen_migration, @migration_version_del2)
+
     migration2 = File.read!(path2)
     assert String.contains?(migration2, "drop table(\"player\")")
   end
