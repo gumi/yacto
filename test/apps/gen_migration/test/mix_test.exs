@@ -21,6 +21,8 @@ defmodule Mix.Tasks.Yacto.GenMigrationTest do
        Yacto.Migration.Structure.from_schema(GenMigration.Player2)},
       {GenMigration.Player3, %Yacto.Migration.Structure{},
        Yacto.Migration.Structure.from_schema(GenMigration.Player3)},
+      {GenMigration.Player4, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(GenMigration.Player3)},
       {GenMigration.Item, %Yacto.Migration.Structure{},
        Yacto.Migration.Structure.from_schema(GenMigration.Item)},
       {GenMigration.Coin, %Yacto.Migration.Structure{},

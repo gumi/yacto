@@ -197,6 +197,11 @@ defmodule GenMigrationTest do
        %Yacto.Migration.Structure{}}
     ]
 
+    v5 = [
+      {GenMigration.Player, Yacto.Migration.Structure.from_schema(GenMigration.Player3),
+       Yacto.Migration.Structure.from_schema(GenMigration.Player4)}
+    ]
+
     source =
       Yacto.Migration.GenMigration.generate_source(GenMigration, v1, 20_170_424_155_528, nil)
 
@@ -230,6 +235,15 @@ defmodule GenMigrationTest do
     )
 
     assert @migrate4 == source
+
+    # source = Yacto.Migration.GenMigration.generate_source(
+    #   GenMigration,
+    #   v5,
+    #   20_170_424_155_534,
+    #   20_170_424_155_553
+    # )
+
+    # assert @migrate4 == source
   end
 
   @migrate5 """

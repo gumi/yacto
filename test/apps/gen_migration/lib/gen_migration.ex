@@ -31,6 +31,22 @@ defmodule GenMigration.Player3 do
   end
 end
 
+defmodule GenMigration.Player4 do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname(), do: :player
+
+  @primary_key {:id, :binary_id, autogenerate: true}
+
+  schema @auto_source do
+    field(:name3, :string, meta: [null: false, size: 100])
+    field(:value, :string)
+    index([:value, :name3])
+    index([:name3, :value], unique: true)
+  end
+end
+
 defmodule GenMigration.Item do
   use Yacto.Schema
 
