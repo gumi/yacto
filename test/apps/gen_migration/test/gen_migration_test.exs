@@ -96,7 +96,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, name2: :name2, value: :value}, fields: [:id, :name2, :value], source: "player2", types: %{id: :id, name2: :string, value: :string}}},
+        {GenMigration.Player, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :id}, field_sources: %{id: :id, name2: :name2, value: :value}, fields: [:id, :name2, :value], primary_key: [:id], source: "player2", types: %{id: :id, name2: :string, value: :string}}},
       ]
     end
 
@@ -134,7 +134,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Player, %Yacto.Migration.Structure{field_sources: %{id: :id, name3: :name3, value: :value}, fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "genmigration_player3", types: %{id: :id, name3: :string, value: :string}}},
+        {GenMigration.Player, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :id}, field_sources: %{id: :id, name3: :name3, value: :value}, fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, primary_key: [:id], source: "genmigration_player3", types: %{id: :id, name3: :string, value: :string}}},
       ]
     end
 
@@ -258,7 +258,7 @@ defmodule GenMigrationTest do
 
     def __migration_structures__() do
       [
-        {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :binary_id}, field_sources: %{id: :id, name: :name}, fields: [:id, :name], source: "genmigration_item", types: %{id: :binary_id, name: :string}}},
+        {GenMigration.Item, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :binary_id}, field_sources: %{id: :id, name: :name}, fields: [:id, :name], primary_key: [:id], source: "genmigration_item", types: %{id: :binary_id, name: :string}}},
       ]
     end
 
@@ -302,14 +302,13 @@ defmodule GenMigrationTest do
       create index("genmigration_manyindex", [:aaaaaa, :bbbbbb, :cccccc, :dddddd], [name: "aaaaaa_bbbb_9a4e1a2f"])
     end
 
-
     def change(_other) do
       :ok
     end
 
     def __migration_structures__() do
       [
-        {GenMigration.ManyIndex, %Yacto.Migration.Structure{field_sources: %{aaaaaa: :aaaaaa, bbbbbb: :bbbbbb, cccccc: :cccccc, dddddd: :dddddd, id: :id}, fields: [:id, :aaaaaa, :bbbbbb, :cccccc, :dddddd], meta: %{attrs: %{}, indices: %{{[:aaaaaa, :bbbbbb, :cccccc, :dddddd], []} => true}}, source: "genmigration_manyindex", types: %{aaaaaa: :string, bbbbbb: :string, cccccc: :string, dddddd: :string, id: :id}}},
+        {GenMigration.ManyIndex, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :id}, field_sources: %{aaaaaa: :aaaaaa, bbbbbb: :bbbbbb, cccccc: :cccccc, dddddd: :dddddd, id: :id}, fields: [:id, :aaaaaa, :bbbbbb, :cccccc, :dddddd], meta: %{attrs: %{}, indices: %{{[:aaaaaa, :bbbbbb, :cccccc, :dddddd], []} => true}}, primary_key: [:id], source: "genmigration_manyindex", types: %{aaaaaa: :string, bbbbbb: :string, cccccc: :string, dddddd: :string, id: :id}}},
       ]
     end
 
