@@ -2,38 +2,38 @@ defmodule CustomTableNameTest do
   use PowerAssert
 
   @migrate """
-defmodule CustomTableName.Migration20170424155528 do
-  use Ecto.Migration
+  defmodule CustomTableName.Migration20170424155528 do
+    use Ecto.Migration
 
-  def change(CustomTableName.Player.Schema.TestData) do
-    create table(\"customtablename_player\", primary_key: false) do
-      add(:id, :id)
+    def change(CustomTableName.Player.Schema.TestData) do
+      create table(\"customtablename_player\", primary_key: false) do
+        add(:id, :id)
+      end
+      alter table(\"customtablename_player\") do
+        modify(:id, :bigserial, [primary_key: true])
+        add(:name, :string, [default: \"hoge\", null: false, size: 100])
+      end
     end
-    alter table(\"customtablename_player\") do
-      modify(:id, :bigserial, [primary_key: true])
-      add(:name, :string, [default: \"hoge\", null: false, size: 100])
+
+    def change(_other) do
+      :ok
+    end
+
+    def __migration_structures__() do
+      [
+        {CustomTableName.Player.Schema.TestData, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :id}, field_sources: %{id: :id, name: :name}, fields: [:id, :name], meta: %{attrs: %{name: %{default: \"hoge\", null: false, size: 100}}, indices: %{}}, primary_key: [:id], source: \"customtablename_player\", types: %{id: :id, name: :string}}},
+      ]
+    end
+
+    def __migration_version__() do
+      20170424155528
+    end
+
+    def __migration_preview_version__() do
+      nil
     end
   end
-
-  def change(_other) do
-    :ok
-  end
-
-  def __migration_structures__() do
-    [
-      {CustomTableName.Player.Schema.TestData, %Yacto.Migration.Structure{autogenerate_id: {:id, :id, :id}, field_sources: %{id: :id, name: :name}, fields: [:id, :name], meta: %{attrs: %{name: %{default: \"hoge\", null: false, size: 100}}, indices: %{}}, primary_key: [:id], source: \"customtablename_player\", types: %{id: :id, name: :string}}},
-    ]
-  end
-
-  def __migration_version__() do
-    20170424155528
-  end
-
-  def __migration_preview_version__() do
-    nil
-  end
-end
-"""
+  """
 
   test "Yacto.Migration.GenMigration generate_source with custom table name." do
     v1 = [

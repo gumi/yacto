@@ -263,8 +263,8 @@ defmodule MigratorTest do
       schemas = Yacto.Migration.Util.get_all_schema(:migrator)
       :ok = Yacto.Migration.Migrator.up(:migrator, Migrator.Repo1, schemas, migrations)
     after
-#      File.rm!("migration_test_1.exs")
-#      File.rm!("migration_test_2.exs")
+      #      File.rm!("migration_test_1.exs")
+      #      File.rm!("migration_test_2.exs")
       Code.unload_files(["migration_test_1.exs", "migration_test_2.exs"])
     end
 
@@ -278,6 +278,6 @@ defmodule MigratorTest do
 
     # 複合主キーが同じデータを追加しようとすると Ecto.ConstraintError が発生する。
     record3 = %Migrator.CompositePrimaryKey{player_id: "saito", guild_id: "gumi", name: "12345"}
-    assert_raise Ecto.ConstraintError, fn -> IO.inspect Migrator.Repo1.insert!(record3) end
+    assert_raise Ecto.ConstraintError, fn -> IO.inspect(Migrator.Repo1.insert!(record3)) end
   end
 end
