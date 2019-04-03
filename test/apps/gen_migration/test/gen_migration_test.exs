@@ -222,14 +222,14 @@ defmodule GenMigrationTest do
 
     assert @migrate3 == source
 
-    assert_raise RuntimeError, "error", fn ->
-      Yacto.Migration.GenMigration.generate_source(
-        GenMigration,
-        v4,
-        20_170_424_155_533,
-        20_170_424_155_532
-      )
-    end
+    source = Yacto.Migration.GenMigration.generate_source(
+      GenMigration,
+      v4,
+      20_170_424_155_533,
+      20_170_424_155_532
+    )
+
+    assert @migrate4 == source
   end
 
   @migrate5 """

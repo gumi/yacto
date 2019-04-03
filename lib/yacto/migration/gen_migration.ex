@@ -1,6 +1,10 @@
 defmodule Yacto.Migration.GenMigration do
   require Logger
 
+  defmodule GenMigrationError do
+    defexception [:message, :from, :to]
+  end
+
   defp convert_fields(types, attrs, primary_keys, autogenerate_id) do
     # types:
     #   %{del: %{field: type},
@@ -410,15 +414,36 @@ defmodule Yacto.Migration.GenMigration do
     diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
     rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
 
-    if structure_from.primary_key != structure_to.primary_key && structure_from.primary_key != [] do
-      raise "error"
-    end
+    case {structure_from.primary_key, structure_to.primary_key} do
+      {[], []} ->
+        :ok
 
-    case diff.autogenerate_id do
-      :not_changed -> :ok
-      {:create, _to_value} -> :ok
-      {:delete, _from_value} -> raise "error"
-      {:changed, _from_value, _to_value} -> raise "error"
+      {[], _to} ->
+        :ok
+
+      {_from, []} ->
+        :ok
+
+      {from, to} when from == to ->
+        case diff.autogenerate_id do
+          :not_changed ->
+            :ok
+
+          {:create, _to_value} ->
+            :ok
+
+          _ ->
+            raise Yacto.Migration.GenMigration.GenMigrationError,
+              message: "AutogenerateID Primary key can not be changed",
+              from: structure_from,
+              to: structure_to
+        end
+
+      {from, to} when from != to ->
+        raise Yacto.Migration.GenMigration.GenMigrationError,
+          message: "Primary key already exists",
+          from: structure_from,
+          to: structure_to
     end
 
     if diff == rdiff do
