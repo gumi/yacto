@@ -145,6 +145,20 @@ defmodule Yacto.QueryTest do
     test_get_by_or_new(true)
   end
 
+  test "Yacto.Repo.get_by_or_new with lock2" do
+    repo = Yacto.QueryTest.UniqueItem.repo()
+    repo.get_by_or_insert_for_update(
+      Yacto.QueryTest.Item,
+      [name: "foo"],
+      Ecto.Changeset.change(%Yacto.QueryTest.Item{name: "foo", quantity: 1000})
+    )
+    repo.get_by_or_insert_for_update(
+      Yacto.QueryTest.Item,
+      [name: "foo"],
+      Ecto.Changeset.change(%Yacto.QueryTest.Item{name: "foo", quantity: 2000})
+    )
+  end
+
   test "Yacto.Repo.find" do
     mod = Yacto.QueryTest.Item
     assert length(mod.repo().find(mod, name: "foo")) == 1

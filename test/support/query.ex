@@ -22,6 +22,15 @@ defmodule Yacto.QueryTest.Item do
   end
 end
 
+defmodule Yacto.QueryTest.UniqueItem do
+  use Yacto.Schema.Single, dbname: :default
+
+  schema "item" do
+    field(:name, :string, unique: true)
+    field(:quantity, :integer)
+  end
+end
+
 defmodule Yacto.QueryTest.Default.Migration do
   use Ecto.Migration
 

@@ -3,6 +3,9 @@ defmodule Yacto.Migration.GenMigration do
 
   defmodule GenMigrationError do
     defexception [:message, :from, :to]
+    def message(error) do
+      "#{error.message} from: #{inspect error.from} to: #{inspect error.to}"
+    end
   end
 
   defp convert_fields(types, attrs, primary_keys, autogenerate_id) do
@@ -424,6 +427,7 @@ defmodule Yacto.Migration.GenMigration do
       {_from, []} ->
         :ok
 
+      # TODO このロジックテストされてないのでテスト追加する
       {from, to} when from == to ->
         case diff.autogenerate_id do
           :not_changed ->
@@ -441,7 +445,7 @@ defmodule Yacto.Migration.GenMigration do
 
       {from, to} when from != to ->
         raise Yacto.Migration.GenMigration.GenMigrationError,
-          message: "Primary key already exists",
+          message: "Primary key can not be changed",
           from: structure_from,
           to: structure_to
     end
