@@ -353,3 +353,26 @@ end
 `get_by_or_insert_for_update/4` は、`get_by_or_new/4` の排他ロックを取るバージョンです。
 まずレコードを取得してみて、あればそのレコードを、無ければ新規に `default_struct_or_changeset` を挿入して返します。この時、返されるレコードは排他ロックされます。
 戻り値は `{record, created}` の２要素のタプルになっていて、1要素目には取得できたレコード（あるいは挿入したデフォルト値）が、2要素目には新しく挿入したかどうかのフラグが設定されます。
+
+## Telemetry Events
+
+Ecto の Telemetry Events に対応しました。
+イベントが実行された際に呼び出されるモジュールをまずは実装してください。
+
+```
+defmodule EctoTracehandler do
+  require Logger
+  
+  def handle_event([:ecto, :repo, :trace], measurements, metadata, config) do
+    Logger.info("query: #{metadata.query}(total time: #{measurements.total_time})")
+  end
+end
+```
+
+そしてイベントにモジュールを attach します。
+
+```
+:telemetry.attach("ecto-tracer", [:ecto, :repo, :trace], &EctoTracehandler.handle_event/4, nil)
+```
+
+以上で、クエリが実行された際に `EctoTracehandler.handle_event/4` が呼び出されます。
