@@ -62,43 +62,50 @@ defmodule Yacto.Repo.Helper do
 
   defmacro __using__(_) do
     quote do
+      @telemetry_events [telemetry_event: [:ecto, :repo, :sql_trace]]
+
+      @spec merge_opts(Keyword.t) :: Keyword.t
+      defp merge_opts(opts) do
+        Keyword.merge(@telemetry_events, opts)
+      end
+
       def get_for_update(queryable, id, opts \\ []) do
         query = Helper.query_for_get(__MODULE__, queryable, id)
-        query |> Yacto.Query.for_update() |> __MODULE__.one(opts)
+        query |> Yacto.Query.for_update() |> __MODULE__.one(merge_opts(opts))
       end
 
       def get_for_update!(queryable, id, opts \\ []) do
         query = Helper.query_for_get(__MODULE__, queryable, id)
-        query |> Yacto.Query.for_update() |> __MODULE__.one!(opts)
+        query |> Yacto.Query.for_update() |> __MODULE__.one!(merge_opts(opts))
       end
 
       def get_by_for_update(queryable, clauses, opts \\ []) do
         query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
-        query |> Yacto.Query.for_update() |> __MODULE__.one(opts)
+        query |> Yacto.Query.for_update() |> __MODULE__.one(merge_opts(opts))
       end
 
       def get_by_for_update!(queryable, clauses, opts \\ []) do
         query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
-        query |> Yacto.Query.for_update() |> __MODULE__.one!(opts)
+        query |> Yacto.Query.for_update() |> __MODULE__.one!(merge_opts(opts))
       end
 
       def find(queryable, clauses, opts \\ []) do
         query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
-        query |> __MODULE__.all(opts)
+        query |> __MODULE__.all(merge_opts(opts))
       end
 
       def find_for_update(queryable, clauses, opts \\ []) do
         query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
-        query |> Yacto.Query.for_update() |> __MODULE__.all(opts)
+        query |> Yacto.Query.for_update() |> __MODULE__.all(merge_opts(opts))
       end
 
       def delete_by(queryable, clauses, opts \\ []) do
         query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
-        query |> __MODULE__.delete_all(opts)
+        query |> __MODULE__.delete_all(merge_opts(opts))
       end
 
       def delete_by!(queryable, clauses, opts \\ []) do
-        case delete_by(queryable, clauses, opts) do
+        case delete_by(queryable, clauses, merge_opts(opts)) do
           {0, _} ->
             raise Ecto.NoResultsError, queryable: queryable
 
@@ -111,11 +118,11 @@ defmodule Yacto.Repo.Helper do
         require Ecto.Query
 
         query = Helper.query_for_get_by(__MODULE__, queryable, clauses)
-        query |> Ecto.Query.select(count("*")) |> __MODULE__.one!(opts)
+        query |> Ecto.Query.select(count("*")) |> __MODULE__.one!(merge_opts(opts))
       end
 
       def get_by_or_new(queryable, clauses, default_struct, opts \\ []) do
-        case __MODULE__.get_by(queryable, clauses, opts) do
+        case __MODULE__.get_by(queryable, clauses, merge_opts(opts)) do
           nil ->
             {default_struct, true}
 
@@ -125,23 +132,23 @@ defmodule Yacto.Repo.Helper do
       end
 
       def get_by_or_insert_for_update(queryable, clauses, default_struct_or_changeset, opts \\ []) do
-        case __MODULE__.get_by(queryable, clauses, opts) do
+        case __MODULE__.get_by(queryable, clauses, merge_opts(opts)) do
           nil ->
             # insert
             try do
-              __MODULE__.insert!(default_struct_or_changeset)
+              __MODULE__.insert!(default_struct_or_changeset, merge_opts(opts))
             else
               record -> {record, true}
             rescue
               _ in Ecto.ConstraintError ->
                 # duplicate key
-                record = get_by_for_update!(queryable, clauses, opts)
+                record = get_by_for_update!(queryable, clauses, merge_opts(opts))
                 {record, false}
             end
 
           _ ->
             # retry SELECT with FOR UPDATE
-            record = get_by_for_update!(queryable, clauses, opts)
+            record = get_by_for_update!(queryable, clauses, merge_opts(opts))
             {record, false}
         end
       end
