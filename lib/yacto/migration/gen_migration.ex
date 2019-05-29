@@ -175,46 +175,48 @@ defmodule Yacto.Migration.GenMigration do
       for {changetype, changes} <- indices do
         case changetype do
           :del ->
-            for {{fields, opts}, value} <- changes, value do
-              opts =
-                if Keyword.has_key?(opts, :name) do
-                  opts
-                else
-                  [
-                    {:name,
-                     create_index_name(
-                       fields,
-                       Keyword.get(migration_opts, :index_name_max_length, :infinity)
-                     )}
-                    | opts
-                  ]
-                end
+            {:drop,
+             for {{fields, opts}, value} <- changes, value do
+               opts =
+                 if Keyword.has_key?(opts, :name) do
+                   opts
+                 else
+                   [
+                     {:name,
+                      create_index_name(
+                        fields,
+                        Keyword.get(migration_opts, :index_name_max_length, :infinity)
+                      )}
+                     | opts
+                   ]
+                 end
 
-              "drop index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
-            end
+               "drop index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
+             end}
 
           :ins ->
-            for {{fields, opts}, value} <- changes, value do
-              opts =
-                if Keyword.has_key?(opts, :name) do
-                  opts
-                else
-                  [
-                    {:name,
-                     create_index_name(
-                       fields,
-                       Keyword.get(migration_opts, :index_name_max_length, :infinity)
-                     )}
-                    | opts
-                  ]
-                end
+            {:create,
+             for {{fields, opts}, value} <- changes, value do
+               opts =
+                 if Keyword.has_key?(opts, :name) do
+                   opts
+                 else
+                   [
+                     {:name,
+                      create_index_name(
+                        fields,
+                        Keyword.get(migration_opts, :index_name_max_length, :infinity)
+                      )}
+                     | opts
+                   ]
+                 end
 
-              "create index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
-            end
+               "create index(#{inspect(structure_to.source)}, #{inspect(fields)}, #{inspect(opts)})"
+             end}
         end
       end
 
-    List.flatten(xs)
+    Enum.into(xs, %{})
   end
 
   defp get_template() do
@@ -431,9 +433,22 @@ defmodule Yacto.Migration.GenMigration do
               []
 
             _ ->
-              ["alter table(#{inspect(structure_to.source)}) do"] ++
-                generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts) ++
-                ["end"] ++ generate_indices(diff.meta.indices, structure_to, migration_opts)
+              generated_fields =
+                generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts)
+
+              indices = generate_indices(diff.meta.indices, structure_to, migration_opts)
+
+              if Enum.empty?(generated_fields) do
+                indices
+                |> Map.values()
+                |> List.flatten()
+              else
+                Map.get(indices, :drop, []) ++
+                  ["alter table(#{inspect(structure_to.source)}) do"] ++
+                  generated_fields ++
+                  ["end"] ++
+                  Map.get(indices, :create, [])
+              end
           end
 
       lines
