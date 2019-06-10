@@ -111,6 +111,29 @@ defmodule Migrator.Coin do
   end
 end
 
+defmodule Migrator.DropFieldWithIndex do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname(), do: :default
+
+  schema @auto_source do
+    field(:value1, :string, meta: [null: false, index: true])
+    field(:value2, :string, meta: [null: false])
+  end
+end
+
+defmodule Migrator.DropFieldWithIndex2 do
+  use Yacto.Schema
+
+  @impl Yacto.Schema
+  def dbname(), do: :default
+
+  schema @auto_source do
+    field(:value2, :string, meta: [null: false, index: true])
+  end
+end
+
 defmodule Migrator.Repo0 do
   use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MySQL
 end

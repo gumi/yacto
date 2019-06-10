@@ -203,4 +203,63 @@ defmodule MigratorTest do
     record = Migrator.Repo1.insert!(record)
     assert record.type == :common_coin
   end
+
+  test "フィールドの削除とインデックスの削除が同時に行われた場合に正しくマイグレーションできる" do
+    Mix.Task.rerun("ecto.drop")
+    Mix.Task.rerun("ecto.create")
+
+    {:ok, _} = Migrator.Repo1.start_link()
+
+    v1 = [
+      {Migrator.DropFieldWithIndex, %Yacto.Migration.Structure{},
+       Yacto.Migration.Structure.from_schema(Migrator.DropFieldWithIndex)}
+    ]
+
+    v2 = [
+      {Migrator.DropFieldWithIndex,
+       Yacto.Migration.Structure.from_schema(Migrator.DropFieldWithIndex),
+       Yacto.Migration.Structure.from_schema(Migrator.DropFieldWithIndex2)}
+    ]
+
+    try do
+      for {v, version, preview_version, save_file, load_files} <- [
+            {v1, 20_170_424_162_530, nil, "mig_1.exs", ["mig_1.exs"]},
+            {v2, 20_170_424_162_533, 20_170_424_162_530, "mig_2.exs", ["mig_1.exs", "mig_2.exs"]}
+          ] do
+        source =
+          Yacto.Migration.GenMigration.generate_source(Migrator, v, version, preview_version)
+
+        File.write!(save_file, source)
+        migrations = Yacto.Migration.Util.load_migrations(load_files)
+
+        schemas = Yacto.Migration.Util.get_all_schema(:migrator)
+        :ok = Yacto.Migration.Migrator.up(:migrator, Migrator.Repo1, schemas, migrations)
+      end
+    after
+      File.rm("mig_1.exs")
+      File.rm("mig_2.exs")
+      Code.unload_files(["mig_1.exs"])
+      Code.unload_files(["mig_2.exs"])
+    end
+
+    expect = """
+    CREATE TABLE `migrator_dropfieldwithindex2` (
+      `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+      `value2` varchar(255) NOT NULL,
+      PRIMARY KEY (`id`),
+      KEY `value2_index` (`value2`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    """
+
+    actual =
+      Ecto.Adapters.SQL.query!(
+        Migrator.Repo1,
+        "SHOW CREATE TABLE #{Migrator.DropFieldWithIndex2.__schema__(:source)}",
+        []
+      ).rows
+      |> Enum.at(0)
+      |> Enum.at(1)
+
+    assert String.trim_trailing(expect) == actual
+  end
 end
