@@ -216,14 +216,15 @@ defmodule MigratorTest do
     ]
 
     v2 = [
-      {Migrator.DropFieldWithIndex, Yacto.Migration.Structure.from_schema(Migrator.DropFieldWithIndex),
+      {Migrator.DropFieldWithIndex,
+       Yacto.Migration.Structure.from_schema(Migrator.DropFieldWithIndex),
        Yacto.Migration.Structure.from_schema(Migrator.DropFieldWithIndex2)}
     ]
 
     try do
       for {v, version, preview_version, save_file, load_files} <- [
             {v1, 20_170_424_162_530, nil, "mig_1.exs", ["mig_1.exs"]},
-            {v2, 20_170_424_162_533, 20_170_424_162_530, "mig_2.exs", ["mig_1.exs", "mig_2.exs"]},
+            {v2, 20_170_424_162_533, 20_170_424_162_530, "mig_2.exs", ["mig_1.exs", "mig_2.exs"]}
           ] do
         source =
           Yacto.Migration.GenMigration.generate_source(Migrator, v, version, preview_version)
@@ -261,5 +262,4 @@ defmodule MigratorTest do
 
     assert String.trim_trailing(expect) == actual
   end
-
 end

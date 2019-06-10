@@ -216,7 +216,8 @@ defmodule Yacto.Migration.GenMigration do
         end
       end
 
-    Enum.into(xs, %{})
+    m = Enum.into(xs, %{})
+    {Map.get(m, :create, []), Map.get(m, :drop, [])}
   end
 
   defp get_template() do
@@ -436,18 +437,17 @@ defmodule Yacto.Migration.GenMigration do
               generated_fields =
                 generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts)
 
-              indices = generate_indices(diff.meta.indices, structure_to, migration_opts)
+              {create_indices, drop_indices} =
+                generate_indices(diff.meta.indices, structure_to, migration_opts)
 
               if Enum.empty?(generated_fields) do
-                indices
-                |> Map.values()
-                |> List.flatten()
+                drop_indices ++ create_indices
               else
-                Map.get(indices, :drop, []) ++
+                drop_indices ++
                   ["alter table(#{inspect(structure_to.source)}) do"] ++
                   generated_fields ++
                   ["end"] ++
-                  Map.get(indices, :create, [])
+                  create_indices
               end
           end
 
