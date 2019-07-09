@@ -224,7 +224,7 @@ defmodule Yacto.Migration.Util do
         throw({:error, [message]})
       end
 
-      if Map.size(referenced_migrations) != 0 && length(root) == 0 do
+      if map_size(referenced_migrations) != 0 && length(root) == 0 do
         throw({:error, ["マイグレーションファイルの指定が循環しています。"]})
       end
 
