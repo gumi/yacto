@@ -1,6 +1,6 @@
 # Yacto
 
-Yacto は、[Ecto](https://hexdocs.pm/ecto/Ecto.html) で使いにくかった部分をサポートするためのライブラリです。
+Yacto は、[Ecto](https://hexdocs.pm/ecto/Ecto.html) で手が届きにくい部分をサポートするためのライブラリです。
 
 大まかに以下の機能があります。
 
