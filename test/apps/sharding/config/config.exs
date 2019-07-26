@@ -5,7 +5,7 @@ config :sharding, Sharding.Repo.Default,
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 mods =
   for n <- 0..1 do
@@ -16,7 +16,7 @@ mods =
       username: "root",
       password: "",
       hostname: "localhost",
-      port: "3306"
+      port: 3306
 
     mod
   end

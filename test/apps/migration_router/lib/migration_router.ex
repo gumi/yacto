@@ -17,13 +17,13 @@ defmodule MigrationRouter.Player do
 end
 
 defmodule MigrationRouter.Repo.Default do
-  use Ecto.Repo, otp_app: :migration_router, adapter: Ecto.Adapters.MySQL
+  use Ecto.Repo, otp_app: :migration_router, adapter: Ecto.Adapters.MyXQL
 end
 
 defmodule MigrationRouter.Repo.Player1 do
-  use Ecto.Repo, otp_app: :migration_router, adapter: Ecto.Adapters.MySQL
+  use Ecto.Repo, otp_app: :migration_router, adapter: Ecto.Adapters.MyXQL
 end
 
 defmodule MigrationRouter.Repo.Player2 do
-  use Ecto.Repo, otp_app: :migration_router, adapter: Ecto.Adapters.MySQL
+  use Ecto.Repo, otp_app: :migration_router, adapter: Ecto.Adapters.MyXQL
 end

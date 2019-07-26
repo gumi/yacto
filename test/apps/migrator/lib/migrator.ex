@@ -135,9 +135,9 @@ defmodule Migrator.DropFieldWithIndex2 do
 end
 
 defmodule Migrator.Repo0 do
-  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MySQL
+  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end
 
 defmodule Migrator.Repo1 do
-  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MySQL
+  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end

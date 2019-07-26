@@ -1,10 +1,10 @@
 defmodule Sharding.Repo.Default do
-  use Ecto.Repo, otp_app: :sharding, adapter: Ecto.Adapters.MySQL
+  use Ecto.Repo, otp_app: :sharding, adapter: Ecto.Adapters.MyXQL
 end
 
 for n <- 0..1 do
   defmodule Module.concat(Sharding.Repo, "Player#{n}") do
-    use Ecto.Repo, otp_app: :sharding, adapter: Ecto.Adapters.MySQL
+    use Ecto.Repo, otp_app: :sharding, adapter: Ecto.Adapters.MyXQL
   end
 end
 

@@ -11,21 +11,21 @@ config :migration_router, MigrationRouter.Repo.Default,
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :migration_router, MigrationRouter.Repo.Player1,
   database: "migration_router_player1",
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :migration_router, MigrationRouter.Repo.Player2,
   database: "migration_router_player2",
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :yacto, :databases, %{
   default: %{module: Yacto.DB.Single, repo: MigrationRouter.Repo.Default},

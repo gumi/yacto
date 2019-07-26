@@ -11,7 +11,7 @@ defmodule ShardingTest do
              username: "root",
              password: "",
              hostname: "localhost",
-             port: "3306"
+             port: 3306
            ] == Sharding.Repo.Player0.config()
 
     assert [
@@ -23,7 +23,7 @@ defmodule ShardingTest do
              username: "root",
              password: "",
              hostname: "localhost",
-             port: "3306"
+             port: 3306
            ] == Sharding.Repo.Player1.config()
 
     assert [
@@ -35,7 +35,7 @@ defmodule ShardingTest do
              username: "root",
              password: "",
              hostname: "localhost",
-             port: "3306"
+             port: 3306
            ] == Sharding.Repo.Default.config()
   end
 

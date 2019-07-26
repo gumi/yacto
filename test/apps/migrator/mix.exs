@@ -23,7 +23,7 @@ defmodule Migrator.Mixfile do
   defp deps do
     [
       {:yacto, path: "../../.."},
-      {:power_assert, "~> 0.1.1", only: :test}
+      {:power_assert, "~> 0.2.0", only: :test}
     ]
   end
 end

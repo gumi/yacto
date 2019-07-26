@@ -16,35 +16,35 @@ config :yacto, Yacto.XATest.Repo0,
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :yacto, Yacto.XATest.Repo1,
   database: "yact_xa_repo1",
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :yacto, Yacto.QueryTest.Repo.Default,
   database: "yact_query_repo_default",
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :yacto, Yacto.QueryTest.Repo.Player0,
   database: "yact_query_repo_player0",
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :yacto, Yacto.QueryTest.Repo.Player1,
   database: "yact_query_repo_player1",
   username: "root",
   password: "",
   hostname: "localhost",
-  port: "3306"
+  port: 3306
 
 config :yacto, :databases, %{
   default: %{module: Yacto.DB.Single, repo: Yacto.QueryTest.Repo.Default},
