@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-pre.13
+
+- Elixir 1.9.0 の対応 (Thanks @hiromoon !)
+- ecto_sql 3.1.6 への対応
+  - MySQL Adapter をやめて MyXQL Adapter を使うようにした
+  - 新しいバージョンの Ecto.Migration.Runner に追従
+
 ## 2.0.0-pre.12
 
 - インデックスの付いたフィールドを削除するとマイグレーションに失敗する問題を修正した (Thanks @h1u2i3 !)
