@@ -16,6 +16,8 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
 
         _ = Application.load(app)
         schemas = Yacto.Migration.Util.get_all_schema(app)
+                  |> Enum.filter(fn schema ->
+                     Yacto.Migration.Util.need_gen_migration?(schema) end)
 
         validated =
           Yacto.Migration.Util.get_migration_files(app)
