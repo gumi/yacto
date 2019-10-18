@@ -95,6 +95,13 @@ defmodule Yacto.Migration.Util do
     end)
   end
 
+  def need_gen_migration?(schema) do
+    case function_exported?(schema, :gen_migration?, 0) do
+      true -> schema.gen_migration?
+      false -> true
+    end
+  end
+
   def is_migration_module?(mod), do: function_exported?(mod, :__migration__, 0)
 
   def load_migrations(migration_files) do
