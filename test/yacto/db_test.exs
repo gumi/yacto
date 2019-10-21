@@ -5,6 +5,7 @@ defmodule Yacto.DBTest do
     Memoize.invalidate()
 
     old_databases = Application.fetch_env!(:yacto, :databases)
+
     ExUnit.Callbacks.on_exit(fn ->
       Application.put_env(:yacto, :databases, old_databases)
       Memoize.invalidate()
