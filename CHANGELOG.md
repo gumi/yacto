@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-pre.14
+
+- スキーマの定義時にマイグレーションファイルを生成するかどうかを選択できるようにした（Thanks @mori5321 !）
+
 ## 2.0.0-pre.13
 
 - Elixir 1.9.0 の対応 (Thanks @hiromoon !)
