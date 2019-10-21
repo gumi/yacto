@@ -4,13 +4,20 @@ defmodule Yacto.DBTest do
   setup do
     Memoize.invalidate()
 
+    old_databases = Application.fetch_env!(:yacto, :databases)
+    ExUnit.Callbacks.on_exit(fn ->
+      Application.put_env(:yacto, :databases, old_databases)
+      Memoize.invalidate()
+    end)
+
     databases = %{
       default: %{module: Yacto.DB.Single, repo: Yacto.Repo.Default},
       player: %{module: Yacto.DB.Shard, repos: [Yacto.Repo.Player1, Yacto.Repo.Player2]}
     }
 
     Application.put_env(:yacto, :databases, databases)
-    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :databases) end)
+
+    :ok
   end
 
   test "Yacto.DB.repo" do
