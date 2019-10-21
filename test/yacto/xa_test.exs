@@ -3,6 +3,35 @@ defmodule Yacto.XATest do
   doctest Yacto.XA
   require Ecto.Query
 
+  setup_all do
+    config0 = [
+      database: "yacto_xa_repo0",
+      username: "root",
+      password: "",
+      hostname: "localhost",
+      port: 3306
+    ]
+
+    config1 = [
+      database: "yacto_xa_repo1",
+      username: "root",
+      password: "",
+      hostname: "localhost",
+      port: 3306
+    ]
+
+    for {repo, config} <- [{Yacto.XATest.Repo0, config0}, {Yacto.XATest.Repo1, config1}] do
+      _ = repo.__adapter__.storage_down(config)
+      :ok = repo.__adapter__.storage_up(config)
+    end
+
+    {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.XATest.Repo0, config0})
+    {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.XATest.Repo1, config1})
+
+    :ok = Ecto.Migrator.up(Yacto.XATest.Repo0, 20_170_408_225_025, Yacto.XATest.Player.Migration)
+    :ok = Ecto.Migrator.up(Yacto.XATest.Repo1, 20_170_408_225_025, Yacto.XATest.Player.Migration)
+  end
+
   test "Single Transaction" do
     :result = Yacto.XA.transaction([Yacto.XATest.Repo1], fn -> :result end)
   end
