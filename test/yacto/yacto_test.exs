@@ -1,6 +1,14 @@
 defmodule YactoTest do
   use PowerAssert
 
+  @databases %{
+    default: %{module: Yacto.DB.Single, repo: Yacto.QueryTest.Repo.Default},
+    player: %{
+      module: Yacto.DB.Shard,
+      repos: [Yacto.QueryTest.Repo.Player0, Yacto.QueryTest.Repo.Player1]
+    }
+  }
+
   setup_all do
     default_config = [
       database: "yacto_query_repo_default",
@@ -65,9 +73,13 @@ defmodule YactoTest do
 
   test "Yacto.transaction" do
     result =
-      Yacto.transaction([:default, {:player, "player_id1"}, {:player, "player_id2"}], fn ->
-        :ok
-      end)
+      Yacto.transaction(
+        [:default, {:player, "player_id1"}, {:player, "player_id2"}],
+        fn ->
+          :ok
+        end,
+        databases: @databases
+      )
 
     assert :ok = result
   end

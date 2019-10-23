@@ -3,10 +3,7 @@ defmodule Yacto.DB.Shard do
 
   use Memoize
 
-  defmemop get_config(dbname) do
-    databases = Application.fetch_env!(:yacto, :databases)
-    config = Map.fetch!(databases, dbname)
-
+  defmemop get_config(config) do
     indexed_repos =
       config.repos
       |> Enum.with_index()
@@ -34,14 +31,15 @@ defmodule Yacto.DB.Shard do
   end
 
   @impl Yacto.DB
-  def repos(dbname) do
-    config = get_config(dbname)
+  def repos(_dbname, config, _opts) do
+    config = get_config(config)
     config.repos
   end
 
   @impl Yacto.DB
-  def repo(dbname, shard_key) when shard_key != nil do
-    config = get_config(dbname)
+  def repo(_dbname, config, opts) do
+    shard_key = Keyword.fetch!(opts, :shard_key)
+    config = get_config(config)
     index = config.hash_fun.(shard_key, config.repo_length)
     Map.fetch!(config.indexed_repos, index)
   end
