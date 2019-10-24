@@ -1,4 +1,4 @@
-defmodule Migrator.Player do
+defmodule Yacto.MigratorTest.Player do
   use Yacto.Schema
 
   def dbname(), do: :player
@@ -10,7 +10,7 @@ defmodule Migrator.Player do
   end
 end
 
-defmodule Migrator.Player2 do
+defmodule Yacto.MigratorTest.Player2 do
   use Yacto.Schema
 
   def dbname(), do: :player
@@ -21,7 +21,7 @@ defmodule Migrator.Player2 do
   end
 end
 
-defmodule Migrator.Player3 do
+defmodule Yacto.MigratorTest.Player3 do
   use Yacto.Schema
 
   def dbname(), do: :player
@@ -35,7 +35,7 @@ defmodule Migrator.Player3 do
   end
 end
 
-defmodule Migrator.Item do
+defmodule Yacto.MigratorTest.Item do
   use Yacto.Schema
 
   def dbname(), do: :default
@@ -47,7 +47,7 @@ defmodule Migrator.Item do
   end
 end
 
-defmodule Migrator.UnsignedBigInteger do
+defmodule Yacto.MigratorTest.UnsignedBigInteger do
   use Yacto.Schema
 
   @impl Yacto.Schema
@@ -58,7 +58,7 @@ defmodule Migrator.UnsignedBigInteger do
   end
 end
 
-defmodule Migrator.CustomPrimaryKey do
+defmodule Yacto.MigratorTest.CustomPrimaryKey do
   use Yacto.Schema
 
   def primary_key() do
@@ -75,7 +75,7 @@ defmodule Migrator.CustomPrimaryKey do
   end
 end
 
-defmodule Migrator.CoinType do
+defmodule Yacto.MigratorTest.CoinType do
   @behaviour Ecto.Type
 
   @impl Ecto.Type
@@ -100,18 +100,18 @@ defmodule Migrator.CoinType do
   def dump(_), do: :error
 end
 
-defmodule Migrator.Coin do
+defmodule Yacto.MigratorTest.Coin do
   use Yacto.Schema
 
   @impl Yacto.Schema
   def dbname(), do: :default
 
   schema @auto_source do
-    field(:type, Migrator.CoinType, default: :common_coin, meta: [null: false])
+    field(:type, Yacto.MigratorTest.CoinType, default: :common_coin, meta: [null: false])
   end
 end
 
-defmodule Migrator.DropFieldWithIndex do
+defmodule Yacto.MigratorTest.DropFieldWithIndex do
   use Yacto.Schema
 
   @impl Yacto.Schema
@@ -123,7 +123,7 @@ defmodule Migrator.DropFieldWithIndex do
   end
 end
 
-defmodule Migrator.DropFieldWithIndex2 do
+defmodule Yacto.MigratorTest.DropFieldWithIndex2 do
   use Yacto.Schema
 
   @impl Yacto.Schema
@@ -134,10 +134,10 @@ defmodule Migrator.DropFieldWithIndex2 do
   end
 end
 
-defmodule Migrator.Repo0 do
+defmodule Yacto.MigratorTest.Repo0 do
   use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end
 
-defmodule Migrator.Repo1 do
+defmodule Yacto.MigratorTest.Repo1 do
   use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end

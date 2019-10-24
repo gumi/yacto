@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
 
   @shortdoc "run migration"
 
-  @switches [repo: :string, app: :string]
+  @switches [repo: :string, app: :string, migration_dir: :string]
 
   def run(args) do
     Mix.Task.run("loadpaths", args)
@@ -18,6 +18,8 @@ defmodule Mix.Tasks.Yacto.Migrate do
             Mix.Project.config()[:app]
           end
 
+        migration_dir = Keyword.get(opts, :migration_dir)
+
         if app == nil do
           Mix.raise("unspecified --app")
         end
@@ -25,7 +27,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
         repos =
           case Keyword.fetch(opts, :repo) do
             :error -> Yacto.DB.all_repos()
-            {:ok, repo} -> [Module.concat("Elixir", repo)]
+            {:ok, repo} -> [Module.concat([repo])]
           end
 
         _ = Application.load(app)
@@ -40,10 +42,15 @@ defmodule Mix.Tasks.Yacto.Migrate do
         schemas = Yacto.Migration.Util.get_all_schema(app)
 
         migrations =
-          Yacto.Migration.Util.get_migration_files(app) |> Yacto.Migration.Util.load_migrations()
+          Yacto.Migration.Util.get_migration_files(app, migration_dir)
+          |> Yacto.Migration.Util.load_migrations()
+
+        databases = Application.fetch_env!(:yacto, :databases)
 
         for repo <- repos do
-          Yacto.Migration.Migrator.up(app, repo, schemas, migrations)
+          Yacto.Migration.Migrator.up(app, repo, schemas, migrations,
+            db_opts: [databases: databases]
+          )
         end
 
       {_, [_ | _], _} ->

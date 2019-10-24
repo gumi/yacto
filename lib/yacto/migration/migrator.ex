@@ -25,6 +25,7 @@ defmodule Yacto.Migration.Migrator do
     * `:dynamic_repo` - the name of the Repo supervisor process.
       See `c:Ecto.Repo.put_dynamic_repo/1`.
     * `:strict_version_order` - abort when applying a migration with old timestamp
+    * `:db_opts
   """
   def up(app, repo, schemas, migrations, opts \\ []) do
     sorted_migrations =
@@ -40,8 +41,10 @@ defmodule Yacto.Migration.Migrator do
           sorted_migrations
       end
 
+    db_opts = Keyword.get(opts, :db_opts, [])
+
     for schema <- schemas do
-      if Yacto.Migration.Util.allow_migrate?(schema, repo) do
+      if Yacto.Migration.Util.allow_migrate?(schema, repo, db_opts) do
         versions = migrated_versions(repo, app, schema)
         need_migrations = difference_migration(sorted_migrations, versions)
 

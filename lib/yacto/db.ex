@@ -6,8 +6,8 @@ defmodule Yacto.DB do
   直接 repo を利用するのではなく、`Yacto.repo/{2-3}` を利用する必要がある。
   """
 
-  @callback repos(atom, list) :: [module]
-  @callback repo(atom, list) :: module
+  @callback repos(atom, any, list) :: [module]
+  @callback repo(atom, any, list) :: module
 
   defp get_config(dbname, databases) do
     databases = databases || Application.fetch_env!(:yacto, :databases)

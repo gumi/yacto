@@ -89,7 +89,8 @@ defmodule Yacto.Migration.Util do
         if prefix == nil do
           true
         else
-          String.starts_with?(Atom.to_string(mod), Atom.to_string(prefix))
+          # prefix が指定されてる場合、条件に一致する schema だけ返す（デバッグ用）
+          List.starts_with?(Module.split(mod), Module.split(Module.concat([prefix])))
         end
       end
     end)
@@ -121,12 +122,12 @@ defmodule Yacto.Migration.Util do
     end
   end
 
-  def allow_migrate?(schema, repo) do
+  def allow_migrate?(schema, repo, opts \\ []) do
     Code.ensure_loaded(schema)
 
     if function_exported?(schema, :dbname, 0) do
       dbname = schema.dbname()
-      repos = Yacto.DB.repos(dbname)
+      repos = Yacto.DB.repos(dbname, opts)
       repo in repos
     else
       false

@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
 
   @shortdoc "Generate migration file"
 
-  @switches [version: :integer]
+  @switches [version: :integer, prefix: :string]
 
   def run(args) do
     Mix.Task.run("loadpaths", args)
@@ -13,11 +13,12 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
       {opts, [], _} ->
         app = Keyword.fetch!(Mix.Project.config(), :app)
         version = Keyword.get(opts, :version)
+        prefix = Keyword.get(opts, :prefix)
 
         _ = Application.load(app)
 
         schemas =
-          Yacto.Migration.Util.get_all_schema(app)
+          Yacto.Migration.Util.get_all_schema(app, prefix)
           |> Enum.filter(fn schema ->
             Yacto.Migration.Util.need_gen_migration?(schema)
           end)
