@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-pre.xx
+
+- [破壊的変更] `Yacto.DB` の引数にキーワードリストを取れるようにして、データベースの設定を動的に渡せるようにした
+  - `Yacto.DB.repo(:player, "key")` と書いていたのを `Yacto.DB.repo(:player, shard_key: "key")` と書く必要がある
+- [破壊的変更] `:table_name_converter` は不完全な機能だったので削除した
+- `Yacto.Schema.Single` と `Yacto.Schema.Shard` を非推奨にした。
+  - データベースの設定を動的に渡せるようになり、`Yacto.Schema.Single` と `Yacto.Schema.Shard` のチェック機構が使えなくなるため。
+  - 2.0 リリース時に削除予定
+- テスト周りのリファクタリング
+
 ## 2.0.0-pre.14
 
 - スキーマの定義時にマイグレーションファイルを生成するかどうかを選択できるようにした（Thanks @mori5321 !）
