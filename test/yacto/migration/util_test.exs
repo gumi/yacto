@@ -63,33 +63,34 @@ defmodule Yacto.Migration.UtilTest do
     end
   end
 
-
   describe "need_gen_migration?/1" do
     test "when an option 'migration: true' is passed to Yacto.Schema" do
-      {:module, schema, _, _} = defmodule TestSchema do
-        use Yacto.Schema, migration: true
-      end
-  
+      {:module, schema, _, _} =
+        defmodule TestSchema do
+          use Yacto.Schema, migration: true
+        end
+
       assert Yacto.Migration.Util.need_gen_migration?(schema)
     end
 
     test "when an option 'migration: false' is passed to Yacto.Schema" do
-      {:module, schema, _, _} = defmodule TestSchema do
-        use Yacto.Schema, migration: false
-      end
+      {:module, schema, _, _} =
+        defmodule TestSchema do
+          use Yacto.Schema, migration: false
+        end
 
       refute Yacto.Migration.Util.need_gen_migration?(schema)
     end
 
     test "when an option 'migration' is NOT passed to Yacto.Schema" do
-      {:module, schema, _, _} = defmodule TestSchema do
-        use Yacto.Schema, migration: false
-      end
-      
+      {:module, schema, _, _} =
+        defmodule TestSchema do
+          use Yacto.Schema, migration: false
+        end
+
       refute Yacto.Migration.Util.need_gen_migration?(schema)
     end
   end
-
 
   test "sort_migrations の正常系" do
     assert {:ok, []} == Yacto.Migration.Util.sort_migrations([])

@@ -1,4 +1,4 @@
-defmodule GenMigration.Player do
+defmodule Yacto.GenMigrationTest.Player do
   use Ecto.Schema
 
   schema "player" do
@@ -8,7 +8,7 @@ defmodule GenMigration.Player do
   end
 end
 
-defmodule GenMigration.Player2 do
+defmodule Yacto.GenMigrationTest.Player2 do
   use Ecto.Schema
 
   schema "player2" do
@@ -17,7 +17,7 @@ defmodule GenMigration.Player2 do
   end
 end
 
-defmodule GenMigration.Player3 do
+defmodule Yacto.GenMigrationTest.Player3 do
   use Yacto.Schema
 
   @impl Yacto.Schema
@@ -31,7 +31,7 @@ defmodule GenMigration.Player3 do
   end
 end
 
-defmodule GenMigration.Item do
+defmodule Yacto.GenMigrationTest.Item do
   use Yacto.Schema
 
   @impl Yacto.Schema
@@ -44,7 +44,7 @@ defmodule GenMigration.Item do
   end
 end
 
-defmodule GenMigration.CoinType do
+defmodule Yacto.GenMigrationTest.CoinType do
   @behaviour Ecto.Type
 
   @impl Ecto.Type
@@ -69,7 +69,7 @@ defmodule GenMigration.CoinType do
   def dump(_), do: :error
 end
 
-defmodule GenMigration.Coin do
+defmodule Yacto.GenMigrationTest.Coin do
   use Yacto.Schema
 
   @impl Yacto.Schema
@@ -77,7 +77,7 @@ defmodule GenMigration.Coin do
 
   schema @auto_source do
     field(:player_id, :string, meta: [null: false])
-    field(:type_id, GenMigration.CoinType, meta: [null: false])
+    field(:type_id, Yacto.GenMigrationTest.CoinType, meta: [null: false])
     field(:platform, :string, meta: [type: :text, length: 64, null: false])
     field(:quantity, :integer, default: 0, meta: [null: false])
     timestamps()
@@ -86,7 +86,7 @@ defmodule GenMigration.Coin do
   end
 end
 
-defmodule GenMigration.ManyIndex do
+defmodule Yacto.GenMigrationTest.ManyIndex do
   use Yacto.Schema
 
   @impl Yacto.Schema
@@ -102,7 +102,7 @@ defmodule GenMigration.ManyIndex do
   end
 end
 
-defmodule GenMigration.DecimalOption do
+defmodule Yacto.GenMigrationTest.DecimalOption do
   use Yacto.Schema
 
   @impl Yacto.Schema

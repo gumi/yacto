@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
 
   @shortdoc "Generate migration file"
 
-  @switches [version: :integer, prefix: :string]
+  @switches [version: :integer, prefix: :string, migration_dir: :string]
 
   def run(args) do
     Mix.Task.run("loadpaths", args)
@@ -14,6 +14,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
         app = Keyword.fetch!(Mix.Project.config(), :app)
         version = Keyword.get(opts, :version)
         prefix = Keyword.get(opts, :prefix)
+        migration_dir = Keyword.get(opts, :migration_dir)
 
         _ = Application.load(app)
 
@@ -24,7 +25,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
           end)
 
         validated =
-          Yacto.Migration.Util.get_migration_files(app)
+          Yacto.Migration.Util.get_migration_files(app, migration_dir)
           |> Yacto.Migration.Util.load_migrations()
           |> Yacto.Migration.Util.sort_migrations()
 
@@ -55,7 +56,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
           schemas,
           deleted_schemas,
           version,
-          nil,
+          migration_dir,
           Application.get_env(:yacto, :migration, [])
         )
 
