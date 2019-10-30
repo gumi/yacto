@@ -1,4 +1,4 @@
-defmodule Yacto.ShardingTest do
+defmodule Yacto.Migration.ShardingTest do
   use ExUnit.Case
 
   @databases %{

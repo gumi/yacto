@@ -1,4 +1,4 @@
-defmodule Yacto.MigrationTest do
+defmodule Yacto.Migration.MigrationTest do
   use ExUnit.Case
   require Ecto.Query
 

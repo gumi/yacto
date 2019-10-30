@@ -1,4 +1,4 @@
-defmodule Yacto.MigrationRouterTest do
+defmodule Yacto.Migration.RouterTest do
   use PowerAssert
 
   defmodule Item do

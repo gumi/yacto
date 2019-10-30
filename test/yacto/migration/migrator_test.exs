@@ -1,4 +1,4 @@
-defmodule Yacto.MigratorTest do
+defmodule Yacto.Migration.MigratorTest do
   use PowerAssert
 
   @databases %{
