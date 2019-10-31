@@ -14,7 +14,9 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
         app = Keyword.fetch!(Mix.Project.config(), :app)
         version = Keyword.get(opts, :version)
         prefix = Keyword.get(opts, :prefix)
-        migration_dir = Keyword.get(opts, :migration_dir)
+
+        migration_dir =
+          Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir_for_gen())
 
         _ = Application.load(app)
 
@@ -25,7 +27,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
           end)
 
         validated =
-          Yacto.Migration.Util.get_migration_files(app, migration_dir)
+          Yacto.Migration.Util.get_migration_files(migration_dir)
           |> Yacto.Migration.Util.load_migrations()
           |> Yacto.Migration.Util.sort_migrations()
 

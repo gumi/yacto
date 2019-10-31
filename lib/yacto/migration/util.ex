@@ -1,15 +1,14 @@
 defmodule Yacto.Migration.Util do
-  def get_migration_dir_for_gen(migration_dir \\ nil) do
-    migration_dir || "priv/migrations"
+  def get_migration_dir_for_gen() do
+    "priv/migrations"
   end
 
-  def get_migration_dir(app, migration_dir \\ nil) do
-    migration_dir || Application.app_dir(app, "priv/migrations")
+  def get_migration_dir(app) do
+    Application.app_dir(app, "priv/migrations")
   end
 
-  def get_migration_files(app, migration_dir \\ nil) do
-    dir = get_migration_dir(app, migration_dir)
-    Path.wildcard(Path.join(dir, '*.exs'))
+  def get_migration_files(migration_dir) do
+    Path.wildcard(Path.join(migration_dir, '*.exs'))
   end
 
   def validate_version(migration_version) do
@@ -30,18 +29,6 @@ defmodule Yacto.Migration.Util do
     second = String.slice(strmig, 12..13)
 
     "#{year}-#{month}-#{day}T#{hour}#{minute}#{second}_#{app}.exs"
-  end
-
-  def get_migration_path_for_gen(app, migration_version, migration_dir \\ nil) do
-    dir = get_migration_dir_for_gen(migration_dir)
-    filename = get_migration_filename(app, migration_version)
-    Path.join(dir, filename)
-  end
-
-  def get_migration_path(app, migration_version, migration_dir \\ nil) do
-    dir = get_migration_dir(app, migration_dir)
-    filename = get_migration_filename(app, migration_version)
-    Path.join(dir, filename)
   end
 
   def is_schema_module?(mod), do: function_exported?(mod, :__schema__, 1)

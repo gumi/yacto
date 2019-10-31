@@ -18,7 +18,8 @@ defmodule Mix.Tasks.Yacto.Migrate do
             Mix.Project.config()[:app]
           end
 
-        migration_dir = Keyword.get(opts, :migration_dir)
+        migration_dir =
+          Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir(app))
 
         if app == nil do
           Mix.raise("unspecified --app")
@@ -42,7 +43,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
         schemas = Yacto.Migration.Util.get_all_schema(app)
 
         migrations =
-          Yacto.Migration.Util.get_migration_files(app, migration_dir)
+          Yacto.Migration.Util.get_migration_files(migration_dir)
           |> Yacto.Migration.Util.load_migrations()
 
         databases = Application.fetch_env!(:yacto, :databases)

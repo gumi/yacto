@@ -5,18 +5,28 @@ defmodule Yacto.Migration.UtilTest do
     assert Path.join([File.cwd!(), "_build", "test", "lib", "yacto", "priv", "migrations"]) ==
              Yacto.Migration.Util.get_migration_dir(:yacto)
 
-    assert "foo/bar" == Yacto.Migration.Util.get_migration_dir(:yacto, "foo/bar")
     dir = Yacto.Migration.Util.get_migration_dir(:yacto)
     _ = File.rm_rf(dir)
-    assert [] == Yacto.Migration.Util.get_migration_files(:yacto)
+    assert [] == Yacto.Migration.Util.get_migration_files(dir)
     path1 = Path.join(dir, "1234-12-34T123456_yacto.exs")
     path2 = Path.join(dir, "5678-56-78T567890_yacto.exs")
     _ = File.mkdir_p!(dir)
     _ = File.write(path1, "test1")
     _ = File.write(path2, "test2")
-    assert [path1, path2] == Yacto.Migration.Util.get_migration_files(:yacto)
-    assert path1 == Yacto.Migration.Util.get_migration_path(:yacto, 12_341_234_123_456)
-    assert path2 == Yacto.Migration.Util.get_migration_path(:yacto, 56_785_678_567_890)
+    assert [path1, path2] == Yacto.Migration.Util.get_migration_files(dir)
+
+    assert path1 ==
+             Path.join(
+               dir,
+               Yacto.Migration.Util.get_migration_filename(:yacto, 12_341_234_123_456)
+             )
+
+    assert path2 ==
+             Path.join(
+               dir,
+               Yacto.Migration.Util.get_migration_filename(:yacto, 56_785_678_567_890)
+             )
+
     _ = File.rm_rf(dir)
   end
 

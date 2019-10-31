@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Yacto.Gen.MigrationTest do
     dir = Yacto.Migration.Util.get_migration_dir_for_gen()
     _ = File.rm_rf(dir)
 
-    path = Yacto.Migration.Util.get_migration_path_for_gen(:yacto, @migration_version)
+    path = Path.join(dir, Yacto.Migration.Util.get_migration_filename(:yacto, @migration_version))
 
     Mix.Task.rerun("yacto.gen.migration", [
       "--version",
@@ -51,7 +51,8 @@ defmodule Mix.Tasks.Yacto.Gen.MigrationTest do
     assert expected == source
 
     # if all schemas are not changed, a migration file is not generated
-    path = Yacto.Migration.Util.get_migration_path_for_gen(:yacto, @migration_version2)
+    path =
+      Path.join(dir, Yacto.Migration.Util.get_migration_filename(:yacto, @migration_version2))
 
     Mix.Task.rerun("yacto.gen.migration", [
       "--version",
@@ -90,7 +91,9 @@ defmodule Mix.Tasks.Yacto.Gen.MigrationTest do
     migration =
       Yacto.Migration.GenMigration.generate_source(Yacto, v1, @migration_version_del, nil)
 
-    path = Yacto.Migration.Util.get_migration_path_for_gen(:yacto, @migration_version_del)
+    path =
+      Path.join(dir, Yacto.Migration.Util.get_migration_filename(:yacto, @migration_version_del))
+
     File.write!(path, migration)
 
     # 上記のマイグレーションの状態から、新しいマイグレーションファイルを生成する
@@ -104,7 +107,8 @@ defmodule Mix.Tasks.Yacto.Gen.MigrationTest do
     ])
 
     # Yacto.GenMigrationTest.PlayerUnknown のモデルは存在しないので、マイグレートした時に削除されるはず
-    path2 = Yacto.Migration.Util.get_migration_path_for_gen(:yacto, @migration_version_del2)
+    path2 =
+      Path.join(dir, Yacto.Migration.Util.get_migration_filename(:yacto, @migration_version_del2))
 
     migration2 = File.read!(path2)
     assert String.contains?(migration2, "drop table(\"player\")")

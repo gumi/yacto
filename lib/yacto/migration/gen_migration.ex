@@ -263,9 +263,8 @@ defmodule Yacto.Migration.GenMigration do
 
   マイグレーションモジュールが１件も存在しなかった場合は `nil` を返す。
   """
-  def get_latest_migration(migration_dir \\ nil) do
-    dir = Yacto.Migration.Util.get_migration_dir_for_gen(migration_dir)
-    paths = Path.wildcard(Path.join(dir, '*.exs'))
+  def get_latest_migration(migration_dir) do
+    paths = Path.wildcard(Path.join(migration_dir, '*.exs'))
 
     mods =
       paths
@@ -299,6 +298,8 @@ defmodule Yacto.Migration.GenMigration do
     if migration_version != nil do
       Yacto.Migration.Util.validate_version(migration_version)
     end
+
+    migration_dir = migration_dir || Yacto.Migration.Util.get_migration_dir_for_gen()
 
     migration = get_latest_migration(migration_dir)
 
@@ -343,11 +344,14 @@ defmodule Yacto.Migration.GenMigration do
     if source == :not_changed do
       Logger.info("All schemas are not changed. A migration file is not generated.")
     else
-      dir = Yacto.Migration.Util.get_migration_dir_for_gen(migration_dir)
+      dir = Yacto.Migration.Util.get_migration_dir_for_gen()
       :ok = File.mkdir_p!(dir)
 
       path =
-        Yacto.Migration.Util.get_migration_path_for_gen(app, migration_version, migration_dir)
+        Path.join(
+          migration_dir,
+          Yacto.Migration.Util.get_migration_filename(app, migration_version)
+        )
 
       File.write!(path, source)
 
