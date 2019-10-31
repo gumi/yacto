@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-pre.xx
+## 2.0.0-pre.15
 
 - [破壊的変更] `Yacto.DB` の引数にキーワードリストを取れるようにして、データベースの設定を動的に渡せるようにした
   - `Yacto.DB.repo(:player, "key")` と書いていたのを `Yacto.DB.repo(:player, shard_key: "key")` と書く必要がある
