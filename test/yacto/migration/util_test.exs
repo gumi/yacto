@@ -1,25 +1,6 @@
 defmodule Yacto.Migration.UtilTest do
   use PowerAssert
 
-  defp test_apply_myers_difference(list1, list2) do
-    assert list2 ==
-             Yacto.Migration.Util.apply_myers_difference(
-               list1,
-               List.myers_difference(list1, list2)
-             )
-  end
-
-  test "apply_myers_difference" do
-    test_apply_myers_difference([], [])
-    test_apply_myers_difference([], [:a, :b])
-    test_apply_myers_difference([:a, :b], [])
-    test_apply_myers_difference([:a, :b], [:a])
-    test_apply_myers_difference([:a], [:a, :b])
-    test_apply_myers_difference([:a, :b], [:a, :b])
-    test_apply_myers_difference([:a, :b], [:c, :d])
-    test_apply_myers_difference([:a, :b, :c], [:a, :d, :c])
-  end
-
   test "migration" do
     assert Path.join([File.cwd!(), "_build", "test", "lib", "yacto", "priv", "migrations"]) ==
              Yacto.Migration.Util.get_migration_dir(:yacto)

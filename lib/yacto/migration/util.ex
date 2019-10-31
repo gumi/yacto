@@ -1,34 +1,4 @@
 defmodule Yacto.Migration.Util do
-  defp apply_myers_difference(_list, [], result) do
-    result |> Enum.reverse() |> Enum.concat()
-  end
-
-  defp apply_myers_difference(list, [{:eq, vs} | diff], result) do
-    if Enum.take(list, length(vs)) != vs do
-      raise "invalid source"
-    end
-
-    list = Enum.drop(list, length(vs))
-    apply_myers_difference(list, diff, [vs | result])
-  end
-
-  defp apply_myers_difference(list, [{:ins, vs} | diff], result) do
-    apply_myers_difference(list, diff, [vs | result])
-  end
-
-  defp apply_myers_difference(list, [{:del, vs} | diff], result) do
-    if Enum.take(list, length(vs)) != vs do
-      raise "invalid source"
-    end
-
-    list = Enum.drop(list, length(vs))
-    apply_myers_difference(list, diff, result)
-  end
-
-  def apply_myers_difference(list, diff) do
-    apply_myers_difference(list, diff, [])
-  end
-
   def get_migration_dir_for_gen(migration_dir \\ nil) do
     migration_dir || "priv/migrations"
   end

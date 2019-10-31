@@ -136,44 +136,6 @@ defmodule Yacto.Migration.Structure do
     }
   end
 
-  defp apply_map_difference(value, map_diff) do
-    value = Map.drop(value, map_diff.del |> Enum.map(fn {k, _} -> k end))
-    value = Map.merge(value, map_diff.ins)
-    value
-  end
-
-  defp apply_once_difference(value, diff) do
-    case diff do
-      :not_changed -> value
-      {:changed, _from_value, to_value} -> to_value
-    end
-  end
-
-  # patch = diff(structure_from, structure_to)
-  # assert structure_to == apply(structure_from, patch)
-  def apply(structure_from, patch) do
-    structure_to = structure_from
-
-    source = apply_once_difference(structure_to.source, patch.source)
-
-    alias Yacto.Migration.Util
-    primary_key = Util.apply_myers_difference(structure_to.primary_key, patch.primary_key)
-    autogenerate_id = apply_once_difference(structure_to.autogenerate_id, patch.autogenerate_id)
-    fields = Util.apply_myers_difference(structure_to.fields, patch.fields)
-    types = apply_map_difference(structure_to.types, patch.types)
-    meta_attrs = apply_map_difference(structure_to.meta.attrs, patch.meta.attrs)
-    meta_indices = apply_map_difference(structure_to.meta.indices, patch.meta.indices)
-
-    structure_to = %{structure_to | source: source}
-    structure_to = %{structure_to | primary_key: primary_key}
-    structure_to = %{structure_to | autogenerate_id: autogenerate_id}
-    structure_to = %{structure_to | fields: fields}
-    structure_to = %{structure_to | types: types}
-    structure_to = put_in(structure_to.meta.attrs, meta_attrs)
-    structure_to = put_in(structure_to.meta.indices, meta_indices)
-    structure_to
-  end
-
   def from_schema(schema) do
     keys =
       struct(__MODULE__) |> Map.drop([:__struct__, :meta, :types, :field_sources]) |> Map.keys()
