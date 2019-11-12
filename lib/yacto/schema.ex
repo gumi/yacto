@@ -28,6 +28,7 @@ defmodule Yacto.Schema do
   defmacro __using__(opts) do
     dbname = Keyword.get(opts, :dbname)
     migration = Keyword.get(opts, :migration, true)
+    base_schema = Keyword.get(opts, :as)
 
     quote do
       @behaviour Yacto.Schema
@@ -51,6 +52,12 @@ defmodule Yacto.Schema do
       @yacto_attrs %{}
       @yacto_indices %{}
       @yacto_types %{}
+
+      @base_schema unquote(base_schema) || __MODULE__
+
+      def __base_schema__() do
+        @base_schema
+      end
 
       def gen_migration? do
         unquote(migration)

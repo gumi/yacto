@@ -1,5 +1,5 @@
 defmodule Yacto.GenMigrationTest.Player do
-  use Ecto.Schema
+  use Yacto.Schema, dbname: :player
 
   schema "player" do
     field(:name)
@@ -9,7 +9,7 @@ defmodule Yacto.GenMigrationTest.Player do
 end
 
 defmodule Yacto.GenMigrationTest.Player2 do
-  use Ecto.Schema
+  use Yacto.Schema, as: Yacto.GenMigrationTest.Player, dbname: :player
 
   schema "player2" do
     field(:name2)
@@ -18,10 +18,7 @@ defmodule Yacto.GenMigrationTest.Player2 do
 end
 
 defmodule Yacto.GenMigrationTest.Player3 do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :player
+  use Yacto.Schema, as: Yacto.GenMigrationTest.Player, dbname: :player
 
   schema @auto_source do
     field(:name3, :string, meta: [null: false, size: 100])
