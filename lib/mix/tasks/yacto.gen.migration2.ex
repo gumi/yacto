@@ -19,6 +19,12 @@ defmodule Mix.Tasks.Yacto.Gen.Migration2 do
 
         _ = Application.load(app)
 
+        # メモ:
+        # 現在のアプリケーションに存在するスキーマ一覧を列挙する
+        # マイグレーションディレクトリに存在するディレクトリ（モジュール名）をすべて列挙する
+        # 最新バージョンの操作種別が delete でない、有効なマイグレーションファイルを取り出す
+        # スキーマ一覧からマイグレーションファイルを作る
+        # (有効なマイグレーションファイル - スキーマ一覧) して、削除されたスキーマ用のマイグレーションファイルを作る
         schemas =
           Yacto.Migration.Util.get_all_schema(app, prefix)
           |> Enum.filter(fn schema ->

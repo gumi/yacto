@@ -245,13 +245,17 @@ defmodule Yacto.Migration.GenMigration2 do
     """
   end
 
-  def generate(schema, migration \\ nil, opts \\ []) do
+  def generate(schema, migration, opts \\ []) do
     structure_from =
       if migration == nil,
         do: %Yacto.Migration.Structure{},
         else: migration.__migration_structure__()
 
-    structure_to = Yacto.Migration.Structure.from_schema(schema)
+    structure_to =
+      if schema == nil,
+        do: %Yacto.Migration.Structure{},
+        else: Yacto.Migration.Structure.from_schema(schema)
+
     lines = generate_lines(structure_from, structure_to, opts)
 
     if lines == :not_changed do
