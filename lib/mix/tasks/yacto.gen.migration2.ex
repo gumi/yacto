@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Yacto.Gen.Migration2 do
+  require Logger
   use Mix.Task
 
   @shortdoc "Generate migration file"
@@ -19,12 +20,8 @@ defmodule Mix.Tasks.Yacto.Gen.Migration2 do
 
         _ = Application.load(app)
 
-        # メモ:
-        # 現在のアプリケーションに存在するスキーマ一覧を列挙する
-        # マイグレーションディレクトリに存在するディレクトリ（モジュール名）をすべて列挙する
-        # 最新バージョンの操作種別が delete でない、有効なマイグレーションファイルを取り出す
-        # スキーマ一覧からマイグレーションファイルを作る
-        # (有効なマイグレーションファイル - スキーマ一覧) して、削除されたスキーマ用のマイグレーションファイルを作る
+        {:ok, now} = DateTime.now("Etc/UTC")
+
         schemas =
           Yacto.Migration.Util.get_all_schema(app, prefix)
           |> Enum.filter(fn schema ->
@@ -32,56 +29,54 @@ defmodule Mix.Tasks.Yacto.Gen.Migration2 do
           end)
 
         for schema <- schemas do
-          migration = get_latest_migration(schema, migration_dir)
+          {migration_file, messages} = Yacto.Migration.File.get_latest_migration_file(migration_dir, to_string(schema))
+          for message <- messages do
+            Logger.warn(message)
+          end
 
-          Yacto.Migration.GenMigration2.generate(
+          migration =
+            case migration_file do
+              nil -> nil
+              _ ->
+                {:ok, migration} = Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
+                migration
+            end
+
+          result = Yacto.Migration.GenMigration2.generate(
             schema,
             migration,
             Application.get_env(:yacto, :migration, [])
           )
+          case result do
+            # not changed
+            :not_changed ->
+              Logger.info("A schema #{schema} is not changed. The migration file is not generated.")
+              :ok
+            # generated
+            {type, str, version} ->
+              dbname = schema.dbname()
+              operation =
+                case type do
+                  :created -> :create
+                  :changed -> :change
+                  :deleted -> :delete
+                end
+              migration_file = Yacto.Migration.File.new(schema, version, dbname, operation, now)
+
+              path = Path.join(migration_dir, migration_file.path)
+              File.mkdir_p!(Path.dirname(path))
+              File.write!(path, str)
+              Logger.info("Generated a migration file #{path} for schema #{schema}")
+          end
         end
+
+        # module_names = Yacto.Migration.File.list_migration_modules(migration_dir)
 
       {_, [_ | _], _} ->
         Mix.raise("Args error")
 
       {_, _, invalids} ->
         Mix.raise("Invalid arguments #{inspect(invalids)}")
-    end
-  end
-
-  defp extract_module(file) do
-    modules = Code.load_file(file)
-
-    if length(modules) == 0 do
-      raise "Module not found: #{file}"
-    end
-
-    if length(modules) >= 2 do
-      raise "Multiple module found: #{file}"
-    end
-
-    [{mod, _}] = modules
-
-    if not function_exported?(mod, :__migration_structure__, 0) do
-      raise "The module is not Yacto migration module: #{file}"
-    end
-
-    mod
-  end
-
-  # 最新のマイグレーションモジュールを取得する
-  # マイグレーションモジュールが１件も存在しなかった場合は `nil` を返す。
-  defp get_latest_migration(schema, migration_dir) do
-    paths =
-      Path.wildcard(Path.join([migration_dir, to_string(schema.__base_schema__()), '*.exs']))
-
-    if paths == [] do
-      nil
-    else
-      # 名前を降順でソートして最新の１件だけ取り出す
-      [path | _] = Enum.sort_by(paths, &Path.basename/1, &(&1 >= &2))
-
-      extract_module(path)
     end
   end
 end

@@ -8,10 +8,11 @@ defmodule Yacto.Migration.File do
     :path
   ]
 
-  # {dirs, [unexpected_messages]}
+  # {module_strings, [unexpected_messages]}
   def list_migration_modules(migration_dir) do
     dirs = Path.wildcard(Path.join(migration_dir, "*"))
     {dirs, files} = Enum.split_with(dirs, &File.dir?/1)
+    dirs = Enum.map(dirs, &Path.relative_to(&1, migration_dir))
     {dirs, unexpected_dirs} = Enum.split_with(dirs, &String.starts_with?(&1, "Elixir."))
 
     file_messages =
@@ -25,30 +26,43 @@ defmodule Yacto.Migration.File do
 
     messages = file_messages ++ dir_messages
 
-    {dirs, messages}
+    {Enum.sort(dirs), messages}
   end
 
+  # {[%Yacto.Migration.File{}], [unexpected_messages]}
   def list_migration_files(migration_dir, module_string) do
-    files = Path.wildcard(Path.join(migration_dir, module_string, "*"))
-    results = Enum.map(files, &path_to_structure/1)
+    files = Path.wildcard(Path.join([migration_dir, module_string, "*"]))
+    results = Enum.map(files, &path_to_structure(migration_dir, Path.relative_to(&1, migration_dir)))
 
     {oks, errors} =
-      Enum.split_with(files, fn
+      Enum.split_with(results, fn
         {:ok, _} -> true
         {:error, _} -> false
       end)
     files = Enum.map(oks, fn {:ok, r} -> r end)
+    errors = Enum.map(errors, fn {:error, e} -> e end)
+    {Enum.sort_by(files, &(&1.version)), errors}
   end
 
-  defp path_to_structure(path) do
-    try do
-      filename = Path.basename(path)
+  # {%Yacto.Migration.File{} | nil, [error]}
+  def get_latest_migration_file(migration_dir, module_string) do
+    {files, errors} = list_migration_files(migration_dir, module_string)
+    case files do
+      [] -> {nil, errors}
+      _ -> {List.last(files), errors}
+    end
+  end
 
-      if not File.regular?(filename) do
-        throw("#{filename} is not a regular file")
+  defp path_to_structure(migration_dir, relative_path) do
+    try do
+      path = Path.join(migration_dir, relative_path)
+      filename = Path.basename(relative_path)
+
+      if not File.regular?(path) do
+        throw("#{relative_path} is not a regular file")
       end
 
-      if not String.ends_with?(".exs") do
+      if not String.ends_with?(filename, ".exs") do
         throw("#{filename} is not an elixir script file")
       end
 
@@ -85,13 +99,65 @@ defmodule Yacto.Migration.File do
          dbname: String.to_atom(dbname),
          operation: operation,
          datetime_str: datetime_str,
-         path: path
+         path: relative_path
        }}
     catch
       :throw, message -> {:error, message}
     end
   end
 
-  def load_migration(migration_file) do
+  def load_migration_module(migration_dir, %__MODULE__{} = migration_file) do
+    path = Path.join(migration_dir, migration_file.path)
+
+    modules = Code.load_file(path)
+
+    if length(modules) == 0 do
+      {:error, "Module not found: #{path}"}
+    else
+      if length(modules) >= 2 do
+        {:error, "Multiple module found: #{path}"}
+      else
+        [{mod, _}] = modules
+
+        if not function_exported?(mod, :__migration__, 1) do
+          {:error, "The module is not Yacto migration module: #{path}"}
+        else
+          {:ok, mod}
+        end
+      end
+    end
   end
+
+  def new(schema, version, dbname, operation, now) do
+    datetime_str =
+      now
+      # 2020-02-16T01:10:20+00:00
+      |> DateTime.to_iso8601()
+      # 2020-02-16T01:10:20
+      |> String.slice(0, 19)
+      # 2020-02-16T011020
+      |> String.replace(":", "")
+      # 2020-02-16_011020
+      |> String.replace("T", "_")
+      # 2020_02_16_011020
+      |> String.replace("-", "_")
+
+    path = Path.join(to_string(schema), "#{pad4(version)}-#{dbname}-#{operation}-#{datetime_str}.exs")
+
+    %__MODULE__{
+      version: version,
+      dbname: dbname,
+      operation: operation,
+      datetime_str: datetime_str,
+      path: path
+    }
+  end
+
+  defp pad4(i) when i < 10, do: <<?0, ?0, ?0, ?0 + i>>
+  defp pad4(i) when i < 100, do: <<?0, ?0, ?0 + div(i, 10), ?0 + rem(i, 10)>>
+
+  defp pad4(i) when i < 1000,
+    do: <<?0, ?0 + div(i, 100), ?0 + rem(div(i, 10), 10), ?0 + rem(i, 10)>>
+
+  defp pad4(i), do: to_string(i)
 end

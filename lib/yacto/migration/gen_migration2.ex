@@ -230,61 +230,67 @@ defmodule Yacto.Migration.GenMigration2 do
         :ok
       end
 
-      def __migration_structure__() do
+      def __migration__(:structure) do
         <%= Yacto.Migration.Structure.to_string @structure %>
       end
 
-      def __migration_version__() do
+      def __migration__(:version) do
         <%= inspect @version %>
-      end
-
-      def __migration_preview_version__() do
-        <%= inspect @preview_version %>
       end
     end
     """
   end
 
+  # :not_changed
+  # {:created, str, version}
+  # {:changed, str, version}
+  # {:deleted, str, version}
   def generate(schema, migration, opts \\ []) do
     structure_from =
       if migration == nil,
         do: %Yacto.Migration.Structure{},
-        else: migration.__migration_structure__()
+        else: migration.__migration__(:structure)
 
     structure_to =
       if schema == nil,
         do: %Yacto.Migration.Structure{},
         else: Yacto.Migration.Structure.from_schema(schema)
 
-    lines = generate_lines(structure_from, structure_to, opts)
+    result = generate_lines(structure_from, structure_to, opts)
 
-    if lines == :not_changed do
-      Logger.info("A schema #{schema} is not changed. The migration file is not generated.")
-    else
-      version = if(migration == nil, do: 0, else: migration.__migration_version__() + 1)
+    case result do
+      :not_changed -> :not_changed
+      {type, lines} ->
+        version = if(migration == nil, do: 0, else: migration.__migration__(:version) + 1)
 
-      EEx.eval_string(
-        get_template(),
-        assigns: [
-          migration_name:
-            inspect(Module.concat([schema.__base_schema__(), "Migration#{pad4(version)}"])),
-          lines: lines,
-          structure: structure_to,
-          version: version,
-          preview_version: if(migration == nil, do: nil, else: migration.__migration_version__())
-        ]
-      )
+        str = EEx.eval_string(
+          get_template(),
+          assigns: [
+            migration_name:
+              inspect(Module.concat([schema.__base_schema__(), "Migration#{pad4(version)}"])),
+            lines: lines,
+            structure: structure_to,
+            version: version,
+          ]
+        )
+        {type, str, version}
     end
   end
 
+  # :not_changed |
+  # {:created, lines} |
+  # {:changed, lines} |
+  # {:deleted, lines}
   defp generate_lines(structure_from, structure_to, migration_opts) do
-    diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
-    rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
+    try do
+      diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
+      rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
 
-    if diff == rdiff do
-      :not_changed
-    else
-      lines =
+      if diff == rdiff do
+        throw(:not_changed)
+      end
+
+      db_lines =
         case diff.source do
           :not_changed ->
             []
@@ -293,37 +299,37 @@ defmodule Yacto.Migration.GenMigration2 do
             ["rename table(#{inspect(from_value)}), to: table(#{inspect(to_value)})"]
 
           {:delete, from_value} ->
-            ["drop table(#{inspect(from_value)})"]
+            throw({:deleted, ["drop table(#{inspect(from_value)})"]})
 
           {:create, _to_value} ->
             ["create table(#{inspect(structure_to.source)})"]
         end
 
-      lines =
-        lines ++
-          case diff.source do
-            {:delete, _} ->
-              []
+      generated_fields =
+        generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts)
 
-            _ ->
-              generated_fields =
-                generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts)
+      {create_indices, drop_indices} =
+        generate_indices(diff.meta.indices, structure_to, migration_opts)
 
-              {create_indices, drop_indices} =
-                generate_indices(diff.meta.indices, structure_to, migration_opts)
+      field_lines =
+        if Enum.empty?(generated_fields) do
+          drop_indices ++ create_indices
+        else
+          drop_indices ++
+            ["alter table(#{inspect(structure_to.source)}) do"] ++
+            generated_fields ++
+            ["end"] ++
+            create_indices
+        end
 
-              if Enum.empty?(generated_fields) do
-                drop_indices ++ create_indices
-              else
-                drop_indices ++
-                  ["alter table(#{inspect(structure_to.source)}) do"] ++
-                  generated_fields ++
-                  ["end"] ++
-                  create_indices
-              end
-          end
+      lines = db_lines ++ field_lines
 
-      lines
+      case diff.source do
+        {:create, _} -> {:created, lines}
+        _ -> {:changed, lines}
+      end
+    catch
+      :throw, result -> result
     end
   end
 
