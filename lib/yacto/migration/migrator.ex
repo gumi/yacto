@@ -57,6 +57,33 @@ defmodule Yacto.Migration.Migrator do
     :ok
   end
 
+  defp difference_migration2(migration_files, versions) do
+    migration_files
+    |> Enum.filter(fn migration_file -> !Enum.member?(versions, migration_file.version) end)
+  end
+
+  def up2(app, repo, schema, migration_dir, migration_files, opts \\ []) do
+    db_opts = Keyword.get(opts, :db_opts, [])
+
+    need_repos =
+      migration_files
+      |> Enum.map(&Yacto.DB.repos(&1.dbname, db_opts))
+      |> Enum.concat()
+      |> Enum.into(MapSet.new())
+    if repo in need_repos do
+      versions = migrated_versions(repo, app, schema)
+      need_migration_files = difference_migration2(migration_files, versions)
+
+      for migration_file <- need_migration_files do
+        repos = Yacto.DB.repos(migration_file.dbname, db_opts)
+        if repo in repos do
+          {:ok, module} = Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
+          do_up(app, repo, schema, module, opts)
+        end
+      end
+    end
+  end
+
   defp do_up(app, repo, schema, migration, opts) do
     async_migrate_maybe_in_transaction(app, repo, schema, migration, :up, opts, fn ->
       attempt(repo, schema, migration, :forward, :up, :up, opts) ||
@@ -83,7 +110,7 @@ defmodule Yacto.Migration.Migrator do
         # The table with schema migrations can only be updated from
         # the parent process because it has a lock on the table
         verbose_schema_migration(repo, "update schema migrations", fn ->
-          Yacto.Migration.SchemaMigration.up(repo, app, schema, migration.__migration_version__())
+          Yacto.Migration.SchemaMigration.up(repo, app, schema, migration.__migration__(:version))
         end)
       catch
         kind, error ->
@@ -142,7 +169,7 @@ defmodule Yacto.Migration.Migrator do
 
   defp attempt(repo, schema, migration, direction, operation, reference, opts) do
     if Code.ensure_loaded?(migration) and
-         function_exported?(migration, operation, 1) do
+         function_exported?(migration, operation, 0) do
       run(repo, schema, migration, direction, operation, reference, opts)
       :ok
     end
@@ -151,7 +178,7 @@ defmodule Yacto.Migration.Migrator do
   # Ecto.Migration.Runner.run
 
   defp run(repo, schema, migration, direction, operation, migrator_direction, opts) do
-    version = migration.__migration_version__()
+    version = migration.__migration__(:version)
 
     level = Keyword.get(opts, :log, :info)
     sql = Keyword.get(opts, :log_sql, false)
@@ -168,13 +195,13 @@ defmodule Yacto.Migration.Migrator do
     Ecto.Migration.Runner.stop()
   end
 
-  defp perform_operation(repo, schema, migration, operation) do
+  defp perform_operation(repo, _schema, migration, operation) do
     if function_exported?(repo, :in_transaction?, 0) and repo.in_transaction?() do
       if function_exported?(migration, :after_begin, 0) do
         migration.after_begin()
       end
 
-      result = apply(migration, operation, [schema])
+      result = apply(migration, operation, [])
 
       if function_exported?(migration, :before_commit, 0) do
         migration.before_commit()
@@ -182,7 +209,7 @@ defmodule Yacto.Migration.Migrator do
 
       result
     else
-      apply(migration, operation, [schema])
+      apply(migration, operation, [])
     end
 
     Ecto.Migration.Runner.flush()

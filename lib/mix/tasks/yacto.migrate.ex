@@ -1,5 +1,6 @@
 defmodule Mix.Tasks.Yacto.Migrate do
   use Mix.Task
+  require Logger
 
   @shortdoc "run migration"
 
@@ -48,18 +49,23 @@ defmodule Mix.Tasks.Yacto.Migrate do
         #   - その各 Repo に既に入っているバージョンを確認し、そのリポジトリに対してマイグレーション対象のファイルかどうかを調べる
         # マイグレーション対象のファイルをロードしてマイグレートし、バージョン情報を書き込む
 
-        schemas = Yacto.Migration.Util.get_all_schema(app)
-
-        migrations =
-          Yacto.Migration.Util.get_migration_files(migration_dir)
-          |> Yacto.Migration.Util.load_migrations()
-
         databases = Application.fetch_env!(:yacto, :databases)
 
+        {schema_names, messages} = Yacto.Migration.File.list_migration_modules(migration_dir)
+        for message <- messages do
+          Logger.warn(message)
+        end
+
         for repo <- repos do
-          Yacto.Migration.Migrator.up(app, repo, schemas, migrations,
-            db_opts: [databases: databases]
-          )
+          for schema_name <- schema_names do
+            {migration_files, messages} = Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
+            for message <- messages do
+              Logger.warn(message)
+            end
+            Yacto.Migration.Migrator.up2(app, repo, String.to_atom(schema_name), migration_dir, migration_files,
+              db_opts: [databases: databases]
+            )
+          end
         end
 
       {_, [_ | _], _} ->

@@ -92,5 +92,6 @@ defmodule Yacto.GenMigrationTest2 do
       "--migration-dir",
       migration_dir
     ])
+
   end
 end
