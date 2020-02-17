@@ -22,14 +22,33 @@ defmodule Mix.Tasks.Yacto.Gen.Migration2 do
 
         {:ok, now} = DateTime.now("Etc/UTC")
 
+        # アプリケーションにあるスキーマの一覧を手に入れる
         schemas =
           Yacto.Migration.Util.get_all_schema(app, prefix)
           |> Enum.filter(fn schema ->
             Yacto.Migration.Util.need_gen_migration?(schema)
           end)
 
+        # 削除されてるスキーマがないかを調べるために、マイグレーション済みのスキーマ一覧を手に入れる
+        {module_names, messages} = Yacto.Migration.File.list_migration_modules(migration_dir)
+        for message <- messages do
+          Logger.warn(message)
+        end
+
+        # operation が :delete でないマイグレーション済みスキーマとマイグレーションファイルを手に入れる
+        pairs =
+          module_names
+          |> Enum.map(fn mod ->
+            {migration_file, messages} = Yacto.Migration.File.get_latest_migration_file(migration_dir, mod)
+            for message <- messages do
+              Logger.warn(message)
+            end
+            {mod, migration_file}
+          end)
+          |> Enum.filter(fn {_mod, file} -> file != nil && file.operation != :delete end)
+
         for schema <- schemas do
-          {migration_file, messages} = Yacto.Migration.File.get_latest_migration_file(migration_dir, to_string(schema))
+          {migration_file, messages} = Yacto.Migration.File.get_latest_migration_file(migration_dir, to_string(schema.__base_schema__()))
           for message <- messages do
             Logger.warn(message)
           end
@@ -59,9 +78,10 @@ defmodule Mix.Tasks.Yacto.Gen.Migration2 do
                 case type do
                   :created -> :create
                   :changed -> :change
-                  :deleted -> :delete
+                  # ここで delete は来ないはず
+                  # :deleted -> :delete
                 end
-              migration_file = Yacto.Migration.File.new(schema, version, dbname, operation, now)
+              migration_file = Yacto.Migration.File.new(to_string(schema.__base_schema__()), version, dbname, operation, now)
 
               path = Path.join(migration_dir, migration_file.path)
               File.mkdir_p!(Path.dirname(path))
@@ -70,7 +90,29 @@ defmodule Mix.Tasks.Yacto.Gen.Migration2 do
           end
         end
 
-        # module_names = Yacto.Migration.File.list_migration_modules(migration_dir)
+        schema_map = schemas |> Enum.map(&{to_string(&1.__base_schema__()), true}) |> Enum.into(%{})
+        for {migration_schema_name, migration_file} <- pairs do
+          # 削除されていない場合は何もしない
+          if migration_schema_name in schema_map do
+            :ok
+          else
+            {:ok, migration} = Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
+
+            # 削除するマイグレーションファイルを作る
+            {:deleted, str, version} = Yacto.Migration.GenMigration2.generate(
+              nil,
+              migration,
+              Application.get_env(:yacto, :migration, [])
+            )
+            dbname = migration_file.dbname
+            migration_file = Yacto.Migration.File.new(migration_schema_name, version, dbname, :delete, now)
+
+            path = Path.join(migration_dir, migration_file.path)
+            File.mkdir_p!(Path.dirname(path))
+            File.write!(path, str)
+            Logger.info("Generated a migration file #{path} for schema #{migration_schema_name}")
+          end
+        end
 
       {_, [_ | _], _} ->
         Mix.raise("Args error")

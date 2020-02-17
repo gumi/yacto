@@ -30,7 +30,7 @@ defmodule Yacto.Migration.File do
   end
 
   # {[%Yacto.Migration.File{}], [unexpected_messages]}
-  def list_migration_files(migration_dir, module_string) do
+  def list_migration_files(migration_dir, module_string) when is_binary(module_string) do
     files = Path.wildcard(Path.join([migration_dir, module_string, "*"]))
     results = Enum.map(files, &path_to_structure(migration_dir, Path.relative_to(&1, migration_dir)))
 
@@ -45,7 +45,7 @@ defmodule Yacto.Migration.File do
   end
 
   # {%Yacto.Migration.File{} | nil, [error]}
-  def get_latest_migration_file(migration_dir, module_string) do
+  def get_latest_migration_file(migration_dir, module_string) when is_binary(module_string) do
     {files, errors} = list_migration_files(migration_dir, module_string)
     case files do
       [] -> {nil, errors}
@@ -128,7 +128,7 @@ defmodule Yacto.Migration.File do
     end
   end
 
-  def new(schema, version, dbname, operation, now) do
+  def new(schema_name, version, dbname, operation, now) when is_binary(schema_name) do
     datetime_str =
       now
       # 2020-02-16T01:10:20+00:00
@@ -142,7 +142,7 @@ defmodule Yacto.Migration.File do
       # 2020_02_16_011020
       |> String.replace("-", "_")
 
-    path = Path.join(to_string(schema), "#{pad4(version)}-#{dbname}-#{operation}-#{datetime_str}.exs")
+    path = Path.join(schema_name, "#{pad4(version)}-#{dbname}-#{operation}-#{datetime_str}.exs")
 
     %__MODULE__{
       version: version,

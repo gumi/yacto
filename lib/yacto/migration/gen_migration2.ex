@@ -256,6 +256,14 @@ defmodule Yacto.Migration.GenMigration2 do
         do: %Yacto.Migration.Structure{},
         else: Yacto.Migration.Structure.from_schema(schema)
 
+    schema_name =
+      if migration == nil do
+        to_string(schema.__base_schema__())
+      else
+        # Foo.Bar.Migration0000 の Migration0000 の部分だけ削る
+        migration |> Module.split() |> List.delete_at(-1) |> Module.concat() |> to_string()
+      end
+
     result = generate_lines(structure_from, structure_to, opts)
 
     case result do
@@ -267,7 +275,7 @@ defmodule Yacto.Migration.GenMigration2 do
           get_template(),
           assigns: [
             migration_name:
-              inspect(Module.concat([schema.__base_schema__(), "Migration#{pad4(version)}"])),
+              inspect(Module.concat([schema_name, "Migration#{pad4(version)}"])),
             lines: lines,
             structure: structure_to,
             version: version,
