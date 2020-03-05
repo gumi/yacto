@@ -2,11 +2,7 @@ defmodule Yacto.Migration.SchemaTest do
   use PowerAssert
 
   defmodule Schema do
-    use Yacto.Schema
-
-    def dbname() do
-      :default
-    end
+    use Yacto.Schema, dbname: :default
 
     schema @auto_source do
     end
@@ -17,14 +13,10 @@ defmodule Yacto.Migration.SchemaTest do
   end
 
   defmodule TestMeta do
-    use Yacto.Schema
+    use Yacto.Schema, dbname: :dbname
 
     @primary_key {:id, :string, autogenerate: {UUID, :uuid4, []}}
     @primary_key_meta %{id: [size: 64]}
-
-    def dbname() do
-      :default
-    end
 
     schema @auto_source do
       field(:name, :string, meta: [null: false, size: 50, default: "foo", index: true])

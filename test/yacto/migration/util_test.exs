@@ -55,10 +55,18 @@ defmodule Yacto.Migration.UtilTest do
   end
 
   describe "need_gen_migration?/1" do
+    setup do
+      Code.compiler_options(ignore_module_conflict: true)
+      on_exit(fn ->
+        Code.compiler_options(ignore_module_conflict: false)
+      end)
+      :ok
+    end
+
     test "when an option 'migration: true' is passed to Yacto.Schema" do
       {:module, schema, _, _} =
         defmodule TestSchema do
-          use Yacto.Schema, migration: true
+          use Yacto.Schema, dbname: :default, migration: true
         end
 
       assert Yacto.Migration.Util.need_gen_migration?(schema)
@@ -67,7 +75,7 @@ defmodule Yacto.Migration.UtilTest do
     test "when an option 'migration: false' is passed to Yacto.Schema" do
       {:module, schema, _, _} =
         defmodule TestSchema do
-          use Yacto.Schema, migration: false
+          use Yacto.Schema, dbname: :default, migration: false
         end
 
       refute Yacto.Migration.Util.need_gen_migration?(schema)
@@ -76,7 +84,7 @@ defmodule Yacto.Migration.UtilTest do
     test "when an option 'migration' is NOT passed to Yacto.Schema" do
       {:module, schema, _, _} =
         defmodule TestSchema do
-          use Yacto.Schema, migration: false
+          use Yacto.Schema, dbname: :default, migration: false
         end
 
       refute Yacto.Migration.Util.need_gen_migration?(schema)

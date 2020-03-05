@@ -9,60 +9,12 @@ defmodule Yacto.Migration.Migrator do
     end)
   end
 
-  defp difference_migration(migrations, versions) do
-    migrations
-    |> Enum.filter(fn migration -> !Enum.member?(versions, migration.version) end)
-  end
-
-  @doc """
-  Runs an up migration on the given repository.
-  ## Options
-    * `:log` - the level to use for logging of migration instructions.
-      Defaults to `:info`. Can be any of `Logger.level/0` values or a boolean.
-    * `:log_sql` - the level to use for logging of SQL instructions.
-      Defaults to `false`. Can be any of `Logger.level/0` values or a boolean.
-    * `:prefix` - the prefix to run the migrations on
-    * `:dynamic_repo` - the name of the Repo supervisor process.
-      See `c:Ecto.Repo.put_dynamic_repo/1`.
-    * `:strict_version_order` - abort when applying a migration with old timestamp
-    * `:db_opts
-  """
-  def up(app, repo, schemas, migrations, opts \\ []) do
-    sorted_migrations =
-      case Yacto.Migration.Util.sort_migrations(migrations) do
-        {:error, errors} ->
-          for error <- errors do
-            Logger.error(error)
-          end
-
-          raise inspect(errors)
-
-        {:ok, sorted_migrations} ->
-          sorted_migrations
-      end
-
-    db_opts = Keyword.get(opts, :db_opts, [])
-
-    for schema <- schemas do
-      if Yacto.Migration.Util.allow_migrate?(schema, repo, db_opts) do
-        versions = migrated_versions(repo, app, schema)
-        need_migrations = difference_migration(sorted_migrations, versions)
-
-        for migration <- need_migrations do
-          do_up(app, repo, schema, migration.module, opts)
-        end
-      end
-    end
-
-    :ok
-  end
-
-  defp difference_migration2(migration_files, versions) do
+  defp difference_migration(migration_files, versions) do
     migration_files
     |> Enum.filter(fn migration_file -> !Enum.member?(versions, migration_file.version) end)
   end
 
-  def up2(app, repo, schema, migration_dir, migration_files, opts \\ []) do
+  def up(app, repo, schema, migration_dir, migration_files, opts \\ []) do
     db_opts = Keyword.get(opts, :db_opts, [])
 
     need_repos =
@@ -72,7 +24,7 @@ defmodule Yacto.Migration.Migrator do
       |> Enum.into(MapSet.new())
     if repo in need_repos do
       versions = migrated_versions(repo, app, schema)
-      need_migration_files = difference_migration2(migration_files, versions)
+      need_migration_files = difference_migration(migration_files, versions)
 
       for migration_file <- need_migration_files do
         repos = Yacto.DB.repos(migration_file.dbname, db_opts)

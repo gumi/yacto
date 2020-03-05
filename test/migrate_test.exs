@@ -45,7 +45,7 @@ defmodule Yacto.MigrateTest do
 
   test "migrate" do
     migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
-    Mix.Task.rerun("yacto.gen.migration2", ["--prefix", "Yacto.MigratorTest"])
+    Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
     Mix.Task.rerun("yacto.migrate", ["--migration-dir", migration_dir])
   end
 end

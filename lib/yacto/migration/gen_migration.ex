@@ -224,199 +224,81 @@ defmodule Yacto.Migration.GenMigration do
     """
     defmodule <%= @migration_name %> do
       use Ecto.Migration
-    <%= for schema_info <- @schema_infos do %>
-      def change(<%= schema_info.schema |> Atom.to_string() |> String.replace_prefix("Elixir.", "") %>) do<%= for line <- schema_info.lines do %>
-        <%= line %><% end %>
-      end<% end %>
 
-      def change(_other) do
+      def change() do<%= for line <- @lines do %>
+        <%= line %><% end %>
         :ok
       end
 
-      def __migration_structures__() do
-        [<%= for {schema, structure} <- @structures do %>
-          {<%= inspect schema %>, <%= Yacto.Migration.Structure.to_string structure %>},<% end %>
-        ]
+      def __migration__(:structure) do
+        <%= Yacto.Migration.Structure.to_string @structure %>
       end
 
-      def __migration_version__() do
+      def __migration__(:version) do
         <%= inspect @version %>
-      end
-
-      def __migration_preview_version__() do
-        <%= inspect @preview_version %>
       end
     end
     """
   end
 
-  defp extract_modules(file) do
-    modules = Code.load_file(file)
+  # :not_changed
+  # {:created, str, version}
+  # {:changed, str, version}
+  # {:deleted, str, version}
+  def generate(schema, migration, opts \\ []) do
+    structure_from =
+      if migration == nil,
+        do: %Yacto.Migration.Structure{},
+        else: migration.__migration__(:structure)
 
-    for {mod, _bin} <- modules, function_exported?(mod, :__migration_structures__, 0) do
-      mod
-    end
-  end
+    structure_to =
+      if schema == nil,
+        do: %Yacto.Migration.Structure{},
+        else: Yacto.Migration.Structure.from_schema(schema)
 
-  @doc """
-  最新のマイグレーションモジュールを取得する
-
-  マイグレーションモジュールが１件も存在しなかった場合は `nil` を返す。
-  """
-  def get_latest_migration(migration_dir) do
-    paths = Path.wildcard(Path.join(migration_dir, '*.exs'))
-
-    mods =
-      paths
-      |> Enum.map(&extract_modules/1)
-      |> List.flatten()
-
-    Enum.max_by(mods, & &1.__migration_version__(), fn -> nil end)
-  end
-
-  @doc """
-  マイグレーションファイルを生成する
-
-  - app: 対象のアプリケーション
-  - schemas: このアプリケーションに存在するスキーマの一覧
-  - delete_schemas: このアプリケーションから削除されたスキーマの一覧
-  - migration_version: 生成するマイグレーションファイルのバージョン。nil の場合はタイムスタンプから自動生成される。
-  - migration_dir: マイグレーションファイルを出力するディレクトリ
-  - opts: オプション
-    - `:index_name_max_length`: インデックス名の最大長。
-      自動的に生成されたインデックス名がこの長さを超えてしまう場合、ハッシュ化した名前に変換される。
-      `:infinity` の場合、決してハッシュ化を行わない。デフォルトは `:infinity`。
-  """
-  def generate_migration(
-        app,
-        schemas,
-        delete_schemas \\ [],
-        migration_version \\ nil,
-        migration_dir \\ nil,
-        opts \\ []
-      ) do
-    if migration_version != nil do
-      Yacto.Migration.Util.validate_version(migration_version)
-    end
-
-    migration_dir = migration_dir || Yacto.Migration.Util.get_migration_dir_for_gen()
-
-    migration = get_latest_migration(migration_dir)
-
-    structures =
-      if migration != nil do
-        migration.__migration_structures__()
-        |> Enum.into(%{})
+    schema_name =
+      if migration == nil do
+        to_string(schema.__base_schema__())
       else
-        nil
+        # Foo.Bar.Migration0000 の Migration0000 の部分だけ削る
+        migration |> Module.split() |> List.delete_at(-1) |> Module.concat() |> to_string()
       end
 
-    structure_infos =
-      Enum.map(schemas, fn schema ->
-        from = structures[schema] || %Yacto.Migration.Structure{}
-        to = Yacto.Migration.Structure.from_schema(schema)
-        {schema, from, to}
-      end)
+    result = generate_lines(structure_from, structure_to, opts)
 
-    delete_structure_infos =
-      Enum.map(delete_schemas, fn schema ->
-        from = Map.fetch!(structures, schema)
-        to = %Yacto.Migration.Structure{}
-        {schema, from, to}
-      end)
+    case result do
+      :not_changed -> :not_changed
+      {type, lines} ->
+        version = if(migration == nil, do: 0, else: migration.__migration__(:version) + 1)
 
-    structure_infos = structure_infos ++ delete_structure_infos
-
-    migration_version = migration_version || timestamp()
-    migration_preview_version = if migration, do: migration.__migration_version__(), else: nil
-
-    app_prefix = app |> Atom.to_string() |> Macro.camelize() |> String.to_atom()
-
-    source =
-      generate_source(
-        app_prefix,
-        structure_infos,
-        migration_version,
-        migration_preview_version,
-        opts
-      )
-
-    if source == :not_changed do
-      Logger.info("All schemas are not changed. A migration file is not generated.")
-    else
-      dir = Yacto.Migration.Util.get_migration_dir_for_gen()
-      :ok = File.mkdir_p!(dir)
-
-      path =
-        Path.join(
-          migration_dir,
-          Yacto.Migration.Util.get_migration_filename(app, migration_version)
+        str = EEx.eval_string(
+          get_template(),
+          assigns: [
+            migration_name:
+              inspect(Module.concat([schema_name, "Migration#{pad4(version)}"])),
+            lines: lines,
+            structure: structure_to,
+            version: version,
+          ]
         )
-
-      File.write!(path, source)
-
-      Logger.info("Successful! Generated a migration file: #{path}")
+        {type, str, version}
     end
   end
 
-  def generate_source(
-        app_prefix,
-        structure_infos,
-        migration_version,
-        migration_preview_version,
-        opts \\ []
-      ) do
-    structure_infos = Enum.sort(structure_infos)
+  # :not_changed |
+  # {:created, lines} |
+  # {:changed, lines} |
+  # {:deleted, lines}
+  defp generate_lines(structure_from, structure_to, migration_opts) do
+    try do
+      diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
+      rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
 
-    migration_name =
-      app_prefix
-      |> Module.concat("Migration#{migration_version}")
-      |> Atom.to_string()
-      |> String.replace_prefix("Elixir.", "")
-
-    schema_infos =
-      for {schema, from, to} <- structure_infos do
-        case generate_lines(from, to, opts) do
-          :not_changed -> :not_changed
-          lines -> %{schema: schema, lines: lines}
-        end
+      if diff == rdiff do
+        throw(:not_changed)
       end
 
-    schema_infos =
-      schema_infos
-      |> Enum.filter(fn
-        :not_changed -> false
-        _ -> true
-      end)
-
-    structures =
-      structure_infos
-      |> Enum.map(fn {schema, _from, to} -> {schema, to} end)
-
-    if length(schema_infos) == 0 do
-      :not_changed
-    else
-      EEx.eval_string(
-        get_template(),
-        assigns: [
-          migration_name: migration_name,
-          schema_infos: schema_infos,
-          structures: structures,
-          version: migration_version,
-          preview_version: migration_preview_version
-        ]
-      )
-    end
-  end
-
-  defp generate_lines(structure_from, structure_to, migration_opts) do
-    diff = Yacto.Migration.Structure.diff(structure_from, structure_to)
-    rdiff = Yacto.Migration.Structure.diff(structure_to, structure_from)
-
-    if diff == rdiff do
-      :not_changed
-    else
-      lines =
+      db_lines =
         case diff.source do
           :not_changed ->
             []
@@ -425,45 +307,53 @@ defmodule Yacto.Migration.GenMigration do
             ["rename table(#{inspect(from_value)}), to: table(#{inspect(to_value)})"]
 
           {:delete, from_value} ->
-            ["drop table(#{inspect(from_value)})"]
+            throw({:deleted, ["drop table(#{inspect(from_value)})"]})
 
           {:create, _to_value} ->
             ["create table(#{inspect(structure_to.source)})"]
         end
 
-      lines =
-        lines ++
-          case diff.source do
-            {:delete, _} ->
-              []
+      generated_fields =
+        generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts)
 
-            _ ->
-              generated_fields =
-                generate_fields(diff.types, diff.meta.attrs, structure_to, migration_opts)
+      {create_indices, drop_indices} =
+        generate_indices(diff.meta.indices, structure_to, migration_opts)
 
-              {create_indices, drop_indices} =
-                generate_indices(diff.meta.indices, structure_to, migration_opts)
+      field_lines =
+        if Enum.empty?(generated_fields) do
+          drop_indices ++ create_indices
+        else
+          drop_indices ++
+            ["alter table(#{inspect(structure_to.source)}) do"] ++
+            generated_fields ++
+            ["end"] ++
+            create_indices
+        end
 
-              if Enum.empty?(generated_fields) do
-                drop_indices ++ create_indices
-              else
-                drop_indices ++
-                  ["alter table(#{inspect(structure_to.source)}) do"] ++
-                  generated_fields ++
-                  ["end"] ++
-                  create_indices
-              end
-          end
+      lines = db_lines ++ field_lines
 
-      lines
+      case diff.source do
+        {:create, _} -> {:created, lines}
+        _ -> {:changed, lines}
+      end
+    catch
+      :throw, result -> result
     end
   end
 
-  defp timestamp() do
-    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
-    String.to_integer("#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss)}")
-  end
+  # defp timestamp() do
+  #  {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
+  #  String.to_integer("#{y}-#{pad(m)}-#{pad(d)}-#{pad(hh)}#{pad(mm)}#{pad(ss)}")
+  # end
 
-  defp pad(i) when i < 10, do: <<?0, ?0 + i>>
-  defp pad(i), do: to_string(i)
+  # defp pad(i) when i < 10, do: <<?0, ?0 + i>>
+  # defp pad(i), do: to_string(i)
+
+  defp pad4(i) when i < 10, do: <<?0, ?0, ?0, ?0 + i>>
+  defp pad4(i) when i < 100, do: <<?0, ?0, ?0 + div(i, 10), ?0 + rem(i, 10)>>
+
+  defp pad4(i) when i < 1000,
+    do: <<?0, ?0 + div(i, 100), ?0 + rem(div(i, 10), 10), ?0 + rem(i, 10)>>
+
+  defp pad4(i), do: to_string(i)
 end

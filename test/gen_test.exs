@@ -59,12 +59,12 @@ defmodule Yacto.GenMigrationTest2 do
   end
 
   test "foo" do
-    {:created, player, 0} = Yacto.Migration.GenMigration2.generate(Yacto.GenMigrationTest.Player, nil)
+    {:created, player, 0} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Player, nil)
     IO.puts(player)
     IO.inspect(Code.eval_string(player))
 
     {:changed, player2, 1} =
-      Yacto.Migration.GenMigration2.generate(
+      Yacto.Migration.GenMigration.generate(
         Yacto.GenMigrationTest.Player2,
         Yacto.GenMigrationTest.Player.Migration0000
       )
@@ -73,7 +73,7 @@ defmodule Yacto.GenMigrationTest2 do
     IO.inspect(Code.eval_string(player2))
 
     {:changed, player3, 2} =
-      Yacto.Migration.GenMigration2.generate(
+      Yacto.Migration.GenMigration.generate(
         Yacto.GenMigrationTest.Player3,
         Yacto.GenMigrationTest.Player.Migration0001
       )
@@ -82,11 +82,11 @@ defmodule Yacto.GenMigrationTest2 do
     IO.inspect(Code.eval_string(player3))
   end
 
-  test "mix yacto.gen.migration2" do
+  test "mix yacto.gen.migration" do
     migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
     _ = File.rm_rf(migration_dir)
 
-    Mix.Task.rerun("yacto.gen.migration2", [
+    Mix.Task.rerun("yacto.gen.migration", [
       "--prefix",
       "Yacto.GenMigrationTest",
       "--migration-dir",
