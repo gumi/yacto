@@ -241,10 +241,7 @@ defmodule Yacto.Migration.GenMigration do
     """
   end
 
-  # :not_changed
-  # {:created, str, version}
-  # {:changed, str, version}
-  # {:deleted, str, version}
+  @spec generate(nil | module(), nil | module(), Keyword.t()) :: :not_changed | {:created, String.t, integer()} | {:changed, String.t, integer()} | {:deleted, String.t, integer()}
   def generate(schema, migration, opts \\ []) do
     structure_from =
       if migration == nil,

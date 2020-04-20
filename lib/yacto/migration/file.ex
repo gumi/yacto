@@ -106,10 +106,11 @@ defmodule Yacto.Migration.File do
     end
   end
 
+  @spec load_migration_module(String.t, %Yacto.Migration.File{}) :: {:ok, module()} | {:error, any()}
   def load_migration_module(migration_dir, %__MODULE__{} = migration_file) do
     path = Path.join(migration_dir, migration_file.path)
 
-    modules = Code.load_file(path)
+    modules = Code.require_file(path)
 
     if length(modules) == 0 do
       {:error, "Module not found: #{path}"}

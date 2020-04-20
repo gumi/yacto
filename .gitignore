@@ -24,3 +24,5 @@ erl_crash.dump
 /test/apps/migrator/priv/
 /test/apps/sharding/priv/
 /test/apps/gen_migration/priv/
+
+*.swp

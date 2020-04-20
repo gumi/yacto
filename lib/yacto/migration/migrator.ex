@@ -30,13 +30,13 @@ defmodule Yacto.Migration.Migrator do
         repos = Yacto.DB.repos(migration_file.dbname, db_opts)
         if repo in repos do
           {:ok, module} = Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
-          do_up(app, repo, schema, module, opts)
+          migrate(app, repo, schema, module, opts)
         end
       end
     end
   end
 
-  defp do_up(app, repo, schema, migration, opts) do
+  def migrate(app, repo, schema, migration, opts \\ []) do
     async_migrate_maybe_in_transaction(app, repo, schema, migration, :up, opts, fn ->
       attempt(repo, schema, migration, :forward, :up, :up, opts) ||
         attempt(repo, schema, migration, :forward, :change, :up, opts) ||

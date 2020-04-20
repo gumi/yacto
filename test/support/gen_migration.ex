@@ -29,10 +29,7 @@ defmodule Yacto.GenMigrationTest.Player3 do
 end
 
 defmodule Yacto.GenMigrationTest.Item do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
@@ -67,10 +64,7 @@ defmodule Yacto.GenMigrationTest.CoinType do
 end
 
 defmodule Yacto.GenMigrationTest.Coin do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :player
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     field(:player_id, :string, meta: [null: false])
@@ -84,10 +78,7 @@ defmodule Yacto.GenMigrationTest.Coin do
 end
 
 defmodule Yacto.GenMigrationTest.ManyIndex do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   schema @auto_source do
     field(:aaaaaa, :string)
@@ -100,10 +91,7 @@ defmodule Yacto.GenMigrationTest.ManyIndex do
 end
 
 defmodule Yacto.GenMigrationTest.DecimalOption do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :player
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     field(:player_id, :string)
