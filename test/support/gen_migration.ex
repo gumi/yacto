@@ -69,8 +69,9 @@ defmodule Yacto.GenMigrationTest.Coin do
   schema @auto_source do
     field(:player_id, :string, meta: [null: false])
     field(:type_id, Yacto.GenMigrationTest.CoinType, meta: [null: false])
-    field(:platform, :string, meta: [type: :text, length: 64, null: false])
+    field(:platform, :string, meta: [length: 64, null: false])
     field(:quantity, :integer, default: 0, meta: [null: false])
+    field(:description, :string, meta: [type: :text, null: false])
     timestamps()
 
     index([:player_id, :type_id, :platform], unique: true)
@@ -98,4 +99,8 @@ defmodule Yacto.GenMigrationTest.DecimalOption do
     field(:decimal_field, :decimal, meta: [precision: 7, scale: 3])
     field(:name, :string, meta: [null: true])
   end
+end
+
+defmodule Yacto.GenMigrationTest.Repo0 do
+  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end

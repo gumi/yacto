@@ -57,18 +57,25 @@ defmodule Yacto.Migration.Migrator do
         run_maybe_in_transaction(parent, ref, repo, dynamic_repo, schema, migration, fun)
       end)
 
-    if migrated_successfully?(ref, task.pid) do
-      try do
-        # The table with schema migrations can only be updated from
-        # the parent process because it has a lock on the table
-        verbose_schema_migration(repo, "update schema migrations", fn ->
-          Yacto.Migration.SchemaMigration.up(repo, app, schema, migration.__migration__(:version))
-        end)
-      catch
-        kind, error ->
-          Task.shutdown(task, :brutal_kill)
-          :erlang.raise(kind, error, System.stacktrace())
-      end
+    case migrated_successfully?(ref, task.pid) do
+      true ->
+        try do
+          # The table with schema migrations can only be updated from
+          # the parent process because it has a lock on the table
+          verbose_schema_migration(repo, "update schema migrations", fn ->
+            Yacto.Migration.SchemaMigration.up(repo, app, schema, migration.__migration__(:version))
+          end)
+        catch
+          kind, error ->
+            Task.shutdown(task, :brutal_kill)
+            :erlang.raise(kind, error, System.stacktrace())
+        end
+      {false, {kind, reason, stacktrace}} ->
+        Logger.error("Migration error: #{inspect(reason)}")
+        :erlang.raise(kind, reason, stacktrace)
+      {false, reason} ->
+        Logger.error("Migration error: #{inspect(reason)}")
+        :erlang.error(reason)
     end
 
     send(task.pid, ref)
@@ -78,8 +85,8 @@ defmodule Yacto.Migration.Migrator do
   defp migrated_successfully?(ref, pid) do
     receive do
       {^ref, :ok} -> true
-      {^ref, _} -> false
-      {:EXIT, ^pid, _} -> false
+      {^ref, reason} -> {false, reason}
+      {:EXIT, ^pid, reason} -> {false, reason}
     end
   end
 

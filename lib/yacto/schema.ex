@@ -33,7 +33,9 @@ defmodule Yacto.Schema do
     quote do
       @behaviour Yacto.Schema
 
-      @auto_source __MODULE__
+      @base_schema unquote(base_schema) || __MODULE__
+
+      @auto_source @base_schema
                    |> Macro.underscore()
                    |> String.replace("_", "")
                    |> String.replace("/", "_")
@@ -52,8 +54,6 @@ defmodule Yacto.Schema do
       @yacto_attrs %{}
       @yacto_indices %{}
       @yacto_types %{}
-
-      @base_schema unquote(base_schema) || __MODULE__
 
       def __base_schema__() do
         @base_schema

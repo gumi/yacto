@@ -112,10 +112,7 @@ defmodule Yacto.MigratorTest.Coin do
 end
 
 defmodule Yacto.MigratorTest.DropFieldWithIndex do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   schema @auto_source do
     field(:value1, :string, meta: [null: false, index: true])
@@ -124,10 +121,7 @@ defmodule Yacto.MigratorTest.DropFieldWithIndex do
 end
 
 defmodule Yacto.MigratorTest.DropFieldWithIndex2 do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, as: Yacto.MigratorTest.DropFieldWithIndex, dbname: :default
 
   schema @auto_source do
     field(:value2, :string, meta: [null: false, index: true])

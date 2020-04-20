@@ -60,18 +60,18 @@ defmodule Yacto.Migration.GenMigrationTest do
     use Ecto.Migration
 
     def change() do
-      rename table("player2"), to: table("yacto_genmigrationtest_player3")
-      alter table("yacto_genmigrationtest_player3") do
+      rename table("player2"), to: table("yacto_genmigrationtest_player")
+      alter table("yacto_genmigrationtest_player") do
         remove(:name2)
         add(:name3, :string, [null: false, size: 100])
       end
-      create index("yacto_genmigrationtest_player3", [:name3, :value], [name: "name3_value_index", unique: true])
-      create index("yacto_genmigrationtest_player3", [:value, :name3], [name: "value_name3_index"])
+      create index("yacto_genmigrationtest_player", [:name3, :value], [name: "name3_value_index", unique: true])
+      create index("yacto_genmigrationtest_player", [:value, :name3], [name: "value_name3_index"])
       :ok
     end
 
     def __migration__(:structure) do
-      %Yacto.Migration.Structure{field_sources: %{id: :id, name3: :name3, value: :value}, fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "yacto_genmigrationtest_player3", types: %{id: :id, name3: :string, value: :string}}
+      %Yacto.Migration.Structure{field_sources: %{id: :id, name3: :name3, value: :value}, fields: [:id, :name3, :value], meta: %{attrs: %{name3: %{null: false, size: 100}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "yacto_genmigrationtest_player", types: %{id: :id, name3: :string, value: :string}}
     end
 
     def __migration__(:version) do
@@ -85,7 +85,7 @@ defmodule Yacto.Migration.GenMigrationTest do
     use Ecto.Migration
 
     def change() do
-      drop table("yacto_genmigrationtest_player3")
+      drop table("yacto_genmigrationtest_player")
       :ok
     end
 
@@ -218,8 +218,9 @@ defmodule Yacto.Migration.GenMigrationTest do
       alter table("yacto_genmigrationtest_coin") do
         add(:player_id, :string, [null: false])
         add(:type_id, :integer, [null: false])
-        add(:platform, :text, [null: false])
+        add(:platform, :string, [null: false])
         add(:quantity, :integer, [default: 0, null: false])
+        add(:description, :text, [null: false])
         add(:inserted_at, :naive_datetime, [])
         add(:updated_at, :naive_datetime, [])
       end
@@ -228,7 +229,7 @@ defmodule Yacto.Migration.GenMigrationTest do
     end
 
     def __migration__(:structure) do
-      %Yacto.Migration.Structure{field_sources: %{id: :id, inserted_at: :inserted_at, platform: :platform, player_id: :player_id, quantity: :quantity, type_id: :type_id, updated_at: :updated_at}, fields: [:id, :player_id, :type_id, :platform, :quantity, :inserted_at, :updated_at], meta: %{attrs: %{platform: %{null: false}, player_id: %{null: false}, quantity: %{default: 0, null: false}, type_id: %{null: false}}, indices: %{{[:player_id, :type_id, :platform], [unique: true]} => true}}, source: "yacto_genmigrationtest_coin", types: %{id: :id, inserted_at: :naive_datetime, platform: :text, player_id: :string, quantity: :integer, type_id: :integer, updated_at: :naive_datetime}}
+      %Yacto.Migration.Structure{field_sources: %{description: :description, id: :id, inserted_at: :inserted_at, platform: :platform, player_id: :player_id, quantity: :quantity, type_id: :type_id, updated_at: :updated_at}, fields: [:id, :player_id, :type_id, :platform, :quantity, :description, :inserted_at, :updated_at], meta: %{attrs: %{description: %{null: false}, platform: %{null: false}, player_id: %{null: false}, quantity: %{default: 0, null: false}, type_id: %{null: false}}, indices: %{{[:player_id, :type_id, :platform], [unique: true]} => true}}, source: "yacto_genmigrationtest_coin", types: %{description: :text, id: :id, inserted_at: :naive_datetime, platform: :string, player_id: :string, quantity: :integer, type_id: :integer, updated_at: :naive_datetime}}
     end
 
     def __migration__(:version) do
@@ -244,44 +245,41 @@ defmodule Yacto.Migration.GenMigrationTest do
 
   test "生成したマイグレーションファイルで実際にマイグレートできるか確認する" do
     repo0_config = [
-      database: "migrator_repo0",
+      database: "yacto_gen_migration_repo0",
       username: "root",
       password: "",
       hostname: "localhost",
       port: 3306
     ]
+    repo0 = Yacto.GenMigrationTest.Repo0
 
-    for {repo, config} <- [
-          {Yacto.MigratorTest.Repo0, repo0_config}
-        ] do
-      _ = repo.__adapter__.storage_down(config)
-      :ok = repo.__adapter__.storage_up(config)
-    end
+    _ = repo0.__adapter__.storage_down(repo0_config)
+    :ok = repo0.__adapter__.storage_up(repo0_config)
 
-    {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.MigratorTest.Repo0, repo0_config})
+    {:ok, _} = ExUnit.Callbacks.start_supervised({repo0, repo0_config})
 
-    Yacto.Migration.SchemaMigration.ensure_schema_migrations_table!(Yacto.MigratorTest.Repo0)
+    Yacto.Migration.SchemaMigration.ensure_schema_migrations_table!(repo0)
 
     [{mod1, _}] = Code.compile_string(@migrate1)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.Player, mod1)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod1)
     [{mod2, _}] = Code.compile_string(@migrate2)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.Player, mod2)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod2)
     [{mod3, _}] = Code.compile_string(@migrate3)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.Player, mod3)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod3)
     [{mod4, _}] = Code.compile_string(@migrate4)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.Player, mod4)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod4)
 
     [{mod5, _}] = Code.compile_string(@migrate5)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.Item, mod5)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Item, mod5)
 
     [{mod6, _}] = Code.compile_string(@migrate6)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.ManyIndex, mod6)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.ManyIndex, mod6)
 
     [{mod7, _}] = Code.compile_string(@migrate7)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.DecimalOption, mod7)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.DecimalOption, mod7)
 
     [{mod8, _}] = Code.compile_string(@migrate8)
-    Yacto.Migration.Migrator.migrate(:yacto, Yacto.MigratorTest.Repo0, Yacto.GenMigrationTest.Coin, mod8)
+    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Coin, mod8)
 
     # ちゃんとマイグレーションフィールドに書き込まれてるか確認する
     actual_fields =
@@ -289,9 +287,10 @@ defmodule Yacto.Migration.GenMigrationTest do
       |> Ecto.Query.where(app: "yacto")
       |> Ecto.Query.select([:schema, :version])
       |> Ecto.Query.order_by([:schema, :version])
-      |> Yacto.MigratorTest.Repo0.all()
+      |> repo0.all()
       |> Enum.map(fn x -> {x.schema, x.version} end)
     expected_fields = [
+      {"Elixir.Yacto.GenMigrationTest.Coin", 0},
       {"Elixir.Yacto.GenMigrationTest.DecimalOption", 0},
       {"Elixir.Yacto.GenMigrationTest.Item", 0},
       {"Elixir.Yacto.GenMigrationTest.ManyIndex", 0},
