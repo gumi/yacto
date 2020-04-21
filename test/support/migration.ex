@@ -63,7 +63,7 @@ defmodule Yacto.MigrationTest.CustomPrimaryKey do
 end
 
 defmodule Yacto.MigrationTest.CoinType do
-  @behaviour Ecto.Type
+  use Ecto.Type
 
   @impl Ecto.Type
   def type(), do: :integer
@@ -93,7 +93,7 @@ defmodule Yacto.MigrationTest.Coin do
   schema @auto_source do
     field(:player_id, :string, meta: [null: false])
     field(:type_id, Yacto.MigrationTest.CoinType, default: :common_coin, meta: [null: false])
-    field(:platform, :string, meta: [length: 64, null: false])
+    field(:platform, :string, meta: [size: 64, null: false])
     field(:quantity, :integer, default: 0, meta: [null: false])
     field(:description, :string, meta: [type: :text, null: false])
     timestamps()
@@ -123,10 +123,10 @@ defmodule Yacto.MigrationTest.ManyIndex do
   use Yacto.Schema, dbname: :default
 
   schema @auto_source do
-    field(:aaaaaa, :string)
-    field(:bbbbbb, :string)
-    field(:cccccc, :string)
-    field(:dddddd, :string)
+    field(:aaaaaa, :string, meta: [size: 64, null: false])
+    field(:bbbbbb, :string, meta: [size: 64, null: false])
+    field(:cccccc, :string, meta: [size: 64, null: false])
+    field(:dddddd, :string, meta: [size: 64, null: false])
 
     index([:aaaaaa, :bbbbbb, :cccccc, :dddddd])
   end

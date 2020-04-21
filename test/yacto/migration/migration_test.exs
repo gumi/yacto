@@ -106,7 +106,7 @@ defmodule Yacto.Migration.MigrationTest do
         PRIMARY KEY (`id`),
         UNIQUE KEY `name3_value_index` (`name3`,`value`),
         KEY `value_name3_index` (`value`,`name3`)
-      ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8
+      ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
       """
 
       actual =
@@ -303,7 +303,7 @@ defmodule Yacto.Migration.MigrationTest do
         `value2` varchar(255) NOT NULL,
         PRIMARY KEY (`id`),
         KEY `value2_index` (`value2`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
       """
 
       actual =
@@ -640,17 +640,17 @@ defmodule Yacto.Migration.MigrationTest do
       def change() do
         create table("yacto_migrationtest_manyindex")
         alter table("yacto_migrationtest_manyindex") do
-          add(:aaaaaa, :string, [])
-          add(:bbbbbb, :string, [])
-          add(:cccccc, :string, [])
-          add(:dddddd, :string, [])
+          add(:aaaaaa, :string, [null: false, size: 64])
+          add(:bbbbbb, :string, [null: false, size: 64])
+          add(:cccccc, :string, [null: false, size: 64])
+          add(:dddddd, :string, [null: false, size: 64])
         end
         create index("yacto_migrationtest_manyindex", [:aaaaaa, :bbbbbb, :cccccc, :dddddd], [name: "aaaaaa_bbbb_9a4e1a2f"])
         :ok
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{aaaaaa: :aaaaaa, bbbbbb: :bbbbbb, cccccc: :cccccc, dddddd: :dddddd, id: :id}, fields: [:id, :aaaaaa, :bbbbbb, :cccccc, :dddddd], meta: %{attrs: %{}, indices: %{{[:aaaaaa, :bbbbbb, :cccccc, :dddddd], []} => true}}, source: "yacto_migrationtest_manyindex", types: %{aaaaaa: :string, bbbbbb: :string, cccccc: :string, dddddd: :string, id: :id}}
+        %Yacto.Migration.Structure{field_sources: %{aaaaaa: :aaaaaa, bbbbbb: :bbbbbb, cccccc: :cccccc, dddddd: :dddddd, id: :id}, fields: [:id, :aaaaaa, :bbbbbb, :cccccc, :dddddd], meta: %{attrs: %{aaaaaa: %{null: false, size: 64}, bbbbbb: %{null: false, size: 64}, cccccc: %{null: false, size: 64}, dddddd: %{null: false, size: 64}}, indices: %{{[:aaaaaa, :bbbbbb, :cccccc, :dddddd], []} => true}}, source: "yacto_migrationtest_manyindex", types: %{aaaaaa: :string, bbbbbb: :string, cccccc: :string, dddddd: :string, id: :id}}
       end
 
       def __migration__(:version) do
@@ -708,7 +708,7 @@ defmodule Yacto.Migration.MigrationTest do
         alter table("yacto_migrationtest_coin") do
           add(:player_id, :string, [null: false])
           add(:type_id, :integer, [default: 2, null: false])
-          add(:platform, :string, [null: false])
+          add(:platform, :string, [null: false, size: 64])
           add(:quantity, :integer, [default: 0, null: false])
           add(:description, :text, [null: false])
           add(:inserted_at, :naive_datetime, [])
@@ -719,7 +719,7 @@ defmodule Yacto.Migration.MigrationTest do
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{description: :description, id: :id, inserted_at: :inserted_at, platform: :platform, player_id: :player_id, quantity: :quantity, type_id: :type_id, updated_at: :updated_at}, fields: [:id, :player_id, :type_id, :platform, :quantity, :description, :inserted_at, :updated_at], meta: %{attrs: %{description: %{null: false}, platform: %{null: false}, player_id: %{null: false}, quantity: %{default: 0, null: false}, type_id: %{default: 2, null: false}}, indices: %{{[:player_id, :type_id, :platform], [unique: true]} => true}}, source: "yacto_migrationtest_coin", types: %{description: :text, id: :id, inserted_at: :naive_datetime, platform: :string, player_id: :string, quantity: :integer, type_id: :integer, updated_at: :naive_datetime}}
+        %Yacto.Migration.Structure{field_sources: %{description: :description, id: :id, inserted_at: :inserted_at, platform: :platform, player_id: :player_id, quantity: :quantity, type_id: :type_id, updated_at: :updated_at}, fields: [:id, :player_id, :type_id, :platform, :quantity, :description, :inserted_at, :updated_at], meta: %{attrs: %{description: %{null: false}, platform: %{null: false, size: 64}, player_id: %{null: false}, quantity: %{default: 0, null: false}, type_id: %{default: 2, null: false}}, indices: %{{[:player_id, :type_id, :platform], [unique: true]} => true}}, source: "yacto_migrationtest_coin", types: %{description: :text, id: :id, inserted_at: :naive_datetime, platform: :string, player_id: :string, quantity: :integer, type_id: :integer, updated_at: :naive_datetime}}
       end
 
       def __migration__(:version) do

@@ -173,9 +173,11 @@ defmodule Yacto.Migration.Migrator do
     level = Keyword.get(opts, :log, :info)
     sql = Keyword.get(opts, :log_sql, false)
     log = %{level: level, sql: sql}
-    args = [self(), repo, migration, direction, migrator_direction, log]
+    args = {self(), repo, migration, direction, migrator_direction, log}
 
-    {:ok, runner} = Supervisor.start_child(Ecto.Migration.Supervisor, args)
+    {:ok, runner} =
+      DynamicSupervisor.start_child(Ecto.MigratorSupervisor, {Ecto.Migration.Runner, args})
+
     Ecto.Migration.Runner.metadata(runner, opts)
 
     log(level, "== Running #{version} #{inspect(migration)}.#{operation}/0 #{direction}")

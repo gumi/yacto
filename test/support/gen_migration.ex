@@ -39,7 +39,7 @@ defmodule Yacto.GenMigrationTest.Item do
 end
 
 defmodule Yacto.GenMigrationTest.CoinType do
-  @behaviour Ecto.Type
+  use Ecto.Type
 
   @impl Ecto.Type
   def type(), do: :integer
