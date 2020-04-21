@@ -387,6 +387,91 @@ defmodule Yacto.Migration.MigrationTest do
 
       Mix.Task.rerun("yacto.migrate", ["--migration-dir", migration_dir])
     end
+
+    test "yacto.migrate --fake が動作するかを確認する" do
+      migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
+      _ = File.rm_rf(migration_dir)
+
+      ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
+
+      Application.put_env(:yacto, :ignore_migration_schemas, [
+        Yacto.MigrationTest.Player2,
+        Yacto.MigrationTest.Player3,
+        Yacto.MigrationTest.DropFieldWithIndex2
+      ])
+
+      # ひとまず普通にマイグレート
+      Mix.Task.rerun("yacto.gen.migration", [
+        "--prefix",
+        "Yacto.MigrationTest",
+        "--migration-dir",
+        migration_dir
+      ])
+
+      Mix.Task.rerun("yacto.migrate", ["--migration-dir", migration_dir])
+
+      before_records0 =
+        Yacto.Migration.SchemaMigration
+        |> Ecto.Query.where(app: "yacto")
+        |> Ecto.Query.select([:schema, :version])
+        |> Ecto.Query.order_by([:schema, :version])
+        |> Yacto.MigrationTest.Repo0.all()
+        |> Enum.map(fn x -> {x.schema, x.version} end)
+
+      before_records1 =
+        Yacto.Migration.SchemaMigration
+        |> Ecto.Query.where(app: "yacto")
+        |> Ecto.Query.select([:schema, :version])
+        |> Ecto.Query.order_by([:schema, :version])
+        |> Yacto.MigrationTest.Repo1.all()
+        |> Enum.map(fn x -> {x.schema, x.version} end)
+
+      # migration_schema テーブルが何らかの理由で無くなったとする
+      Yacto.Migration.SchemaMigration.drop(Yacto.MigrationTest.Repo0)
+      # repo1 はちゃんと drop and create されてることを確認するために残しておく
+
+      # --fake でマイグレートすると、以前と同じ内容で migration_schema テーブルが作られるはず
+      Mix.Task.rerun("yacto.migrate", ["--fake", "--migration-dir", migration_dir])
+
+      after_records0 =
+        Yacto.Migration.SchemaMigration
+        |> Ecto.Query.where(app: "yacto")
+        |> Ecto.Query.select([:schema, :version])
+        |> Ecto.Query.order_by([:schema, :version])
+        |> Yacto.MigrationTest.Repo0.all()
+        |> Enum.map(fn x -> {x.schema, x.version} end)
+
+      after_records1 =
+        Yacto.Migration.SchemaMigration
+        |> Ecto.Query.where(app: "yacto")
+        |> Ecto.Query.select([:schema, :version])
+        |> Ecto.Query.order_by([:schema, :version])
+        |> Yacto.MigrationTest.Repo1.all()
+        |> Enum.map(fn x -> {x.schema, x.version} end)
+
+      assert before_records0 == after_records0
+      assert before_records1 == after_records1
+
+      # 新しくマイグレートするのも出来るはず
+      Application.put_env(:yacto, :ignore_migration_schemas, [
+        Yacto.MigrationTest.Player,
+        Yacto.MigrationTest.Player3,
+        Yacto.MigrationTest.DropFieldWithIndex
+      ])
+
+      # Player2 と DropFieldWithIndex2 のマイグレーションファイルが追加される
+      Mix.Task.rerun("yacto.gen.migration", [
+        "--prefix",
+        "Yacto.MigrationTest",
+        "--migration-dir",
+        migration_dir
+      ])
+
+      Mix.Task.rerun("yacto.migrate", ["--migration-dir", migration_dir])
+
+      Yacto.MigrationTest.Repo0.insert!(%Yacto.MigrationTest.Player2{name2: "foo", value: "bar"})
+      Yacto.MigrationTest.Repo1.insert!(%Yacto.MigrationTest.DropFieldWithIndex{value2: "foo"})
+    end
   end
 
   describe "マイグレーションファイルが意図した内容になっているかのテスト" do

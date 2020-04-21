@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
 
   @shortdoc "run migration"
 
-  @switches [repo: :string, app: :string, migration_dir: :string]
+  @switches [repo: :string, app: :string, migration_dir: :string, fake: :boolean]
 
   def run(args) do
     Mix.Task.run("loadpaths", args)
@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
             Mix.Project.config()[:app]
           end
 
+        fake = Keyword.get(opts, :fake, false)
         migration_dir =
           Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir(app))
 
@@ -50,6 +51,10 @@ defmodule Mix.Tasks.Yacto.Migrate do
         end
 
         for repo <- repos do
+          if fake do
+            Yacto.Migration.SchemaMigration.drop_and_create(repo)
+          end
+
           for schema_name <- schema_names do
             {migration_files, messages} =
               Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
@@ -64,6 +69,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
               String.to_atom(schema_name),
               migration_dir,
               migration_files,
+              fake: fake,
               db_opts: [databases: databases]
             )
           end

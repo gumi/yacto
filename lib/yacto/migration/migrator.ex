@@ -51,46 +51,66 @@ defmodule Yacto.Migration.Migrator do
     end)
   end
 
-  defp async_migrate_maybe_in_transaction(app, repo, schema, migration, _direction, _opts, fun) do
+  defp async_migrate_maybe_in_transaction(app, repo, schema, migration, _direction, opts, fun) do
+    fake = Keyword.get(opts, :fake, false);
     parent = self()
     ref = make_ref()
     dynamic_repo = repo.get_dynamic_repo()
 
-    task =
-      Task.async(fn ->
-        run_maybe_in_transaction(parent, ref, repo, dynamic_repo, schema, migration, fun)
-      end)
+    if fake do
+      # fake モードの場合、実際のテーブルは操作せず、バージョン管理テーブルだけを更新する
+      try do
+        # The table with schema migrations can only be updated from
+        # the parent process because it has a lock on the table
+        verbose_schema_migration(repo, "update schema migrations", fn ->
+          Yacto.Migration.SchemaMigration.up(
+            repo,
+            app,
+            schema,
+            migration.__migration__(:version)
+          )
+        end)
+      catch
+        kind, error ->
+          :erlang.raise(kind, error, System.stacktrace())
+      end
+    else
+      task =
+        Task.async(fn ->
+          run_maybe_in_transaction(parent, ref, repo, dynamic_repo, schema, migration, fun)
+        end)
 
-    case migrated_successfully?(ref, task.pid) do
-      true ->
-        try do
-          # The table with schema migrations can only be updated from
-          # the parent process because it has a lock on the table
-          verbose_schema_migration(repo, "update schema migrations", fn ->
-            Yacto.Migration.SchemaMigration.up(
-              repo,
-              app,
-              schema,
-              migration.__migration__(:version)
-            )
-          end)
-        catch
-          kind, error ->
-            Task.shutdown(task, :brutal_kill)
-            :erlang.raise(kind, error, System.stacktrace())
-        end
+      case migrated_successfully?(ref, task.pid) do
+        true ->
+          try do
+            # The table with schema migrations can only be updated from
+            # the parent process because it has a lock on the table
+            verbose_schema_migration(repo, "update schema migrations", fn ->
+              Yacto.Migration.SchemaMigration.up(
+                repo,
+                app,
+                schema,
+                migration.__migration__(:version)
+              )
+            end)
+          catch
+            kind, error ->
+              Task.shutdown(task, :brutal_kill)
+              :erlang.raise(kind, error, System.stacktrace())
+          end
 
-      {false, {kind, reason, stacktrace}} ->
-        Logger.error("Migration error: #{inspect(reason)}")
-        :erlang.raise(kind, reason, stacktrace)
+        {false, {kind, reason, stacktrace}} ->
+          Logger.error("Migration error: #{inspect(reason)}")
+          :erlang.raise(kind, reason, stacktrace)
 
-      {false, reason} ->
-        Logger.error("Migration error: #{inspect(reason)}")
-        :erlang.error(reason)
+        {false, reason} ->
+          Logger.error("Migration error: #{inspect(reason)}")
+          :erlang.error(reason)
+      end
+
+      send(task.pid, ref)
+      Task.await(task, :infinity)
     end
-
-    send(task.pid, ref)
-    Task.await(task, :infinity)
   end
 
   defp migrated_successfully?(ref, pid) do
