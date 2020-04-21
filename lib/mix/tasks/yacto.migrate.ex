@@ -20,6 +20,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
           end
 
         fake = Keyword.get(opts, :fake, false)
+
         migration_dir =
           Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir(app))
 

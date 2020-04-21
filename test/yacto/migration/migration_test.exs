@@ -428,6 +428,7 @@ defmodule Yacto.Migration.MigrationTest do
 
       # migration_schema テーブルが何らかの理由で無くなったとする
       Yacto.Migration.SchemaMigration.drop(Yacto.MigrationTest.Repo0)
+
       # repo1 はちゃんと drop and create されてることを確認するために残しておく
 
       # --fake でマイグレートすると、以前と同じ内容で migration_schema テーブルが作られるはず

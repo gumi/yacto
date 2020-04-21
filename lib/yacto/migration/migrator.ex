@@ -52,7 +52,7 @@ defmodule Yacto.Migration.Migrator do
   end
 
   defp async_migrate_maybe_in_transaction(app, repo, schema, migration, _direction, opts, fun) do
-    fake = Keyword.get(opts, :fake, false);
+    fake = Keyword.get(opts, :fake, false)
     parent = self()
     ref = make_ref()
     dynamic_repo = repo.get_dynamic_repo()
