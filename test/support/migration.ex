@@ -102,7 +102,6 @@ defmodule Yacto.MigrationTest.Coin do
   end
 end
 
-
 defmodule Yacto.MigrationTest.DropFieldWithIndex do
   use Yacto.Schema, dbname: :default
 

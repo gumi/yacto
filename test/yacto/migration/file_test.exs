@@ -3,7 +3,7 @@ defmodule Yacto.Migration.FileTest do
 
   @migration_dir "_migrations"
 
-  test "File" do
+  test "Yacto.Migration.File がちゃんと動作するか確認" do
     # この構成でファイルを作る
     files = [
       "Elixir.App.Mod1/0001-default-create-2019_11_26_170846.exs",

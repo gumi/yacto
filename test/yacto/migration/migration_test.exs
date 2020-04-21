@@ -6,7 +6,10 @@ defmodule Yacto.Migration.MigrationTest do
   describe "DB のセットアップが必要なテスト" do
     @databases %{
       default: %{module: Yacto.DB.Single, repo: Yacto.MigrationTest.Repo1},
-      player: %{module: Yacto.DB.Shard, repos: [Yacto.MigrationTest.Repo0, Yacto.MigrationTest.Repo1]}
+      player: %{
+        module: Yacto.DB.Shard,
+        repos: [Yacto.MigrationTest.Repo0, Yacto.MigrationTest.Repo1]
+      }
     }
 
     setup do
@@ -47,7 +50,11 @@ defmodule Yacto.Migration.MigrationTest do
     end
 
     test "１ファイルずつマイグレーションファイルの生成とマイグレートを行う" do
-      schemas = [Yacto.MigrationTest.Player, Yacto.MigrationTest.Player2, Yacto.MigrationTest.Player3]
+      schemas = [
+        Yacto.MigrationTest.Player,
+        Yacto.MigrationTest.Player2,
+        Yacto.MigrationTest.Player3
+      ]
 
       Enum.reduce(schemas, nil, fn schema, prev_migration ->
         schema_name = to_string(schema.__base_schema__())
@@ -244,12 +251,24 @@ defmodule Yacto.Migration.MigrationTest do
       Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigrationTest"])
       Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
-      record = %Yacto.MigrationTest.Coin{player_id: "player", type_id: :free_coin, platform: "platform", quantity: 10, description: ""}
+      record = %Yacto.MigrationTest.Coin{
+        player_id: "player",
+        type_id: :free_coin,
+        platform: "platform",
+        quantity: 10,
+        description: ""
+      }
+
       record = Yacto.MigrationTest.Repo1.insert!(record)
       assert record.type_id == :free_coin
 
       # デフォルト値が効くかどうか確認
-      record = %Yacto.MigrationTest.Coin{player_id: "player2", platform: "platform2", description: ""}
+      record = %Yacto.MigrationTest.Coin{
+        player_id: "player2",
+        platform: "platform2",
+        description: ""
+      }
+
       record = Yacto.MigrationTest.Repo1.insert!(record)
       assert record.type_id == :common_coin
       assert record.quantity == 0
@@ -333,7 +352,16 @@ defmodule Yacto.Migration.MigrationTest do
         |> Enum.map(&Enum.at(&1, 0))
         |> Enum.sort()
 
-      expected = ["player", "yacto_migrationtest_customprimarykey", "yacto_migrationtest_decimaloption", "yacto_migrationtest_dropfieldwithindex", "yacto_migrationtest_item", "yacto_migrationtest_manyindex", "yacto_migrationtest_unsignedbiginteger", "yacto_schema_migrations"]
+      expected = [
+        "player",
+        "yacto_migrationtest_customprimarykey",
+        "yacto_migrationtest_decimaloption",
+        "yacto_migrationtest_dropfieldwithindex",
+        "yacto_migrationtest_item",
+        "yacto_migrationtest_manyindex",
+        "yacto_migrationtest_unsignedbiginteger",
+        "yacto_schema_migrations"
+      ]
 
       assert expected == actual
     end
