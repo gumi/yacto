@@ -23,6 +23,9 @@ defmodule Yacto.Migration.MigratorTest do
       port: 3306
     ]
 
+    {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.MigratorTest.Repo0, repo0_config})
+    {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.MigratorTest.Repo1, repo1_config})
+
     for {repo, config} <- [
           {Yacto.MigratorTest.Repo0, repo0_config},
           {Yacto.MigratorTest.Repo1, repo1_config}
@@ -30,9 +33,6 @@ defmodule Yacto.Migration.MigratorTest do
       _ = repo.__adapter__.storage_down(config)
       :ok = repo.__adapter__.storage_up(config)
     end
-
-    {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.MigratorTest.Repo0, repo0_config})
-    {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.MigratorTest.Repo1, repo1_config})
 
     _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:yacto))
     _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())

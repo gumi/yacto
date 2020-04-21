@@ -41,7 +41,6 @@ defmodule Yacto.Mixfile do
       {:myxql, "~> 0.2.6"},
       {:uuid, "~> 1.1"},
       {:memoize, "~> 1.2"},
-      {:dialyxir, "~> 1.0", only: :dev, runtime: false},
       {:power_assert, "~> 0.2.0", only: :test}
     ]
   end

@@ -1,4 +1,4 @@
-defmodule Yacto.GenMigrationTest2 do
+defmodule Yacto.Migration.FileTest do
   use PowerAssert
 
   @migration_dir "_migrations"
@@ -64,17 +64,5 @@ defmodule Yacto.GenMigrationTest2 do
     }
 
     assert [file4] == files
-  end
-
-  test "mix yacto.gen.migration" do
-    migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
-    _ = File.rm_rf(migration_dir)
-
-    Mix.Task.rerun("yacto.gen.migration", [
-      "--prefix",
-      "Yacto.GenMigrationTest",
-      "--migration-dir",
-      migration_dir
-    ])
   end
 end

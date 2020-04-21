@@ -261,65 +261,106 @@ defmodule Yacto.Migration.GenMigrationTest do
     assert @migrate8 == migrate
   end
 
-  test "生成したマイグレーションファイルで実際にマイグレートできるか確認する" do
-    repo0_config = [
-      database: "yacto_gen_migration_repo0",
-      username: "root",
-      password: "",
-      hostname: "localhost",
-      port: 3306
-    ]
+  describe "DB のセットアップが必要なテスト" do
+    @databases %{
+      default: %{module: Yacto.DB.Single, repo: Yacto.GenMigrationTest.Repo0},
+      player: %{module: Yacto.DB.Shard, repos: [Yacto.GenMigrationTest.Repo0]}
+    }
 
-    repo0 = Yacto.GenMigrationTest.Repo0
+    setup do
+      repo0_config = [
+        database: "yacto_gen_migration_repo0",
+        username: "root",
+        password: "",
+        hostname: "localhost",
+        port: 3306
+      ]
 
-    _ = repo0.__adapter__.storage_down(repo0_config)
-    :ok = repo0.__adapter__.storage_up(repo0_config)
+      {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.GenMigrationTest.Repo0, repo0_config})
 
-    {:ok, _} = ExUnit.Callbacks.start_supervised({repo0, repo0_config})
+      for {repo, config} <- [
+            {Yacto.GenMigrationTest.Repo0, repo0_config}
+          ] do
+        _ = repo.__adapter__.storage_down(config)
+        :ok = repo.__adapter__.storage_up(config)
+        Yacto.Migration.SchemaMigration.ensure_schema_migrations_table!(repo)
+      end
 
-    Yacto.Migration.SchemaMigration.ensure_schema_migrations_table!(repo0)
+      _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:yacto))
+      _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
 
-    [{mod1, _}] = Code.compile_string(@migrate1)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod1)
-    [{mod2, _}] = Code.compile_string(@migrate2)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod2)
-    [{mod3, _}] = Code.compile_string(@migrate3)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod3)
-    [{mod4, _}] = Code.compile_string(@migrate4)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod4)
+      Application.put_env(:yacto, :databases, @databases)
+      ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :databases) end)
 
-    [{mod5, _}] = Code.compile_string(@migrate5)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Item, mod5)
+      :ok
+    end
 
-    [{mod6, _}] = Code.compile_string(@migrate6)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.ManyIndex, mod6)
+    test "生成したマイグレーションファイルで実際にマイグレートできるか確認する" do
+      repo0 = Yacto.GenMigrationTest.Repo0
 
-    [{mod7, _}] = Code.compile_string(@migrate7)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.DecimalOption, mod7)
+      [{mod1, _}] = Code.compile_string(@migrate1)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod1)
+      [{mod2, _}] = Code.compile_string(@migrate2)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod2)
+      [{mod3, _}] = Code.compile_string(@migrate3)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod3)
+      [{mod4, _}] = Code.compile_string(@migrate4)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Player, mod4)
 
-    [{mod8, _}] = Code.compile_string(@migrate8)
-    Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Coin, mod8)
+      [{mod5, _}] = Code.compile_string(@migrate5)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Item, mod5)
 
-    # ちゃんとマイグレーションフィールドに書き込まれてるか確認する
-    actual_fields =
-      Yacto.Migration.SchemaMigration
-      |> Ecto.Query.where(app: "yacto")
-      |> Ecto.Query.select([:schema, :version])
-      |> Ecto.Query.order_by([:schema, :version])
-      |> repo0.all()
-      |> Enum.map(fn x -> {x.schema, x.version} end)
+      [{mod6, _}] = Code.compile_string(@migrate6)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.ManyIndex, mod6)
 
-    expected_fields = [
-      {"Elixir.Yacto.GenMigrationTest.Coin", 0},
-      {"Elixir.Yacto.GenMigrationTest.DecimalOption", 0},
-      {"Elixir.Yacto.GenMigrationTest.Item", 0},
-      {"Elixir.Yacto.GenMigrationTest.ManyIndex", 0},
-      {"Elixir.Yacto.GenMigrationTest.Player", 0},
-      {"Elixir.Yacto.GenMigrationTest.Player", 1},
-      {"Elixir.Yacto.GenMigrationTest.Player", 2},
-      {"Elixir.Yacto.GenMigrationTest.Player", 3}
-    ]
+      [{mod7, _}] = Code.compile_string(@migrate7)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.DecimalOption, mod7)
 
-    assert expected_fields == actual_fields
+      [{mod8, _}] = Code.compile_string(@migrate8)
+      Yacto.Migration.Migrator.migrate(:yacto, repo0, Yacto.GenMigrationTest.Coin, mod8)
+
+      # ちゃんとマイグレーションフィールドに書き込まれてるか確認する
+      actual_fields =
+        Yacto.Migration.SchemaMigration
+        |> Ecto.Query.where(app: "yacto")
+        |> Ecto.Query.select([:schema, :version])
+        |> Ecto.Query.order_by([:schema, :version])
+        |> repo0.all()
+        |> Enum.map(fn x -> {x.schema, x.version} end)
+
+      expected_fields = [
+        {"Elixir.Yacto.GenMigrationTest.Coin", 0},
+        {"Elixir.Yacto.GenMigrationTest.DecimalOption", 0},
+        {"Elixir.Yacto.GenMigrationTest.Item", 0},
+        {"Elixir.Yacto.GenMigrationTest.ManyIndex", 0},
+        {"Elixir.Yacto.GenMigrationTest.Player", 0},
+        {"Elixir.Yacto.GenMigrationTest.Player", 1},
+        {"Elixir.Yacto.GenMigrationTest.Player", 2},
+        {"Elixir.Yacto.GenMigrationTest.Player", 3}
+      ]
+
+      assert expected_fields == actual_fields
+    end
+
+    test "yacto.gen.migration と yacto.migrate を試す" do
+      migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
+      _ = File.rm_rf(migration_dir)
+
+      ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
+
+      Application.put_env(:yacto, :ignore_migration_schemas, [
+        Yacto.GenMigrationTest.Player2,
+        Yacto.GenMigrationTest.Player3
+      ])
+
+      Mix.Task.rerun("yacto.gen.migration", [
+        "--prefix",
+        "Yacto.GenMigrationTest",
+        "--migration-dir",
+        migration_dir
+      ])
+
+      Mix.Task.rerun("yacto.migrate", ["--migration-dir", migration_dir])
+    end
   end
 end
