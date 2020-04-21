@@ -40,6 +40,8 @@ defmodule Yacto.QueryTest do
     {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.QueryTest.Repo.Player0, player0_config})
     {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.QueryTest.Repo.Player1, player1_config})
 
+    # クエリのテストが出来ればいいだけなので、
+    # ここでは Yacto の機能を使わずにマイグレートする
     :ok =
       Ecto.Migrator.up(
         Yacto.QueryTest.Repo.Default,

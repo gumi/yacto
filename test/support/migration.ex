@@ -1,4 +1,4 @@
-defmodule Yacto.MigratorTest.Player do
+defmodule Yacto.MigrationTest.Player do
   use Yacto.Schema, dbname: :player
 
   schema "player" do
@@ -8,8 +8,8 @@ defmodule Yacto.MigratorTest.Player do
   end
 end
 
-defmodule Yacto.MigratorTest.Player2 do
-  use Yacto.Schema, as: Yacto.MigratorTest.Player, dbname: :player
+defmodule Yacto.MigrationTest.Player2 do
+  use Yacto.Schema, as: Yacto.MigrationTest.Player, dbname: :player
 
   schema "player2" do
     field(:name2)
@@ -17,8 +17,8 @@ defmodule Yacto.MigratorTest.Player2 do
   end
 end
 
-defmodule Yacto.MigratorTest.Player3 do
-  use Yacto.Schema, as: Yacto.MigratorTest.Player, dbname: :player
+defmodule Yacto.MigrationTest.Player3 do
+  use Yacto.Schema, as: Yacto.MigrationTest.Player, dbname: :player
 
   schema @auto_source do
     field(:name3, :string, default: "hage", meta: [null: false, size: 100])
@@ -29,7 +29,7 @@ defmodule Yacto.MigratorTest.Player3 do
   end
 end
 
-defmodule Yacto.MigratorTest.Item do
+defmodule Yacto.MigrationTest.Item do
   use Yacto.Schema, dbname: :default
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -39,7 +39,7 @@ defmodule Yacto.MigratorTest.Item do
   end
 end
 
-defmodule Yacto.MigratorTest.UnsignedBigInteger do
+defmodule Yacto.MigrationTest.UnsignedBigInteger do
   use Yacto.Schema, dbname: :default
 
   schema @auto_source do
@@ -47,7 +47,7 @@ defmodule Yacto.MigratorTest.UnsignedBigInteger do
   end
 end
 
-defmodule Yacto.MigratorTest.CustomPrimaryKey do
+defmodule Yacto.MigrationTest.CustomPrimaryKey do
   use Yacto.Schema, dbname: :default
 
   def primary_key() do
@@ -62,7 +62,7 @@ defmodule Yacto.MigratorTest.CustomPrimaryKey do
   end
 end
 
-defmodule Yacto.MigratorTest.CoinType do
+defmodule Yacto.MigrationTest.CoinType do
   @behaviour Ecto.Type
 
   @impl Ecto.Type
@@ -87,15 +87,23 @@ defmodule Yacto.MigratorTest.CoinType do
   def dump(_), do: :error
 end
 
-defmodule Yacto.MigratorTest.Coin do
-  use Yacto.Schema, dbname: :default
+defmodule Yacto.MigrationTest.Coin do
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
-    field(:type, Yacto.MigratorTest.CoinType, default: :common_coin, meta: [null: false])
+    field(:player_id, :string, meta: [null: false])
+    field(:type_id, Yacto.MigrationTest.CoinType, default: :common_coin, meta: [null: false])
+    field(:platform, :string, meta: [length: 64, null: false])
+    field(:quantity, :integer, default: 0, meta: [null: false])
+    field(:description, :string, meta: [type: :text, null: false])
+    timestamps()
+
+    index([:player_id, :type_id, :platform], unique: true)
   end
 end
 
-defmodule Yacto.MigratorTest.DropFieldWithIndex do
+
+defmodule Yacto.MigrationTest.DropFieldWithIndex do
   use Yacto.Schema, dbname: :default
 
   schema @auto_source do
@@ -104,18 +112,41 @@ defmodule Yacto.MigratorTest.DropFieldWithIndex do
   end
 end
 
-defmodule Yacto.MigratorTest.DropFieldWithIndex2 do
-  use Yacto.Schema, as: Yacto.MigratorTest.DropFieldWithIndex, dbname: :default
+defmodule Yacto.MigrationTest.DropFieldWithIndex2 do
+  use Yacto.Schema, as: Yacto.MigrationTest.DropFieldWithIndex, dbname: :default
 
   schema @auto_source do
     field(:value2, :string, meta: [null: false, index: true])
   end
 end
 
-defmodule Yacto.MigratorTest.Repo0 do
+defmodule Yacto.MigrationTest.ManyIndex do
+  use Yacto.Schema, dbname: :default
+
+  schema @auto_source do
+    field(:aaaaaa, :string)
+    field(:bbbbbb, :string)
+    field(:cccccc, :string)
+    field(:dddddd, :string)
+
+    index([:aaaaaa, :bbbbbb, :cccccc, :dddddd])
+  end
+end
+
+defmodule Yacto.MigrationTest.DecimalOption do
+  use Yacto.Schema, dbname: :player
+
+  schema @auto_source do
+    field(:player_id, :string)
+    field(:decimal_field, :decimal, meta: [precision: 7, scale: 3])
+    field(:name, :string, meta: [null: true])
+  end
+end
+
+defmodule Yacto.MigrationTest.Repo0 do
   use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end
 
-defmodule Yacto.MigratorTest.Repo1 do
+defmodule Yacto.MigrationTest.Repo1 do
   use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end
