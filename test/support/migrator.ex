@@ -1,7 +1,5 @@
 defmodule Yacto.MigratorTest.Player do
-  use Yacto.Schema
-
-  def dbname(), do: :player
+  use Yacto.Schema, dbname: :player
 
   schema "player" do
     field(:name)
@@ -11,9 +9,7 @@ defmodule Yacto.MigratorTest.Player do
 end
 
 defmodule Yacto.MigratorTest.Player2 do
-  use Yacto.Schema
-
-  def dbname(), do: :player
+  use Yacto.Schema, as: Yacto.MigratorTest.Player, dbname: :player
 
   schema "player2" do
     field(:name2)
@@ -22,9 +18,7 @@ defmodule Yacto.MigratorTest.Player2 do
 end
 
 defmodule Yacto.MigratorTest.Player3 do
-  use Yacto.Schema
-
-  def dbname(), do: :player
+  use Yacto.Schema, as: Yacto.MigratorTest.Player, dbname: :player
 
   schema @auto_source do
     field(:name3, :string, default: "hage", meta: [null: false, size: 100])
@@ -36,9 +30,7 @@ defmodule Yacto.MigratorTest.Player3 do
 end
 
 defmodule Yacto.MigratorTest.Item do
-  use Yacto.Schema
-
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
@@ -48,10 +40,7 @@ defmodule Yacto.MigratorTest.Item do
 end
 
 defmodule Yacto.MigratorTest.UnsignedBigInteger do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   schema @auto_source do
     field(:user_id, :integer, meta: [null: false, type: :"bigint(20) unsigned"])
@@ -59,13 +48,11 @@ defmodule Yacto.MigratorTest.UnsignedBigInteger do
 end
 
 defmodule Yacto.MigratorTest.CustomPrimaryKey do
-  use Yacto.Schema
+  use Yacto.Schema, dbname: :default
 
   def primary_key() do
     String.duplicate("a", 10)
   end
-
-  def dbname(), do: :default
 
   @primary_key {:id, :string, autogenerate: {__MODULE__, :primary_key, []}}
   @primary_key_meta %{id: [size: 10]}
@@ -101,10 +88,7 @@ defmodule Yacto.MigratorTest.CoinType do
 end
 
 defmodule Yacto.MigratorTest.Coin do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   schema @auto_source do
     field(:type, Yacto.MigratorTest.CoinType, default: :common_coin, meta: [null: false])

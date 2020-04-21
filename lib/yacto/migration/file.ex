@@ -110,7 +110,7 @@ defmodule Yacto.Migration.File do
   def load_migration_module(migration_dir, %__MODULE__{} = migration_file) do
     path = Path.join(migration_dir, migration_file.path)
 
-    modules = Code.require_file(path)
+    modules = Code.compile_file(path)
 
     if length(modules) == 0 do
       {:error, "Module not found: #{path}"}
@@ -152,6 +152,15 @@ defmodule Yacto.Migration.File do
       datetime_str: datetime_str,
       path: path
     }
+  end
+
+  def save(content, migration_dir, %__MODULE__{} = migration_file) do
+    path = Path.join(migration_dir, migration_file.path)
+    with :ok <- File.mkdir_p(Path.dirname(path)),
+         :ok <- File.write(path, content)
+    do
+      {:ok, path}
+    end
   end
 
   defp pad4(i) when i < 10, do: <<?0, ?0, ?0, ?0 + i>>

@@ -8,7 +8,7 @@ defmodule Yacto.Migration.MigratorTest do
 
   setup do
     repo0_config = [
-      database: "migrator_repo0",
+      database: "yacto_migrator_repo0",
       username: "root",
       password: "",
       hostname: "localhost",
@@ -16,7 +16,7 @@ defmodule Yacto.Migration.MigratorTest do
     ]
 
     repo1_config = [
-      database: "migrator_repo1",
+      database: "yacto_migrator_repo1",
       username: "root",
       password: "",
       hostname: "localhost",
@@ -43,69 +43,44 @@ defmodule Yacto.Migration.MigratorTest do
     :ok
   end
 
-  test "run migration" do
-    v1 = [
-      {Yacto.MigratorTest.Player, %Yacto.Migration.Structure{},
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player)}
-    ]
+  test "１ファイルずつマイグレーションファイルの生成とマイグレートを行う" do
+    schemas = [Yacto.MigratorTest.Player, Yacto.MigratorTest.Player2, Yacto.MigratorTest.Player3]
+    Enum.reduce(schemas, nil, fn schema, prev_migration ->
+      schema_name = to_string(schema.__base_schema__())
+      {:ok, now} = DateTime.now("Etc/UTC")
+      {type, migrate, version} = Yacto.Migration.GenMigration.generate(schema, prev_migration)
+      operation =
+        case type do
+          :created -> :create
+          :changed -> :change
+          :deleted -> :delete
+        end
+      migration_file = Yacto.Migration.File.new(schema_name, version, schema.dbname(), operation, now)
+      migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
+      {:ok, _} = Yacto.Migration.File.save(migrate, migration_dir, migration_file)
 
-    v2 = [
-      {Yacto.MigratorTest.Player,
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player),
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player2)}
-    ]
+      {migration_files, []} = Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
+      Yacto.Migration.Migrator.up(
+        :yacto,
+        Yacto.MigratorTest.Repo0,
+        schema.__base_schema__(),
+        migration_dir,
+        migration_files,
+        db_opts: [databases: @databases])
 
-    v3 = [
-      {Yacto.MigratorTest.Player,
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player2),
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player3)}
-    ]
+      [{mod, _}] = Code.compile_string(migrate)
+      mod
+    end)
 
-    try do
-      for {v, version, preview_version, save_file, load_files} <- [
-            {v1, 20_170_424_162_530, nil, "mig_1.exs", ["mig_1.exs"]},
-            {v2, 20_170_424_162_533, 20_170_424_162_530, "mig_2.exs", ["mig_1.exs", "mig_2.exs"]},
-            {v3, 20_170_424_162_534, 20_170_424_162_533, "mig_3.exs",
-             ["mig_1.exs", "mig_2.exs", "mig_3.exs"]}
-          ] do
-        source =
-          Yacto.Migration.GenMigration.generate_source(
-            Yacto.MigratorTest,
-            v,
-            version,
-            preview_version
-          )
-
-        File.write!(save_file, source)
-        migrations = Yacto.Migration.Util.load_migrations(load_files)
-
-        schemas = Yacto.Migration.Util.get_all_schema(:yacto, "Yacto.MigratorTest")
-
-        :ok =
-          Yacto.Migration.Migrator.up(
-            :yacto,
-            Yacto.MigratorTest.Repo0,
-            schemas,
-            migrations,
-            db_opts: [databases: @databases]
-          )
-      end
-    after
-      File.rm("mig_1.exs")
-      File.rm("mig_2.exs")
-      File.rm("mig_3.exs")
-      Code.unload_files(["mig_1.exs"])
-      Code.unload_files(["mig_2.exs"])
-      Code.unload_files(["mig_3.exs"])
-    end
-
+    # Yacto.MigratorTest.Player3 のテーブルが作られているはずなので、
+    # テーブルに対して insert したり SHOW CREATE TABLE を見たりする
     player = %Yacto.MigratorTest.Player3{value: "bar", text: ""}
     player = Yacto.MigratorTest.Repo0.insert!(player)
 
     assert [player] == Yacto.MigratorTest.Repo0.all(Yacto.MigratorTest.Player3)
 
     expect = """
-    CREATE TABLE `yacto_migratortest_player3` (
+    CREATE TABLE `yacto_migratortest_player` (
       `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
       `value` varchar(255) DEFAULT NULL,
       `name3` varchar(100) NOT NULL DEFAULT 'hage',
@@ -128,73 +103,27 @@ defmodule Yacto.Migration.MigratorTest do
     assert String.trim_trailing(expect) == actual
   end
 
-  test "run migration 2" do
-    v1 = [
-      {Yacto.MigratorTest.Player, %Yacto.Migration.Structure{},
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player)}
-    ]
-
-    v2 = [
-      {Yacto.MigratorTest.Player,
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player),
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.Player2)}
-    ]
-
-    source =
-      Yacto.Migration.GenMigration.generate_source(
-        Yacto.MigratorTest,
-        v1,
-        20_170_424_162_530,
-        nil
-      )
-
-    File.write!("migration_test_1.exs", source)
-
-    source =
-      Yacto.Migration.GenMigration.generate_source(
-        Yacto.MigratorTest,
-        v2,
-        20_170_424_162_533,
-        20_170_424_162_530
-      )
-
-    File.write!("migration_test_2.exs", source)
-
-    try do
-      migrations =
-        Yacto.Migration.Util.load_migrations(["migration_test_1.exs", "migration_test_2.exs"])
-
-      schemas = Yacto.Migration.Util.get_all_schema(:yacto, "Yacto.MigratorTest")
-
-      :ok =
-        Yacto.Migration.Migrator.up(
-          :yacto,
-          Yacto.MigratorTest.Repo0,
-          schemas,
-          migrations,
-          db_opts: [databases: @databases]
-        )
-    after
-      File.rm!("migration_test_1.exs")
-      File.rm!("migration_test_2.exs")
-      Code.unload_files(["migration_test_1.exs", "migration_test_2.exs"])
-    end
-
-    player = %Yacto.MigratorTest.Player2{name2: "foo", value: "bar"}
-    player = Yacto.MigratorTest.Repo0.insert!(player)
-
-    assert [player] == Yacto.MigratorTest.Repo0.all(Yacto.MigratorTest.Player2)
-  end
-
-  test "Yacto.Migration.Migrator.migrate" do
+  test "mix yacto.migrate --repo=... すると、その repo だけにマイグレートが発生する" do
     migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
-    Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
+    _ = File.rm_rf(migration_dir)
+
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex2
+    ])
+    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
+
+    Mix.Task.rerun("yacto.gen.migration", [
+      "--prefix",
+      "Yacto.MigratorTest",
+      "--migration-dir",
+      migration_dir
+    ])
 
     Mix.Task.rerun("yacto.migrate", [
       "--repo",
       "Yacto.MigratorTest.Repo0",
-      "--app",
-      "yacto",
       "--migration-dir",
       migration_dir
     ])
@@ -216,15 +145,15 @@ defmodule Yacto.Migration.MigratorTest do
       migration_dir
     ])
 
-    player2 = %Yacto.MigratorTest.Player2{name2: "foo", value: "bar"}
+    player2 = %Yacto.MigratorTest.Player{name: "foo", value: 200}
     player2 = Yacto.MigratorTest.Repo1.insert!(player2)
-    assert [player2] == Yacto.MigratorTest.Repo1.all(Yacto.MigratorTest.Player2)
+    assert [player2] == Yacto.MigratorTest.Repo1.all(Yacto.MigratorTest.Player)
 
     item = %Yacto.MigratorTest.Item{name: "item"}
     item = Yacto.MigratorTest.Repo1.insert!(item)
     assert [item] == Yacto.MigratorTest.Repo1.all(Yacto.MigratorTest.Item)
 
-    # nothing is migrated
+    # 何もマイグレートされないが、エラーも発生しないはず
     Mix.Task.rerun("yacto.migrate", [
       "--repo",
       "Yacto.MigratorTest.Repo1",
@@ -235,6 +164,13 @@ defmodule Yacto.Migration.MigratorTest do
 
   test "Yacto.MigratorTest.UnsignedBigInteger" do
     migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
+
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex2
+    ])
+    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
 
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
 
@@ -254,6 +190,13 @@ defmodule Yacto.Migration.MigratorTest do
 
   test "Yacto.MigratorTest.CustomPrimaryKey" do
     migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
+
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex2
+    ])
+    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
 
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
 
@@ -276,6 +219,13 @@ defmodule Yacto.Migration.MigratorTest do
   test "Yacto.MigratorTest.Coin" do
     migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
 
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex2
+    ])
+    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
+
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
     Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
@@ -285,53 +235,28 @@ defmodule Yacto.Migration.MigratorTest do
   end
 
   test "フィールドの削除とインデックスの削除が同時に行われた場合に正しくマイグレーションできる" do
-    v1 = [
-      {Yacto.MigratorTest.DropFieldWithIndex, %Yacto.Migration.Structure{},
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.DropFieldWithIndex)}
-    ]
+    migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
 
-    v2 = [
-      {Yacto.MigratorTest.DropFieldWithIndex,
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.DropFieldWithIndex),
-       Yacto.Migration.Structure.from_schema(Yacto.MigratorTest.DropFieldWithIndex2)}
-    ]
+    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
 
-    try do
-      for {v, version, preview_version, save_file, load_files} <- [
-            {v1, 20_170_424_162_530, nil, "mig_1.exs", ["mig_1.exs"]},
-            {v2, 20_170_424_162_533, 20_170_424_162_530, "mig_2.exs", ["mig_1.exs", "mig_2.exs"]}
-          ] do
-        source =
-          Yacto.Migration.GenMigration.generate_source(
-            Yacto.MigratorTest,
-            v,
-            version,
-            preview_version
-          )
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex2
+    ])
+    Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
+    Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
-        File.write!(save_file, source)
-        migrations = Yacto.Migration.Util.load_migrations(load_files)
-
-        schemas = Yacto.Migration.Util.get_all_schema(:yacto, "Yacto.MigratorTest")
-
-        :ok =
-          Yacto.Migration.Migrator.up(
-            :yacto,
-            Yacto.MigratorTest.Repo1,
-            schemas,
-            migrations,
-            db_opts: [databases: @databases]
-          )
-      end
-    after
-      File.rm("mig_1.exs")
-      File.rm("mig_2.exs")
-      Code.unload_files(["mig_1.exs"])
-      Code.unload_files(["mig_2.exs"])
-    end
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex
+    ])
+    Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
+    Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
     expect = """
-    CREATE TABLE `yacto_migratortest_dropfieldwithindex2` (
+    CREATE TABLE `yacto_migratortest_dropfieldwithindex` (
       `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
       `value2` varchar(255) NOT NULL,
       PRIMARY KEY (`id`),
@@ -349,5 +274,41 @@ defmodule Yacto.Migration.MigratorTest do
       |> Enum.at(1)
 
     assert String.trim_trailing(expect) == actual
+  end
+
+  test "マイグレートでテーブルの削除ができる" do
+    migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
+
+    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
+
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex2
+    ])
+    Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
+    Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
+
+    # これで Coin テーブルが削除されるはず
+    Application.put_env(:yacto, :ignore_migration_schemas, [
+      Yacto.MigratorTest.Coin,
+      Yacto.MigratorTest.Player2,
+      Yacto.MigratorTest.Player3,
+      Yacto.MigratorTest.DropFieldWithIndex2
+    ])
+    Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
+    Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
+
+    actual =
+      Ecto.Adapters.SQL.query!(
+        Yacto.MigratorTest.Repo1,
+        "SHOW TABLES",
+        []
+      ).rows
+      |> Enum.map(&Enum.at(&1, 0))
+      |> Enum.sort()
+    expected = ["player", "yacto_migratortest_customprimarykey", "yacto_migratortest_dropfieldwithindex", "yacto_migratortest_item", "yacto_migratortest_unsignedbiginteger", "yacto_schema_migrations"]
+
+    assert expected == actual
   end
 end
