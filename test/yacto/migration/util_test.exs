@@ -57,9 +57,11 @@ defmodule Yacto.Migration.UtilTest do
   describe "need_gen_migration?/1" do
     setup do
       Code.compiler_options(ignore_module_conflict: true)
+
       on_exit(fn ->
         Code.compiler_options(ignore_module_conflict: false)
       end)
+
       :ok
     end
 

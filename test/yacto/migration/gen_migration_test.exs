@@ -100,15 +100,23 @@ defmodule Yacto.Migration.GenMigrationTest do
   """
 
   test "Yacto.Migration.GenMigration.generate でマイグレーションのソースが出力される" do
-    {:created, migrate1, 0} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Player, nil)
+    {:created, migrate1, 0} =
+      Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Player, nil)
+
     assert @migrate1 == migrate1
 
     [{mod1, _}] = Code.compile_string(migrate1)
-    {:changed, migrate2, 1} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Player2, mod1)
+
+    {:changed, migrate2, 1} =
+      Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Player2, mod1)
+
     assert @migrate2 == migrate2
 
     [{mod2, _}] = Code.compile_string(migrate2)
-    {:changed, migrate3, 2} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Player3, mod2)
+
+    {:changed, migrate3, 2} =
+      Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Player3, mod2)
+
     assert @migrate3 == migrate3
 
     [{mod3, _}] = Code.compile_string(migrate3)
@@ -145,7 +153,9 @@ defmodule Yacto.Migration.GenMigrationTest do
   """
 
   test "Yacto.Migration.GenMigration.generate でダミー要素が追加されるパターン" do
-    {:created, migrate, 0} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Item, nil)
+    {:created, migrate, 0} =
+      Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Item, nil)
+
     assert @migrate5 == migrate
   end
 
@@ -176,7 +186,11 @@ defmodule Yacto.Migration.GenMigrationTest do
   """
 
   test ":index_name_max_length を設定すると長いインデックス名は shrink される" do
-    {:created, migrate, 0} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.ManyIndex, nil, index_name_max_length: 20)
+    {:created, migrate, 0} =
+      Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.ManyIndex, nil,
+        index_name_max_length: 20
+      )
+
     assert @migrate6 == migrate
   end
 
@@ -205,7 +219,9 @@ defmodule Yacto.Migration.GenMigrationTest do
   """
 
   test "decimal 型のオプションを付けてマイグレーションファイルが作れるか確認する" do
-    {:created, migrate, 0} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.DecimalOption, nil)
+    {:created, migrate, 0} =
+      Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.DecimalOption, nil)
+
     assert @migrate7 == migrate
   end
 
@@ -239,7 +255,9 @@ defmodule Yacto.Migration.GenMigrationTest do
   """
 
   test "Ecto.Type で定義したカスタム型フィールドのマイグレーションファイルを作れるか確認する" do
-    {:created, migrate, 0} = Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Coin, nil)
+    {:created, migrate, 0} =
+      Yacto.Migration.GenMigration.generate(Yacto.GenMigrationTest.Coin, nil)
+
     assert @migrate8 == migrate
   end
 
@@ -251,6 +269,7 @@ defmodule Yacto.Migration.GenMigrationTest do
       hostname: "localhost",
       port: 3306
     ]
+
     repo0 = Yacto.GenMigrationTest.Repo0
 
     _ = repo0.__adapter__.storage_down(repo0_config)
@@ -289,6 +308,7 @@ defmodule Yacto.Migration.GenMigrationTest do
       |> Ecto.Query.order_by([:schema, :version])
       |> repo0.all()
       |> Enum.map(fn x -> {x.schema, x.version} end)
+
     expected_fields = [
       {"Elixir.Yacto.GenMigrationTest.Coin", 0},
       {"Elixir.Yacto.GenMigrationTest.DecimalOption", 0},
@@ -299,6 +319,7 @@ defmodule Yacto.Migration.GenMigrationTest do
       {"Elixir.Yacto.GenMigrationTest.Player", 2},
       {"Elixir.Yacto.GenMigrationTest.Player", 3}
     ]
+
     assert expected_fields == actual_fields
   end
 end

@@ -32,21 +32,25 @@ defmodule Yacto.Migration.File do
   # {[%Yacto.Migration.File{}], [unexpected_messages]}
   def list_migration_files(migration_dir, module_string) when is_binary(module_string) do
     files = Path.wildcard(Path.join([migration_dir, module_string, "*"]))
-    results = Enum.map(files, &path_to_structure(migration_dir, Path.relative_to(&1, migration_dir)))
+
+    results =
+      Enum.map(files, &path_to_structure(migration_dir, Path.relative_to(&1, migration_dir)))
 
     {oks, errors} =
       Enum.split_with(results, fn
         {:ok, _} -> true
         {:error, _} -> false
       end)
+
     files = Enum.map(oks, fn {:ok, r} -> r end)
     errors = Enum.map(errors, fn {:error, e} -> e end)
-    {Enum.sort_by(files, &(&1.version)), errors}
+    {Enum.sort_by(files, & &1.version), errors}
   end
 
   # {%Yacto.Migration.File{} | nil, [error]}
   def get_latest_migration_file(migration_dir, module_string) when is_binary(module_string) do
     {files, errors} = list_migration_files(migration_dir, module_string)
+
     case files do
       [] -> {nil, errors}
       _ -> {List.last(files), errors}
@@ -106,7 +110,8 @@ defmodule Yacto.Migration.File do
     end
   end
 
-  @spec load_migration_module(String.t, %Yacto.Migration.File{}) :: {:ok, module()} | {:error, any()}
+  @spec load_migration_module(String.t(), %Yacto.Migration.File{}) ::
+          {:ok, module()} | {:error, any()}
   def load_migration_module(migration_dir, %__MODULE__{} = migration_file) do
     path = Path.join(migration_dir, migration_file.path)
 
@@ -156,9 +161,9 @@ defmodule Yacto.Migration.File do
 
   def save(content, migration_dir, %__MODULE__{} = migration_file) do
     path = Path.join(migration_dir, migration_file.path)
+
     with :ok <- File.mkdir_p(Path.dirname(path)),
-         :ok <- File.write(path, content)
-    do
+         :ok <- File.write(path, content) do
       {:ok, path}
     end
   end

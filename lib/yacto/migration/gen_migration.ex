@@ -241,7 +241,11 @@ defmodule Yacto.Migration.GenMigration do
     """
   end
 
-  @spec generate(nil | module(), nil | module(), Keyword.t()) :: :not_changed | {:created, String.t, integer()} | {:changed, String.t, integer()} | {:deleted, String.t, integer()}
+  @spec generate(nil | module(), nil | module(), Keyword.t()) ::
+          :not_changed
+          | {:created, String.t(), integer()}
+          | {:changed, String.t(), integer()}
+          | {:deleted, String.t(), integer()}
   def generate(schema, migration, opts \\ []) do
     structure_from =
       if migration == nil,
@@ -264,20 +268,23 @@ defmodule Yacto.Migration.GenMigration do
     result = generate_lines(structure_from, structure_to, opts)
 
     case result do
-      :not_changed -> :not_changed
+      :not_changed ->
+        :not_changed
+
       {type, lines} ->
         version = if(migration == nil, do: 0, else: migration.__migration__(:version) + 1)
 
-        str = EEx.eval_string(
-          get_template(),
-          assigns: [
-            migration_name:
-              inspect(Module.concat([schema_name, "Migration#{pad4(version)}"])),
-            lines: lines,
-            structure: structure_to,
-            version: version,
-          ]
-        )
+        str =
+          EEx.eval_string(
+            get_template(),
+            assigns: [
+              migration_name: inspect(Module.concat([schema_name, "Migration#{pad4(version)}"])),
+              lines: lines,
+              structure: structure_to,
+              version: version
+            ]
+          )
+
         {type, str, version}
     end
   end

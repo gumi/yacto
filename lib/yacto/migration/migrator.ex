@@ -22,14 +22,18 @@ defmodule Yacto.Migration.Migrator do
       |> Enum.map(&Yacto.DB.repos(&1.dbname, db_opts))
       |> Enum.concat()
       |> Enum.into(MapSet.new())
+
     if repo in need_repos do
       versions = migrated_versions(repo, app, schema)
       need_migration_files = difference_migration(migration_files, versions)
 
       for migration_file <- need_migration_files do
         repos = Yacto.DB.repos(migration_file.dbname, db_opts)
+
         if repo in repos do
-          {:ok, module} = Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
+          {:ok, module} =
+            Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
+
           migrate(app, repo, schema, module, opts)
         end
       end
@@ -63,16 +67,23 @@ defmodule Yacto.Migration.Migrator do
           # The table with schema migrations can only be updated from
           # the parent process because it has a lock on the table
           verbose_schema_migration(repo, "update schema migrations", fn ->
-            Yacto.Migration.SchemaMigration.up(repo, app, schema, migration.__migration__(:version))
+            Yacto.Migration.SchemaMigration.up(
+              repo,
+              app,
+              schema,
+              migration.__migration__(:version)
+            )
           end)
         catch
           kind, error ->
             Task.shutdown(task, :brutal_kill)
             :erlang.raise(kind, error, System.stacktrace())
         end
+
       {false, {kind, reason, stacktrace}} ->
         Logger.error("Migration error: #{inspect(reason)}")
         :erlang.raise(kind, reason, stacktrace)
+
       {false, reason} ->
         Logger.error("Migration error: #{inspect(reason)}")
         :erlang.error(reason)

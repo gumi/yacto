@@ -44,17 +44,26 @@ defmodule Mix.Tasks.Yacto.Migrate do
         databases = Application.fetch_env!(:yacto, :databases)
 
         {schema_names, messages} = Yacto.Migration.File.list_migration_modules(migration_dir)
+
         for message <- messages do
           Logger.warn(message)
         end
 
         for repo <- repos do
           for schema_name <- schema_names do
-            {migration_files, messages} = Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
+            {migration_files, messages} =
+              Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
+
             for message <- messages do
               Logger.warn(message)
             end
-            Yacto.Migration.Migrator.up(app, repo, String.to_atom(schema_name), migration_dir, migration_files,
+
+            Yacto.Migration.Migrator.up(
+              app,
+              repo,
+              String.to_atom(schema_name),
+              migration_dir,
+              migration_files,
               db_opts: [databases: databases]
             )
           end

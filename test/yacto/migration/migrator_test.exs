@@ -45,28 +45,36 @@ defmodule Yacto.Migration.MigratorTest do
 
   test "１ファイルずつマイグレーションファイルの生成とマイグレートを行う" do
     schemas = [Yacto.MigratorTest.Player, Yacto.MigratorTest.Player2, Yacto.MigratorTest.Player3]
+
     Enum.reduce(schemas, nil, fn schema, prev_migration ->
       schema_name = to_string(schema.__base_schema__())
       {:ok, now} = DateTime.now("Etc/UTC")
       {type, migrate, version} = Yacto.Migration.GenMigration.generate(schema, prev_migration)
+
       operation =
         case type do
           :created -> :create
           :changed -> :change
           :deleted -> :delete
         end
-      migration_file = Yacto.Migration.File.new(schema_name, version, schema.dbname(), operation, now)
+
+      migration_file =
+        Yacto.Migration.File.new(schema_name, version, schema.dbname(), operation, now)
+
       migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
       {:ok, _} = Yacto.Migration.File.save(migrate, migration_dir, migration_file)
 
-      {migration_files, []} = Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
+      {migration_files, []} =
+        Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
+
       Yacto.Migration.Migrator.up(
         :yacto,
         Yacto.MigratorTest.Repo0,
         schema.__base_schema__(),
         migration_dir,
         migration_files,
-        db_opts: [databases: @databases])
+        db_opts: [databases: @databases]
+      )
 
       [{mod, _}] = Code.compile_string(migrate)
       mod
@@ -112,6 +120,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex2
     ])
+
     ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
 
     Mix.Task.rerun("yacto.gen.migration", [
@@ -170,6 +179,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex2
     ])
+
     ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
 
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
@@ -196,6 +206,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex2
     ])
+
     ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
 
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
@@ -224,6 +235,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex2
     ])
+
     ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :ignore_migration_schemas) end)
 
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
@@ -244,6 +256,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex2
     ])
+
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
     Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
@@ -252,6 +265,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex
     ])
+
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
     Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
@@ -286,6 +300,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex2
     ])
+
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
     Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
@@ -296,6 +311,7 @@ defmodule Yacto.Migration.MigratorTest do
       Yacto.MigratorTest.Player3,
       Yacto.MigratorTest.DropFieldWithIndex2
     ])
+
     Mix.Task.rerun("yacto.gen.migration", ["--prefix", "Yacto.MigratorTest"])
     Mix.Task.rerun("yacto.migrate", ["--app", "yacto", "--migration-dir", migration_dir])
 
@@ -307,7 +323,15 @@ defmodule Yacto.Migration.MigratorTest do
       ).rows
       |> Enum.map(&Enum.at(&1, 0))
       |> Enum.sort()
-    expected = ["player", "yacto_migratortest_customprimarykey", "yacto_migratortest_dropfieldwithindex", "yacto_migratortest_item", "yacto_migratortest_unsignedbiginteger", "yacto_schema_migrations"]
+
+    expected = [
+      "player",
+      "yacto_migratortest_customprimarykey",
+      "yacto_migratortest_dropfieldwithindex",
+      "yacto_migratortest_item",
+      "yacto_migratortest_unsignedbiginteger",
+      "yacto_schema_migrations"
+    ]
 
     assert expected == actual
   end
