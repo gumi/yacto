@@ -1,9 +1,10 @@
 defmodule Mix.Tasks.Yacto.Migrate do
   use Mix.Task
+  require Logger
 
   @shortdoc "run migration"
 
-  @switches [repo: :string, app: :string, migration_dir: :string]
+  @switches [repo: :string, app: :string, migration_dir: :string, fake: :boolean]
 
   def run(args) do
     Mix.Task.run("loadpaths", args)
@@ -18,11 +19,25 @@ defmodule Mix.Tasks.Yacto.Migrate do
             Mix.Project.config()[:app]
           end
 
-        migration_dir =
-          Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir(app))
+        fake = Keyword.get(opts, :fake, false)
 
         if app == nil do
           Mix.raise("unspecified --app")
+        end
+
+        migration_dir =
+          Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir(app))
+
+        case Yacto.Migration.File.check_migrations(migration_dir) do
+          :ok ->
+            :ok
+
+          {:error, errors} ->
+            Enum.map(errors, fn error ->
+              Logger.error(error)
+            end)
+
+            Mix.raise("マイグレーションファイルの不整合エラー")
         end
 
         repos =
@@ -40,18 +55,37 @@ defmodule Mix.Tasks.Yacto.Migrate do
           end
         end
 
-        schemas = Yacto.Migration.Util.get_all_schema(app)
-
-        migrations =
-          Yacto.Migration.Util.get_migration_files(migration_dir)
-          |> Yacto.Migration.Util.load_migrations()
-
         databases = Application.fetch_env!(:yacto, :databases)
 
+        {schema_names, messages} = Yacto.Migration.File.list_migration_modules(migration_dir)
+
+        for message <- messages do
+          Logger.warn(message)
+        end
+
         for repo <- repos do
-          Yacto.Migration.Migrator.up(app, repo, schemas, migrations,
-            db_opts: [databases: databases]
-          )
+          if fake do
+            Yacto.Migration.SchemaMigration.drop_and_create(repo)
+          end
+
+          for schema_name <- schema_names do
+            {migration_files, messages} =
+              Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
+
+            for message <- messages do
+              Logger.warn(message)
+            end
+
+            Yacto.Migration.Migrator.up(
+              app,
+              repo,
+              String.to_atom(schema_name),
+              migration_dir,
+              migration_files,
+              fake: fake,
+              db_opts: [databases: databases]
+            )
+          end
         end
 
       {_, [_ | _], _} ->

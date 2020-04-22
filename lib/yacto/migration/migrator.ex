@@ -9,55 +9,38 @@ defmodule Yacto.Migration.Migrator do
     end)
   end
 
-  defp difference_migration(migrations, versions) do
-    migrations
-    |> Enum.filter(fn migration -> !Enum.member?(versions, migration.version) end)
+  defp difference_migration(migration_files, versions) do
+    migration_files
+    |> Enum.filter(fn migration_file -> !Enum.member?(versions, migration_file.version) end)
   end
 
-  @doc """
-  Runs an up migration on the given repository.
-  ## Options
-    * `:log` - the level to use for logging of migration instructions.
-      Defaults to `:info`. Can be any of `Logger.level/0` values or a boolean.
-    * `:log_sql` - the level to use for logging of SQL instructions.
-      Defaults to `false`. Can be any of `Logger.level/0` values or a boolean.
-    * `:prefix` - the prefix to run the migrations on
-    * `:dynamic_repo` - the name of the Repo supervisor process.
-      See `c:Ecto.Repo.put_dynamic_repo/1`.
-    * `:strict_version_order` - abort when applying a migration with old timestamp
-    * `:db_opts
-  """
-  def up(app, repo, schemas, migrations, opts \\ []) do
-    sorted_migrations =
-      case Yacto.Migration.Util.sort_migrations(migrations) do
-        {:error, errors} ->
-          for error <- errors do
-            Logger.error(error)
-          end
-
-          raise inspect(errors)
-
-        {:ok, sorted_migrations} ->
-          sorted_migrations
-      end
-
+  def up(app, repo, schema, migration_dir, migration_files, opts \\ []) do
     db_opts = Keyword.get(opts, :db_opts, [])
 
-    for schema <- schemas do
-      if Yacto.Migration.Util.allow_migrate?(schema, repo, db_opts) do
-        versions = migrated_versions(repo, app, schema)
-        need_migrations = difference_migration(sorted_migrations, versions)
+    need_repos =
+      migration_files
+      |> Enum.map(&Yacto.DB.repos(&1.dbname, db_opts))
+      |> Enum.concat()
+      |> Enum.into(MapSet.new())
 
-        for migration <- need_migrations do
-          do_up(app, repo, schema, migration.module, opts)
+    if repo in need_repos do
+      versions = migrated_versions(repo, app, schema)
+      need_migration_files = difference_migration(migration_files, versions)
+
+      for migration_file <- need_migration_files do
+        repos = Yacto.DB.repos(migration_file.dbname, db_opts)
+
+        if repo in repos do
+          {:ok, module} =
+            Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
+
+          migrate(app, repo, schema, module, opts)
         end
       end
     end
-
-    :ok
   end
 
-  defp do_up(app, repo, schema, migration, opts) do
+  def migrate(app, repo, schema, migration, opts \\ []) do
     async_migrate_maybe_in_transaction(app, repo, schema, migration, :up, opts, fn ->
       attempt(repo, schema, migration, :forward, :up, :up, opts) ||
         attempt(repo, schema, migration, :forward, :change, :up, opts) ||
@@ -68,39 +51,73 @@ defmodule Yacto.Migration.Migrator do
     end)
   end
 
-  defp async_migrate_maybe_in_transaction(app, repo, schema, migration, _direction, _opts, fun) do
+  defp async_migrate_maybe_in_transaction(app, repo, schema, migration, _direction, opts, fun) do
+    fake = Keyword.get(opts, :fake, false)
     parent = self()
     ref = make_ref()
     dynamic_repo = repo.get_dynamic_repo()
 
-    task =
-      Task.async(fn ->
-        run_maybe_in_transaction(parent, ref, repo, dynamic_repo, schema, migration, fun)
-      end)
-
-    if migrated_successfully?(ref, task.pid) do
+    if fake do
+      # fake モードの場合、実際のテーブルは操作せず、バージョン管理テーブルだけを更新する
       try do
         # The table with schema migrations can only be updated from
         # the parent process because it has a lock on the table
         verbose_schema_migration(repo, "update schema migrations", fn ->
-          Yacto.Migration.SchemaMigration.up(repo, app, schema, migration.__migration_version__())
+          Yacto.Migration.SchemaMigration.up(
+            repo,
+            app,
+            schema,
+            migration.__migration__(:version)
+          )
         end)
       catch
         kind, error ->
-          Task.shutdown(task, :brutal_kill)
           :erlang.raise(kind, error, System.stacktrace())
       end
-    end
+    else
+      task =
+        Task.async(fn ->
+          run_maybe_in_transaction(parent, ref, repo, dynamic_repo, schema, migration, fun)
+        end)
 
-    send(task.pid, ref)
-    Task.await(task, :infinity)
+      case migrated_successfully?(ref, task.pid) do
+        true ->
+          try do
+            # The table with schema migrations can only be updated from
+            # the parent process because it has a lock on the table
+            verbose_schema_migration(repo, "update schema migrations", fn ->
+              Yacto.Migration.SchemaMigration.up(
+                repo,
+                app,
+                schema,
+                migration.__migration__(:version)
+              )
+            end)
+          catch
+            kind, error ->
+              Task.shutdown(task, :brutal_kill)
+              :erlang.raise(kind, error, System.stacktrace())
+          end
+
+        {false, {kind, reason, stacktrace}} ->
+          Logger.error("Migration error: #{inspect(reason)}")
+          :erlang.raise(kind, reason, stacktrace)
+
+        {false, reason} ->
+          Logger.error("Migration error: #{inspect(reason)}")
+          :erlang.error(reason)
+      end
+
+      send(task.pid, ref)
+      Task.await(task, :infinity)
+    end
   end
 
   defp migrated_successfully?(ref, pid) do
     receive do
       {^ref, :ok} -> true
-      {^ref, _} -> false
-      {:EXIT, ^pid, _} -> false
+      {^ref, reason} -> {false, reason}
+      {:EXIT, ^pid, reason} -> {false, reason}
     end
   end
 
@@ -142,7 +159,7 @@ defmodule Yacto.Migration.Migrator do
 
   defp attempt(repo, schema, migration, direction, operation, reference, opts) do
     if Code.ensure_loaded?(migration) and
-         function_exported?(migration, operation, 1) do
+         function_exported?(migration, operation, 0) do
       run(repo, schema, migration, direction, operation, reference, opts)
       :ok
     end
@@ -151,14 +168,16 @@ defmodule Yacto.Migration.Migrator do
   # Ecto.Migration.Runner.run
 
   defp run(repo, schema, migration, direction, operation, migrator_direction, opts) do
-    version = migration.__migration_version__()
+    version = migration.__migration__(:version)
 
     level = Keyword.get(opts, :log, :info)
     sql = Keyword.get(opts, :log_sql, false)
     log = %{level: level, sql: sql}
-    args = [self(), repo, migration, direction, migrator_direction, log]
+    args = {self(), repo, migration, direction, migrator_direction, log}
 
-    {:ok, runner} = Supervisor.start_child(Ecto.Migration.Supervisor, args)
+    {:ok, runner} =
+      DynamicSupervisor.start_child(Ecto.MigratorSupervisor, {Ecto.Migration.Runner, args})
+
     Ecto.Migration.Runner.metadata(runner, opts)
 
     log(level, "== Running #{version} #{inspect(migration)}.#{operation}/0 #{direction}")
@@ -168,13 +187,13 @@ defmodule Yacto.Migration.Migrator do
     Ecto.Migration.Runner.stop()
   end
 
-  defp perform_operation(repo, schema, migration, operation) do
+  defp perform_operation(repo, _schema, migration, operation) do
     if function_exported?(repo, :in_transaction?, 0) and repo.in_transaction?() do
       if function_exported?(migration, :after_begin, 0) do
         migration.after_begin()
       end
 
-      result = apply(migration, operation, [schema])
+      result = apply(migration, operation, [])
 
       if function_exported?(migration, :before_commit, 0) do
         migration.before_commit()
@@ -182,7 +201,7 @@ defmodule Yacto.Migration.Migrator do
 
       result
     else
-      apply(migration, operation, [schema])
+      apply(migration, operation, [])
     end
 
     Ecto.Migration.Runner.flush()

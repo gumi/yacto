@@ -28,11 +28,14 @@ defmodule Yacto.Schema do
   defmacro __using__(opts) do
     dbname = Keyword.get(opts, :dbname)
     migration = Keyword.get(opts, :migration, true)
+    base_schema = Keyword.get(opts, :as)
 
     quote do
       @behaviour Yacto.Schema
 
-      @auto_source __MODULE__
+      @base_schema unquote(base_schema) || __MODULE__
+
+      @auto_source @base_schema
                    |> Macro.underscore()
                    |> String.replace("_", "")
                    |> String.replace("/", "_")
@@ -51,6 +54,10 @@ defmodule Yacto.Schema do
       @yacto_attrs %{}
       @yacto_indices %{}
       @yacto_types %{}
+
+      def __base_schema__() do
+        @base_schema
+      end
 
       def gen_migration? do
         unquote(migration)

@@ -1,5 +1,5 @@
 defmodule Yacto.GenMigrationTest.Player do
-  use Ecto.Schema
+  use Yacto.Schema, dbname: :player
 
   schema "player" do
     field(:name)
@@ -9,7 +9,7 @@ defmodule Yacto.GenMigrationTest.Player do
 end
 
 defmodule Yacto.GenMigrationTest.Player2 do
-  use Ecto.Schema
+  use Yacto.Schema, as: Yacto.GenMigrationTest.Player, dbname: :player
 
   schema "player2" do
     field(:name2)
@@ -18,10 +18,7 @@ defmodule Yacto.GenMigrationTest.Player2 do
 end
 
 defmodule Yacto.GenMigrationTest.Player3 do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :player
+  use Yacto.Schema, as: Yacto.GenMigrationTest.Player, dbname: :player
 
   schema @auto_source do
     field(:name3, :string, meta: [null: false, size: 100])
@@ -32,10 +29,7 @@ defmodule Yacto.GenMigrationTest.Player3 do
 end
 
 defmodule Yacto.GenMigrationTest.Item do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
@@ -45,7 +39,7 @@ defmodule Yacto.GenMigrationTest.Item do
 end
 
 defmodule Yacto.GenMigrationTest.CoinType do
-  @behaviour Ecto.Type
+  use Ecto.Type
 
   @impl Ecto.Type
   def type(), do: :integer
@@ -70,16 +64,14 @@ defmodule Yacto.GenMigrationTest.CoinType do
 end
 
 defmodule Yacto.GenMigrationTest.Coin do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :player
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     field(:player_id, :string, meta: [null: false])
     field(:type_id, Yacto.GenMigrationTest.CoinType, meta: [null: false])
-    field(:platform, :string, meta: [type: :text, length: 64, null: false])
+    field(:platform, :string, meta: [length: 64, null: false])
     field(:quantity, :integer, default: 0, meta: [null: false])
+    field(:description, :string, meta: [type: :text, null: false])
     timestamps()
 
     index([:player_id, :type_id, :platform], unique: true)
@@ -87,10 +79,7 @@ defmodule Yacto.GenMigrationTest.Coin do
 end
 
 defmodule Yacto.GenMigrationTest.ManyIndex do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :default
+  use Yacto.Schema, dbname: :default
 
   schema @auto_source do
     field(:aaaaaa, :string)
@@ -103,14 +92,15 @@ defmodule Yacto.GenMigrationTest.ManyIndex do
 end
 
 defmodule Yacto.GenMigrationTest.DecimalOption do
-  use Yacto.Schema
-
-  @impl Yacto.Schema
-  def dbname(), do: :player
+  use Yacto.Schema, dbname: :player
 
   schema @auto_source do
     field(:player_id, :string)
     field(:decimal_field, :decimal, meta: [precision: 7, scale: 3])
     field(:name, :string, meta: [null: true])
   end
+end
+
+defmodule Yacto.GenMigrationTest.Repo0 do
+  use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end

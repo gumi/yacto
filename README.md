@@ -33,33 +33,27 @@ end
 
 この状態で `mix yacto.gen.migration` を実行すると、以下の様なマイグレーションファイルが出力されます。
 
-priv/migrations/2017-11-22T045225_my_app.exs:
+`priv/migrations/Elixir.MyApp.Player/0000-player-create-2020_04_22_085825.exs`:
 
 ```elixir
-defmodule MyApp.Migration20171122045225 do
+defmodule MyApp.Player.Migration0000 do
   use Ecto.Migration
 
-  def change(MyApp.Player) do
-    create table("my_app_player")
-    alter table("my_app_player") do
+  def change() do
+    create table("myapp_player")
+    alter table("myapp_player") do
       add(:hp, :integer, [null: false, size: 64])
       add(:player_id, :string, [null: false])
     end
-    create index("my_app_player", [:player_id], [name: "player_id_index", unique: true])
+    create index("myapp_player", [:player_id], [name: "player_id_index", unique: true])
   end
 
-  def change(_other) do
-    :ok
+  def __migration__(:structure) do
+    {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp], meta: %{attrs: %{hp: %{null: false}, player_id: %{null: false, size: 64}}, indices: %{{[:player_id], [unique: true]} => true}}, source: "myapp_player", types: %{hp: :integer, id: :id, player_id: :string}}},
   end
 
-  def __migration_structures__() do
-    [
-      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp], meta: %{attrs: %{hp: %{null: false}, player_id: %{null: false, size: 64}}, indices: %{{[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, player_id: :string}}},
-    ]
-  end
-
-  def __migration_version__() do
-    20171122045225
+  def __migration__(:version) do
+    0
   end
 end
 ```
@@ -86,30 +80,26 @@ defmodule MyApp.Player do
 end
 ```
 
-priv/migrations/2017-11-22T045225_my_app.exs:
+`priv/migrations/Elixir.MyApp.Player/0001-player-change-2020_04_22_092258.exs`:
 
 ```elixir
-defmodule MyApp.Migration20171122052212 do
+defmodule MyApp.Player.Migration0001 do
   use Ecto.Migration
 
-  def change(MyApp.Player) do
-    alter table("my_app_player") do
+  def change() do
+    alter table("myapp_player") do
       add(:mp, :integer, [null: false])
     end
   end
 
-  def change(_other) do
-    :ok
-  end
-
-  def __migration_structures__() do
+  def __migration__(:structure) do
     [
-      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp, :mp], meta: %{attrs: %{hp: %{null: false}, mp: %{null: false}, player_id: %{null: false, size: 64}}, indices: %{{[:player_id], [unique: true]} => true}}, source: "my_app_player", types: %{hp: :integer, id: :id, mp: :integer, player_id: :string}}},
+      {MyApp.Player, %Yacto.Migration.Structure{fields: [:id, :player_id, :hp, :mp], meta: %{attrs: %{hp: %{null: false}, mp: %{null: false}, player_id: %{null: false, size: 64}}, indices: %{{[:player_id], [unique: true]} => true}}, source: "myapp_player", types: %{hp: :integer, id: :id, mp: :integer, player_id: :string}}},
     ]
   end
 
-  def __migration_version__() do
-    20171122052212
+  def __migration__(:version) do
+    1
   end
 end
 ```
