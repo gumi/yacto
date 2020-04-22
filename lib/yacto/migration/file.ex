@@ -5,7 +5,8 @@ defmodule Yacto.Migration.File do
     # :create, :change, :delete のどれか
     :operation,
     :datetime_str,
-    :path
+    :path,
+    :schema_name
   ]
 
   # {module_strings, [unexpected_messages]}
@@ -29,7 +30,7 @@ defmodule Yacto.Migration.File do
     {Enum.sort(dirs), messages}
   end
 
-  # {[%Yacto.Migration.File{}], [unexpected_messages]}
+  @spec list_migration_files(String.t(), String.t()) :: {[%Yacto.Migration.File{}], [String.t()]}
   def list_migration_files(migration_dir, module_string) when is_binary(module_string) do
     files = Path.wildcard(Path.join([migration_dir, module_string, "*"]))
 
@@ -47,6 +48,101 @@ defmodule Yacto.Migration.File do
     {Enum.sort_by(files, & &1.version), errors}
   end
 
+  @spec check_migrations([]) :: :ok | {:error, [String.t()]}
+  def check_migrations(migration_dir) do
+    {modules, _} = list_migration_modules(migration_dir)
+
+    filess =
+      Enum.map(modules, fn mod ->
+        {files, _} = list_migration_files(migration_dir, mod)
+        files
+      end)
+
+    messages =
+      Enum.reduce(filess, [], fn files, messages ->
+        case check_migration_files(files) do
+          :ok -> messages
+          {:error, ms} -> messages ++ ms
+        end
+      end)
+
+    if length(messages) != 0 do
+      {:error, messages}
+    else
+      :ok
+    end
+  end
+
+  @spec check_migration_files([%Yacto.Migration.File{}]) :: :ok | {:error, [String.t()]}
+  def check_migration_files(files)
+
+  def check_migration_files([]) do
+    :ok
+  end
+
+  def check_migration_files([_ | _] = files) do
+    try do
+      # 全部同じスキーマに対するマイグレーションファイルか
+      xs = Enum.group_by(files, & &1.schema_name)
+
+      if map_size(xs) >= 2 do
+        schema_names = Enum.map(xs, fn {name, _} -> name end)
+        throw(["複数のスキーマ名が含まれています: #{inspect(schema_names)}"])
+      end
+
+      # 全部異なるパスになっているか
+      xs =
+        files
+        |> Enum.group_by(& &1.path)
+        |> Enum.filter(fn {_, files} -> length(files) != 1 end)
+
+      if length(xs) != 0 do
+        messages = Enum.map(xs, fn {path, _} -> "同じファイルパスになっています: #{path}" end)
+        throw(messages)
+      end
+
+      # 同じバージョンのファイルが存在しないか
+      xs =
+        files
+        |> Enum.group_by(& &1.version)
+        |> Enum.filter(fn {_, files} -> length(files) != 1 end)
+
+      if length(xs) != 0 do
+        messages =
+          xs
+          |> Enum.sort_by(fn {version, _} -> version end)
+          |> Enum.map(fn {_, files} ->
+            "同じバージョンのファイルが存在しています: #{inspect(Enum.map(files, & &1.path))}"
+          end)
+
+        throw(messages)
+      end
+
+      # 0 から順番になっているか
+      files = Enum.sort_by(files, & &1.version)
+
+      messages =
+        files
+        |> Enum.with_index()
+        |> Enum.map(fn {file, index} ->
+          if file.version != index do
+            "ファイルが0からの連番になっていません。期待していたバージョンは #{pad4(index)} です: #{file.path}"
+          else
+            nil
+          end
+        end)
+        |> Enum.filter(fn x -> x != nil end)
+
+      if length(messages) != 0 do
+        throw(messages)
+      end
+
+      :ok
+    catch
+      :throw, messages -> {:error, messages}
+    end
+  end
+
   # {%Yacto.Migration.File{} | nil, [error]}
   def get_latest_migration_file(migration_dir, module_string) when is_binary(module_string) do
     {files, errors} = list_migration_files(migration_dir, module_string)
@@ -61,6 +157,7 @@ defmodule Yacto.Migration.File do
     try do
       path = Path.join(migration_dir, relative_path)
       filename = Path.basename(relative_path)
+      dirname = relative_path |> Path.dirname() |> Path.basename()
 
       if not File.regular?(path) do
         throw("#{relative_path} is not a regular file")
@@ -68,6 +165,10 @@ defmodule Yacto.Migration.File do
 
       if not String.ends_with?(filename, ".exs") do
         throw("#{filename} is not an elixir script file")
+      end
+
+      if not String.starts_with?(dirname, "Elixir.") do
+        throw("#{relative_path} directory name is not an elixir module name")
       end
 
       # 0001-dbname-create-2019_11_26_170846.exs
@@ -103,7 +204,8 @@ defmodule Yacto.Migration.File do
          dbname: String.to_atom(dbname),
          operation: operation,
          datetime_str: datetime_str,
-         path: relative_path
+         path: relative_path,
+         schema_name: dirname
        }}
     catch
       :throw, message -> {:error, message}
@@ -155,7 +257,8 @@ defmodule Yacto.Migration.File do
       dbname: dbname,
       operation: operation,
       datetime_str: datetime_str,
-      path: path
+      path: path,
+      schema_name: schema_name
     }
   end
 

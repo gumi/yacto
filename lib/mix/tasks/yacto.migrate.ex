@@ -21,11 +21,23 @@ defmodule Mix.Tasks.Yacto.Migrate do
 
         fake = Keyword.get(opts, :fake, false)
 
+        if app == nil do
+          Mix.raise("unspecified --app")
+        end
+
         migration_dir =
           Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir(app))
 
-        if app == nil do
-          Mix.raise("unspecified --app")
+        case Yacto.Migration.File.check_migrations(migration_dir) do
+          :ok ->
+            :ok
+
+          {:error, errors} ->
+            Enum.map(errors, fn error ->
+              Logger.error(error)
+            end)
+
+            Mix.raise("マイグレーションファイルの不整合エラー")
         end
 
         repos =

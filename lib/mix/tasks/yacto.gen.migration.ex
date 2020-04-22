@@ -18,6 +18,18 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
         migration_dir =
           Keyword.get(opts, :migration_dir, Yacto.Migration.Util.get_migration_dir_for_gen())
 
+        case Yacto.Migration.File.check_migrations(migration_dir) do
+          :ok ->
+            :ok
+
+          {:error, errors} ->
+            Enum.map(errors, fn error ->
+              Logger.error(error)
+            end)
+
+            Mix.raise("マイグレーションファイルの不整合エラー")
+        end
+
         ignore_schemas =
           Application.get_env(:yacto, :ignore_migration_schemas, []) |> MapSet.new()
 
