@@ -1,93 +1,54 @@
-# Changelog
+# 変更履歴
 
-## master
+- UPDATE
+    - 下位互換がある変更
+- ADD
+    - 下位互換がある追加
+- CHANGE
+    - 下位互換のない変更
+- FIX
+    - バグ修正
 
-- [破壊的変更] マイグレーションファイルをモデル毎に生成する
+## 2.0.0-rc.0
+
+### 下位互換のない変更
+
+- [CHANGE] マイグレーションファイルをモデル毎に生成する
   - 今まで生成した全てのマイグレーションファイルは利用できなくなります。
   - 新しく生成したマイグレーションファイルで `mix yacto.migrate --fake` を実行して新しくマイグレーションスキーマを設定する必要があります。
-- 依存ライブラリの更新
-- ecto_sql 3.4.2 への対応
-
-## 2.0.0-pre.15
-
-- [破壊的変更] `Yacto.DB` の引数にキーワードリストを取れるようにして、データベースの設定を動的に渡せるようにした
+- [CHANGE] `Yacto.Schema` で定義していたデフォルトの `@primary_key` を削除した
+- [CHANGE] `@auto_source` から生成するテーブル名のルールを変更した
+  - 例えば `App.Model.FooBar` の場合、1.x では `app_model_foo_bar` になっていたが、2.x では `app_model_foobar` となる
+- [CHANGE] `Yacto.DB` の引数にキーワードリストを取れるようにして、データベースの設定を動的に渡せるようにした
   - `Yacto.DB.repo(:player, "key")` と書いていたのを `Yacto.DB.repo(:player, shard_key: "key")` と書く必要がある
-- [破壊的変更] `:table_name_converter` は不完全な機能だったので削除した
-- `Yacto.Schema.Single` と `Yacto.Schema.Shard` を非推奨にした。
+- [CHANGE] `:table_name_converter` は不完全な機能だったので削除した
+- [CHANGE] `Yacto.Schema.Single` と `Yacto.Schema.Shard` を削除した
   - データベースの設定を動的に渡せるようになり、`Yacto.Schema.Single` と `Yacto.Schema.Shard` のチェック機構が使えなくなるため。
-  - 2.0 リリース時に削除予定
-- テスト周りのリファクタリング
 
-## 2.0.0-pre.14
+### 下位互換がある追加
 
-- スキーマの定義時にマイグレーションファイルを生成するかどうかを選択できるようにした（Thanks @mori5321 !）
+- [ADD] スキーマの定義時にマイグレーションファイルを生成するかどうかを選択できるようにした（Thanks @mori5321 !）
+- [ADD] `field/3` のマイグレーション用メタ情報に `:precision` と `:scale` を追加
+- [ADD] モデルを削除した時に drop table する機能を実装
+- [ADD] マイグレーションファイルを検証する機能を実装
+  - 複数のブランチからマージした場合に矛盾が起きる可能性があったので、それを検出してエラーにする
+- [ADD] `Yacto.transaction/3` に、XA を行わない `:noxa` オプションを追加した
 
-## 2.0.0-pre.13
+### 下位互換がある変更
 
-- Elixir 1.9.0 の対応 (Thanks @hiromoon !)
-- ecto_sql 3.1.6 への対応
+- [UPDATE] Ecto 3.4 への対応
   - MySQL Adapter をやめて MyXQL Adapter を使うようにした
   - 新しいバージョンの Ecto.Migration.Runner に追従
+- [UPDATE] Elixir 1.10 への対応
+- [UPDATE] 全体的に日本語でやることにした
 
-## 2.0.0-pre.12
+### バグ修正
 
-- インデックスの付いたフィールドを削除するとマイグレーションに失敗する問題を修正した (Thanks @h1u2i3 !)
-
-## 2.0.0-pre.11
-
-- DB の新規作成時に、カラムの並びが定義順になるようにした
-
-## 2.0.0-pre.10
-
-- `field/3` のマイグレーション用メタ情報に `:precision` と `:scale` を追加
-
-## 2.0.0-pre.9
-
-- モデルを削除した時に drop table する機能を実装
-
-## 2.0.0-pre.8
-
-- マイグレーションファイルを検証する機能を実装
-  - 複数のブランチからマージした場合に矛盾が起きる可能性があったので、それを検出してエラーにする
-- 全体的に日本語でやることにした
-
-## 2.0.0-pre.7
-
-- Update dependencied
-
-## 2.0.0-pre.6
-
-- Shrink index name if configured
-
-## 2.0.0-pre.5
-
-- Update dependencies
-
-## 2.0.0-pre.4
-
-- Fix `get_for_update/3`
-
-## 2.0.0-pre.3
-
-- Update dependencies
-
-## 2.0.0-pre.2
-
-- Add `:noxa` option for `Yacto.transaction/3`
-
-## 2.0.0-pre.1
-
-- Using Ecto 3.0.0-rc.1
-- Using Elixir 1.7
-- Update dependencies
-
-## 2.0.0-pre.0
-
-### Breaking Changes
-
-- Remove default `@primary_key` in `Yacto.Schema`
-- Change convertion rule `@auto_source`
-  - `App.Model.FooBar`: `app_model_foo_bar` in 1.x, `app_model_foobar` in 2.x.
+- [FIX] インデックスの付いたフィールドを削除するとマイグレーションに失敗する問題を修正した (Thanks @h1u2i3 !)
+- [FIX] DB の新規作成時に、カラムの並びが定義順になるようにした
+- [FIX] `:index_name_max_length` 設定がある場合、長いインデックス名を削るようにした
+- [FIX] `get_for_update/3` を修正した
+- [FIX] テスト周りのリファクタリング
 
 ## 1.2.6
 
