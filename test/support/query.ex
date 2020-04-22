@@ -14,7 +14,7 @@ defmodule Yacto.QueryTest.Repo.Player1 do
 end
 
 defmodule Yacto.QueryTest.Item do
-  use Yacto.Schema.Single, dbname: :default
+  use Yacto.Schema, dbname: :default
 
   schema "item" do
     field(:name, :string)
@@ -34,7 +34,7 @@ defmodule Yacto.QueryTest.Default.Migration do
 end
 
 defmodule Yacto.QueryTest.Player do
-  use Yacto.Schema.Shard, dbname: :player
+  use Yacto.Schema, dbname: :player
 
   schema "xa_player" do
     field(:name)
