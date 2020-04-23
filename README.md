@@ -163,14 +163,7 @@ defmodule MyApp.Player do
 水平分割したデータベースを利用する時には、`Yacto.DB.repo/2` を使って Repo を取得します。
 
 ```elixir
-repo = Yacto.DB.repo(:player, player_id)
-MyApp.Player |> repo.all()
-```
-
-あるいは、`schema.repo/1` を使っても構いません。
-
-```elixir
-repo = MyApp.Player.repo(player_id)
+repo = Yacto.DB.repo(:player, shard_key: player_id)
 MyApp.Player |> repo.all()
 ```
 
