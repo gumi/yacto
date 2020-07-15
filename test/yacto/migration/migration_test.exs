@@ -44,7 +44,17 @@ defmodule Yacto.Migration.MigrationTest do
       _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir_for_gen())
 
       Application.put_env(:yacto, :databases, @databases)
-      ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :databases) end)
+
+      Application.put_env(:yacto, :ecto_repos, [
+        Yacto.MigrationTest.Repo1,
+        Yacto.MigrationTest.Repo0,
+        Yacto.MigrationTest.Repo1
+      ])
+
+      ExUnit.Callbacks.on_exit(fn ->
+        Application.delete_env(:yacto, :databases)
+        Application.delete_env(:yacto, :ecto_repos)
+      end)
 
       :ok
     end

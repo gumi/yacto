@@ -46,7 +46,17 @@ defmodule Yacto.Migration.ShardingTest do
     end
 
     Application.put_env(:yacto, :databases, @databases)
-    ExUnit.Callbacks.on_exit(fn -> Application.delete_env(:yacto, :databases) end)
+
+    Application.put_env(:yacto, :ecto_repos, [
+      Yacto.ShardingTest.Repo.Default,
+      Yacto.ShardingTest.Repo.Player0,
+      Yacto.ShardingTest.Repo.Player1
+    ])
+
+    ExUnit.Callbacks.on_exit(fn ->
+      Application.delete_env(:yacto, :databases)
+      Application.delete_env(:yacto, :ecto_repos)
+    end)
   end
 
   test "repo がシャーディングされているか確認する" do

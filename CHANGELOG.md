@@ -9,6 +9,10 @@
 - FIX
     - バグ修正
 
+## master
+
+- [CHANGE] `mix yacto.migrate` で `--repo` を指定しなかった場合に利用するリポジトリ一覧を `:ecto_repos` から取得するようにした
+
 ## 2.0.0-rc.0
 
 ### 下位互換のない変更

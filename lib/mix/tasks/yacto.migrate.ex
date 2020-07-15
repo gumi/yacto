@@ -42,7 +42,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
 
         repos =
           case Keyword.fetch(opts, :repo) do
-            :error -> Yacto.DB.all_repos()
+            :error -> Application.fetch_env!(app, :ecto_repos)
             {:ok, repo} -> [Module.concat([repo])]
           end
 
