@@ -9,11 +9,7 @@
 - FIX
     - バグ修正
 
-## master
-
-- [CHANGE] `mix yacto.migrate` で `--repo` を指定しなかった場合に利用するリポジトリ一覧を `:ecto_repos` から取得するようにした
-
-## 2.0.0-rc.0
+## 2.0.0-rc.1
 
 ### 下位互換のない変更
 
@@ -28,6 +24,7 @@
 - [CHANGE] `:table_name_converter` は不完全な機能だったので削除した
 - [CHANGE] `Yacto.Schema.Single` と `Yacto.Schema.Shard` を削除した
   - データベースの設定を動的に渡せるようになり、`Yacto.Schema.Single` と `Yacto.Schema.Shard` のチェック機構が使えなくなるため。
+- [CHANGE] `mix yacto.migrate` で `--repo` を指定しなかった場合に利用するリポジトリ一覧を `:ecto_repos` から取得するようにした
 
 ### 下位互換がある追加
 
