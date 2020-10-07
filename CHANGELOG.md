@@ -9,7 +9,7 @@
 - FIX
     - バグ修正
 
-## 2.0.0-rc.1
+## 2.0.0
 
 ### 下位互換のない変更
 
@@ -37,10 +37,10 @@
 
 ### 下位互換がある変更
 
-- [UPDATE] Ecto 3.4 への対応
+- [UPDATE] Ecto 3.5 への対応
   - MySQL Adapter をやめて MyXQL Adapter を使うようにした
   - 新しいバージョンの Ecto.Migration.Runner に追従
-- [UPDATE] Elixir 1.10 への対応
+- [UPDATE] Elixir 1.11 への対応
 - [UPDATE] 全体的に日本語でやることにした
 
 ### バグ修正

@@ -31,19 +31,20 @@ defmodule Yacto.Migration.Migrator do
         repos = Yacto.DB.repos(migration_file.dbname, db_opts)
 
         if repo in repos do
+          config = repo.config()
           {:ok, module} =
             Yacto.Migration.File.load_migration_module(migration_dir, migration_file)
 
-          migrate(app, repo, schema, module, opts)
+          migrate(app, repo, config, schema, module, opts)
         end
       end
     end
   end
 
-  def migrate(app, repo, schema, migration, opts \\ []) do
+  def migrate(app, repo, config, schema, migration, opts \\ []) do
     async_migrate_maybe_in_transaction(app, repo, schema, migration, :up, opts, fn ->
-      attempt(repo, schema, migration, :forward, :up, :up, opts) ||
-        attempt(repo, schema, migration, :forward, :change, :up, opts) ||
+      attempt(repo, config, schema, migration, :forward, :up, :up, opts) ||
+        attempt(repo, config, schema, migration, :forward, :change, :up, opts) ||
         {:error,
          Ecto.MigrationError.exception(
            "#{inspect(migration)} does not implement a `up/0` or `change/0` function"
@@ -72,7 +73,7 @@ defmodule Yacto.Migration.Migrator do
         end)
       catch
         kind, error ->
-          :erlang.raise(kind, error, System.stacktrace())
+          :erlang.raise(kind, error, __STACKTRACE__)
       end
     else
       task =
@@ -96,7 +97,7 @@ defmodule Yacto.Migration.Migrator do
           catch
             kind, error ->
               Task.shutdown(task, :brutal_kill)
-              :erlang.raise(kind, error, System.stacktrace())
+              :erlang.raise(kind, error, __STACKTRACE__)
           end
 
         {false, {kind, reason, stacktrace}} ->
@@ -139,7 +140,7 @@ defmodule Yacto.Migration.Migrator do
     end
   catch
     kind, reason ->
-      send_and_receive(parent, ref, {kind, reason, System.stacktrace()})
+      send_and_receive(parent, ref, {kind, reason, __STACKTRACE__})
   end
 
   defp send_and_receive(parent, ref, value) do
@@ -153,27 +154,27 @@ defmodule Yacto.Migration.Migrator do
     rescue
       error ->
         Logger.error("Could not #{reason} for #{repo}.")
-        reraise error, System.stacktrace()
+        reraise error, __STACKTRACE__
     end
   end
 
-  defp attempt(repo, schema, migration, direction, operation, reference, opts) do
+  defp attempt(repo, config, schema, migration, direction, operation, reference, opts) do
     if Code.ensure_loaded?(migration) and
          function_exported?(migration, operation, 0) do
-      run(repo, schema, migration, direction, operation, reference, opts)
+      run(repo, config, schema, migration, direction, operation, reference, opts)
       :ok
     end
   end
 
   # Ecto.Migration.Runner.run
 
-  defp run(repo, schema, migration, direction, operation, migrator_direction, opts) do
+  defp run(repo, config, schema, migration, direction, operation, migrator_direction, opts) do
     version = migration.__migration__(:version)
 
     level = Keyword.get(opts, :log, :info)
     sql = Keyword.get(opts, :log_sql, false)
     log = %{level: level, sql: sql}
-    args = {self(), repo, migration, direction, migrator_direction, log}
+    args = {self(), repo, config, migration, direction, migrator_direction, log}
 
     {:ok, runner} =
       DynamicSupervisor.start_child(Ecto.MigratorSupervisor, {Ecto.Migration.Runner, args})

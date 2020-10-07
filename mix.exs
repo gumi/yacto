@@ -4,7 +4,7 @@ defmodule Yacto.Mixfile do
   def project do
     [
       app: :yacto,
-      version: "2.0.0-rc.1",
+      version: "2.0.0",
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       elixirc_options: [all_warnings: true, warnings_as_errors: true],
@@ -36,11 +36,11 @@ defmodule Yacto.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ecto_sql, "~> 3.4.2"},
-      {:ex_doc, "~> 0.21.3", only: :dev, runtime: false},
+      {:ecto_sql, "~> 3.5"},
+      {:ex_doc, "~> 0.22.6", only: :dev, runtime: false},
       {:myxql, "~> 0.4.0"},
-      {:elixir_uuid, "~> 1.2.1"},
-      {:memoize, "~> 1.2"},
+      {:elixir_uuid, "~> 1.2"},
+      {:memoize, "~> 1.3"},
       {:power_assert, "~> 0.2.0", only: :test}
     ]
   end

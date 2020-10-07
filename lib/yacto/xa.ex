@@ -38,7 +38,7 @@ defmodule Yacto.XA do
     rescue
       error ->
         rescue_fun.()
-        reraise(error, System.stacktrace())
+        reraise(error, __STACKTRACE__)
     end
   end
 
