@@ -109,7 +109,7 @@ defmodule Yacto.Migration.MigrationTest do
 
       expect = """
       CREATE TABLE `yacto_migrationtest_player` (
-        `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+        `id` bigint unsigned NOT NULL AUTO_INCREMENT,
         `value` varchar(255) DEFAULT NULL,
         `name3` varchar(100) NOT NULL DEFAULT 'hage',
         `text_data` text NOT NULL,
@@ -191,7 +191,7 @@ defmodule Yacto.Migration.MigrationTest do
       ])
     end
 
-    test "bigint(20) unsigned な型がちゃんとマイグレートできるか確認" do
+    test "bigint unsigned な型がちゃんとマイグレートできるか確認" do
       migration_dir = Yacto.Migration.Util.get_migration_dir_for_gen()
 
       Application.put_env(:yacto, :ignore_migration_schemas, [
@@ -309,7 +309,7 @@ defmodule Yacto.Migration.MigrationTest do
 
       expect = """
       CREATE TABLE `yacto_migrationtest_dropfieldwithindex` (
-        `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+        `id` bigint unsigned NOT NULL AUTO_INCREMENT,
         `value2` varchar(255) NOT NULL,
         PRIMARY KEY (`id`),
         KEY `value2_index` (`value2`)
@@ -763,25 +763,84 @@ defmodule Yacto.Migration.MigrationTest do
       Yacto.Migration.SchemaMigration.ensure_schema_migrations_table!(repo0)
 
       [{mod1, _}] = Code.compile_string(@migrate1)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.Player, mod1)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.Player,
+        mod1
+      )
+
       [{mod2, _}] = Code.compile_string(@migrate2)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.Player, mod2)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.Player,
+        mod2
+      )
+
       [{mod3, _}] = Code.compile_string(@migrate3)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.Player, mod3)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.Player,
+        mod3
+      )
+
       [{mod4, _}] = Code.compile_string(@migrate4)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.Player, mod4)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.Player,
+        mod4
+      )
 
       [{mod5, _}] = Code.compile_string(@migrate5)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.Item, mod5)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.Item,
+        mod5
+      )
 
       [{mod6, _}] = Code.compile_string(@migrate6)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.ManyIndex, mod6)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.ManyIndex,
+        mod6
+      )
 
       [{mod7, _}] = Code.compile_string(@migrate7)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.DecimalOption, mod7)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.DecimalOption,
+        mod7
+      )
 
       [{mod8, _}] = Code.compile_string(@migrate8)
-      Yacto.Migration.Migrator.migrate(:yacto, repo0, repo0_config, Yacto.MigrationTest.Coin, mod8)
+
+      Yacto.Migration.Migrator.migrate(
+        :yacto,
+        repo0,
+        repo0_config,
+        Yacto.MigrationTest.Coin,
+        mod8
+      )
 
       # ちゃんとマイグレーションフィールドに書き込まれてるか確認する
       actual_fields =

@@ -43,7 +43,7 @@ defmodule Yacto.MigrationTest.UnsignedBigInteger do
   use Yacto.Schema, dbname: :default
 
   schema @auto_source do
-    field(:user_id, :integer, meta: [null: false, type: :"bigint(20) unsigned"])
+    field(:user_id, :integer, meta: [null: false, type: :"bigint unsigned"])
   end
 end
 
