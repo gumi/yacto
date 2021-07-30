@@ -1,7 +1,8 @@
 defmodule Yacto do
-  @moduledoc """
-  #{File.read!("README.md")}
-  """
+  @external_resource "README.md"
+  @moduledoc File.read!("README.md")
+             |> String.split(~r/<!-- MDOC !-->/)
+             |> Enum.fetch!(1)
 
   def transaction(databases, fun, opts \\ []) do
     dbopts = Keyword.get(opts, :databases)

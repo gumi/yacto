@@ -1,25 +1,21 @@
 defmodule Yacto.Mixfile do
   use Mix.Project
 
+  @source_url "https://github.com/gumi/yacto"
+  @version "2.0.1"
+
   def project do
     [
       app: :yacto,
-      version: "2.0.1",
+      version: @version,
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       elixirc_options: [all_warnings: true, warnings_as_errors: true],
-      description:
-        "A library for automatically generating a migration file and horizontally partitioning databases",
-      package: [
-        maintainers: ["melpon", "kenichirow"],
-        licenses: ["Apache 2.0"],
-        links: %{"GitHub" => "https://github.com/gumi/yacto"}
-      ],
-      docs: [main: "Yacto"],
-      test_paths: ["test/yacto"],
       start_permanent: Mix.env() == :prod,
+      test_paths: ["test/yacto"],
+      package: package(),
+      docs: docs(),
       deps: deps(),
-      source_url: "https://github.com/gumi/yacto"
     ]
   end
 
@@ -37,11 +33,35 @@ defmodule Yacto.Mixfile do
   defp deps do
     [
       {:ecto_sql, "~> 3.6"},
-      {:ex_doc, "~> 0.24.1", only: :dev, runtime: false},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:myxql, "~> 0.5.1"},
       {:elixir_uuid, "~> 1.2"},
       {:memoize, "~> 1.3"},
       {:power_assert, "~> 0.2.1", only: :test}
+    ]
+  end
+
+  defp package do
+    [
+      description: "A library for automatically generating a migration file " <>
+        "and horizontally partitioning databases",
+      maintainers: ["melpon", "kenichirow"],
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => "https://github.com/gumi/yacto"}
+    ]
+  end
+
+  defp docs do
+    [
+      extras: [
+        "CHANGELOG.md": [],
+        "LICENSE.md": [title: "ライセンス"],
+        "README.md": [title: "概要"]
+      ],
+      main: "readme",
+      source_url: @source_url,
+      source_ref: "v#{@version}",
+      formatters: ["html"]
     ]
   end
 end
