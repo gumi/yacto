@@ -1,5 +1,13 @@
 # Yacto
 
+[![Module Version](https://img.shields.io/hexpm/v/yacto.svg)](https://hex.pm/packages/yacto)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/yacto/)
+[![Total Download](https://img.shields.io/hexpm/dt/yacto.svg)](https://hex.pm/packages/yacto)
+[![License](https://img.shields.io/hexpm/l/yacto.svg)](https://github.com/gumi/yacto/blob/master/LICENSE.md)
+[![Last Updated](https://img.shields.io/github/last-commit/gumi/yacto.svg)](https://github.com/gumi/yacto/commits/master)
+
+<!-- MDOC !-->
+
 Yacto は、[Ecto](https://hexdocs.pm/ecto/Ecto.html) で手が届きにくい部分をサポートするためのライブラリです。
 
 大まかに以下の機能があります。
@@ -252,9 +260,9 @@ end
 ### メタ情報
 
 ```elixir
-    field :player_id, :string, meta: [null: false, size: 64]
-    field :hp, :integer, default: 0, meta: [null: false]
-    field :height, :decimal, meta: [precision: 10, scale: 3]
+field :player_id, :string, meta: [null: false, size: 64]
+field :hp, :integer, default: 0, meta: [null: false]
+field :height, :decimal, meta: [precision: 10, scale: 3]
 ```
 
 ここは `Ecto.Schema` の `field/3` 関数とほとんど同じですが、`:meta` オプションがあるという点で異なります。
@@ -273,7 +281,7 @@ end
 ### インデックス
 
 ```elixir
-    index :player_id, unique: true
+index :player_id, unique: true
 ```
 
 `index/2` でインデックスを生成できます。
@@ -336,3 +344,19 @@ end
 `get_by_or_insert_for_update/4` は、`get_by_or_new/4` の排他ロックを取るバージョンです。
 まずレコードを取得してみて、あればそのレコードを、無ければ新規に `default_struct_or_changeset` を挿入して返します。この時、返されるレコードは排他ロックされます。
 戻り値は `{record, created}` の２要素のタプルになっていて、1要素目には取得できたレコード（あるいは挿入したデフォルト値）が、2要素目には新しく挿入したかどうかのフラグが設定されます。
+
+<!-- MDOC !-->
+
+## Copyright and License
+
+Copyright 2017 gumi Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
