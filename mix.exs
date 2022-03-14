@@ -2,7 +2,7 @@ defmodule Yacto.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/gumi/yacto"
-  @version "2.0.1"
+  @version "2.0.2"
 
   def project do
     [
@@ -56,7 +56,7 @@ defmodule Yacto.Mixfile do
     [
       extras: [
         "CHANGELOG.md": [],
-        "LICENSE.md": [title: "ライセンス"],
+        "LICENSE": [title: "ライセンス"],
         "README.md": [title: "概要"]
       ],
       main: "readme",
