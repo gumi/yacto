@@ -59,7 +59,7 @@ defmodule Yacto.Migration.SchemaMigration do
 
   defp delete_migrations_table(adapter, repo) do
     table = %Ecto.Migration.Table{name: @table_name}
-    adapter.execute_ddl(repo, {:drop_if_exists, table}, @opts)
+    adapter.execute_ddl(repo, {:drop_if_exists, table, :restrict}, @opts)
   end
 
   defp create_migrations_table(adapter, repo) do
