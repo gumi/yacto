@@ -32,9 +32,9 @@ defmodule Yacto.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ecto_sql, "~> 3.7"},
+      {:ecto_sql, "~> 3.8"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:myxql, "~> 0.6.1"},
+      {:myxql, "~> 0.6.2"},
       {:elixir_uuid, "~> 1.2"},
       {:memoize, "~> 1.4"},
       {:power_assert, "~> 0.3.0", only: :test}
@@ -56,7 +56,7 @@ defmodule Yacto.Mixfile do
     [
       extras: [
         "CHANGELOG.md": [],
-        "LICENSE": [title: "ライセンス"],
+        LICENSE: [title: "ライセンス"],
         "README.md": [title: "概要"]
       ],
       main: "readme",

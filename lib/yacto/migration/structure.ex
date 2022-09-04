@@ -207,6 +207,24 @@ defimpl Inspect, for: Yacto.Migration.Structure do
       end
 
     value = Map.drop(value, drop_keys)
-    Inspect.Map.inspect(value, Inspect.Atom.inspect(Yacto.Migration.Structure, opts), opts)
+
+    # Elixir 1.14.0 で Inspect.Map.inspect/3 が無くなったので、代わりに /4 を利用する
+    if function_exported?(Inspect.Map, :inspect, 3) do
+      apply(Inspect.Map, :inspect, [value, Inspect.Atom.inspect(Yacto.Migration.Structure, opts), opts])
+    else
+      infos = Yacto.Migration.Structure.__info__(:struct)
+
+      infos =
+        infos
+        |> Enum.filter(fn %{field: field} -> field not in drop_keys end)
+        |> Enum.sort_by(fn %{field: field} -> field end)
+
+      apply(Inspect.Map, :inspect, [
+        value,
+        Inspect.Atom.inspect(Yacto.Migration.Structure, opts),
+        infos,
+        opts
+      ])
+    end
   end
 end

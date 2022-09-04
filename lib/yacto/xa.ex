@@ -12,7 +12,7 @@ defmodule Yacto.XA do
   end
 
   defp run_multi([repo | repos], fun, opts, conns) do
-    {_adapter, meta} = Ecto.Repo.Registry.lookup(repo)
+    meta = Ecto.Repo.Registry.lookup(repo)
     %{pid: pool, opts: default_opts} = meta
 
     DBConnection.run(
@@ -146,7 +146,7 @@ defmodule Yacto.XA do
   end
 
   def in_xa_transaction?(repo) do
-    {_adapter, meta} = Ecto.Repo.Registry.lookup(repo)
+    meta = Ecto.Repo.Registry.lookup(repo)
     %{pid: pool} = meta
 
     case Process.get(adapter_key(pool)) do
