@@ -11,6 +11,13 @@
 
 ## develop
 
+- [UPDATE] Elixir 1.15 に対応
+- [UPDATE] 依存ライブラリを更新
+  - ecto_sql: 3.8.3 → 3.10.2
+  - memoize: 1.4.1 → 1.4.2
+  - ex_doc: 0.28.5 → 0.29.4
+  - myxql: 0.6.2 → 0.6.3
+
 ## 2.0.3 (2022-09-04)
 
 - [UPDATE] Elixir 1.14 に対応

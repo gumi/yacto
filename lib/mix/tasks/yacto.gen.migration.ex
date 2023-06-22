@@ -69,7 +69,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
         {module_names, messages} = Yacto.Migration.File.list_migration_modules(migration_dir)
 
         for message <- messages do
-          Logger.warn(message)
+          Logger.warning(message)
         end
 
         # operation が :delete でないマイグレーション済みスキーマとマイグレーションファイルを手に入れる
@@ -80,7 +80,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
               Yacto.Migration.File.get_latest_migration_file(migration_dir, mod)
 
             for message <- messages do
-              Logger.warn(message)
+              Logger.warning(message)
             end
 
             {mod, migration_file}
@@ -95,7 +95,7 @@ defmodule Mix.Tasks.Yacto.Gen.Migration do
             )
 
           for message <- messages do
-            Logger.warn(message)
+            Logger.warning(message)
           end
 
           migration =

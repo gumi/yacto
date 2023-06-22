@@ -60,7 +60,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
         {schema_names, messages} = Yacto.Migration.File.list_migration_modules(migration_dir)
 
         for message <- messages do
-          Logger.warn(message)
+          Logger.warning(message)
         end
 
         for repo <- repos do
@@ -73,7 +73,7 @@ defmodule Mix.Tasks.Yacto.Migrate do
               Yacto.Migration.File.list_migration_files(migration_dir, schema_name)
 
             for message <- messages do
-              Logger.warn(message)
+              Logger.warning(message)
             end
 
             Yacto.Migration.Migrator.up(
