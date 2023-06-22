@@ -2,7 +2,7 @@ defmodule Yacto.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/gumi/yacto"
-  @version "2.0.3"
+  @version "2.0.4"
 
   def project do
     [
@@ -61,7 +61,7 @@ defmodule Yacto.Mixfile do
       ],
       main: "readme",
       source_url: @source_url,
-      source_ref: "v#{@version}",
+      source_ref: "#{@version}",
       formatters: ["html"]
     ]
   end
