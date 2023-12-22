@@ -502,7 +502,7 @@ defmodule Yacto.Migration.MigrationTest do
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{id: :id, name: :name, value: :value, updated_at: :updated_at, inserted_at: :inserted_at}, fields: [:id, :name, :value, :inserted_at, :updated_at], source: "player", types: %{id: :id, name: :string, value: :integer, updated_at: :naive_datetime, inserted_at: :naive_datetime}}
+        %Yacto.Migration.Structure{field_sources: %{id: :id, inserted_at: :inserted_at, name: :name, updated_at: :updated_at, value: :value}, fields: [:id, :name, :value, :inserted_at, :updated_at], source: "player", types: %{id: :id, inserted_at: :naive_datetime, name: :string, updated_at: :naive_datetime, value: :integer}}
       end
 
       def __migration__(:version) do
@@ -529,7 +529,7 @@ defmodule Yacto.Migration.MigrationTest do
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{id: :id, value: :value, name2: :name2}, fields: [:id, :name2, :value], source: "player2", types: %{id: :id, value: :string, name2: :string}}
+        %Yacto.Migration.Structure{field_sources: %{id: :id, name2: :name2, value: :value}, fields: [:id, :name2, :value], source: "player2", types: %{id: :id, name2: :string, value: :string}}
       end
 
       def __migration__(:version) do
@@ -555,7 +555,7 @@ defmodule Yacto.Migration.MigrationTest do
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{id: :id, value: :value, text: :text_data, name3: :name3}, fields: [:id, :name3, :value, :text], meta: %{attrs: %{text: %{null: false}, name3: %{default: "hage", size: 100, null: false}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "yacto_migrationtest_player", types: %{id: :id, value: :string, text: :text, name3: :string}}
+        %Yacto.Migration.Structure{field_sources: %{id: :id, name3: :name3, text: :text_data, value: :value}, fields: [:id, :name3, :value, :text], meta: %{attrs: %{name3: %{default: "hage", null: false, size: 100}, text: %{null: false}}, indices: %{{[:name3, :value], [unique: true]} => true, {[:value, :name3], []} => true}}, source: "yacto_migrationtest_player", types: %{id: :id, name3: :string, text: :text, value: :string}}
       end
 
       def __migration__(:version) do
@@ -660,7 +660,7 @@ defmodule Yacto.Migration.MigrationTest do
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{id: :id, aaaaaa: :aaaaaa, bbbbbb: :bbbbbb, cccccc: :cccccc, dddddd: :dddddd}, fields: [:id, :aaaaaa, :bbbbbb, :cccccc, :dddddd], meta: %{attrs: %{aaaaaa: %{size: 64, null: false}, bbbbbb: %{size: 64, null: false}, cccccc: %{size: 64, null: false}, dddddd: %{size: 64, null: false}}, indices: %{{[:aaaaaa, :bbbbbb, :cccccc, :dddddd], []} => true}}, source: "yacto_migrationtest_manyindex", types: %{id: :id, aaaaaa: :string, bbbbbb: :string, cccccc: :string, dddddd: :string}}
+        %Yacto.Migration.Structure{field_sources: %{aaaaaa: :aaaaaa, bbbbbb: :bbbbbb, cccccc: :cccccc, dddddd: :dddddd, id: :id}, fields: [:id, :aaaaaa, :bbbbbb, :cccccc, :dddddd], meta: %{attrs: %{aaaaaa: %{null: false, size: 64}, bbbbbb: %{null: false, size: 64}, cccccc: %{null: false, size: 64}, dddddd: %{null: false, size: 64}}, indices: %{{[:aaaaaa, :bbbbbb, :cccccc, :dddddd], []} => true}}, source: "yacto_migrationtest_manyindex", types: %{aaaaaa: :string, bbbbbb: :string, cccccc: :string, dddddd: :string, id: :id}}
       end
 
       def __migration__(:version) do
@@ -693,7 +693,7 @@ defmodule Yacto.Migration.MigrationTest do
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{id: :id, name: :name, player_id: :player_id, decimal_field: :decimal_field}, fields: [:id, :player_id, :decimal_field, :name], meta: %{attrs: %{name: %{null: true}, decimal_field: %{precision: 7, scale: 3}}, indices: %{}}, source: "yacto_migrationtest_decimaloption", types: %{id: :id, name: :string, player_id: :string, decimal_field: :decimal}}
+        %Yacto.Migration.Structure{field_sources: %{decimal_field: :decimal_field, id: :id, name: :name, player_id: :player_id}, fields: [:id, :player_id, :decimal_field, :name], meta: %{attrs: %{decimal_field: %{precision: 7, scale: 3}, name: %{null: true}}, indices: %{}}, source: "yacto_migrationtest_decimaloption", types: %{decimal_field: :decimal, id: :id, name: :string, player_id: :string}}
       end
 
       def __migration__(:version) do
@@ -729,7 +729,7 @@ defmodule Yacto.Migration.MigrationTest do
       end
 
       def __migration__(:structure) do
-        %Yacto.Migration.Structure{field_sources: %{id: :id, description: :description, player_id: :player_id, quantity: :quantity, updated_at: :updated_at, inserted_at: :inserted_at, type_id: :type_id, platform: :platform}, fields: [:id, :player_id, :type_id, :platform, :quantity, :description, :inserted_at, :updated_at], meta: %{attrs: %{description: %{null: false}, player_id: %{null: false}, quantity: %{default: 0, null: false}, type_id: %{default: 2, null: false}, platform: %{size: 64, null: false}}, indices: %{{[:player_id, :type_id, :platform], [unique: true]} => true}}, source: "yacto_migrationtest_coin", types: %{id: :id, description: :text, player_id: :string, quantity: :integer, updated_at: :naive_datetime, inserted_at: :naive_datetime, type_id: :integer, platform: :string}}
+        %Yacto.Migration.Structure{field_sources: %{description: :description, id: :id, inserted_at: :inserted_at, platform: :platform, player_id: :player_id, quantity: :quantity, type_id: :type_id, updated_at: :updated_at}, fields: [:id, :player_id, :type_id, :platform, :quantity, :description, :inserted_at, :updated_at], meta: %{attrs: %{description: %{null: false}, platform: %{null: false, size: 64}, player_id: %{null: false}, quantity: %{default: 0, null: false}, type_id: %{default: 2, null: false}}, indices: %{{[:player_id, :type_id, :platform], [unique: true]} => true}}, source: "yacto_migrationtest_coin", types: %{description: :text, id: :id, inserted_at: :naive_datetime, platform: :string, player_id: :string, quantity: :integer, type_id: :integer, updated_at: :naive_datetime}}
       end
 
       def __migration__(:version) do

@@ -11,6 +11,16 @@
 
 ## develop
 
+## 2.0.5 (2023-12-23)
+
+- [UPDATE] Elixir 1.16 に対応
+- [UPDATE] 依存ライブラリを更新
+  - ecto_sql: 3.10.2 → 3.11.1
+  - memoize: 1.4.1 → 1.4.2
+  - ex_doc: 0.29.4 → 0.31.0
+  - myxql: 0.6.3 → 0.6.4
+- [UPDATE] Elixir 1.14 以上の場合、`Yacto.Migration.Structure` を inspect する際に Map データをソートして文字列に変換する
+
 ## 2.0.4 (2023-06-22)
 
 - [UPDATE] Elixir 1.15 に対応
