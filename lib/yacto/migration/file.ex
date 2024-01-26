@@ -174,7 +174,7 @@ defmodule Yacto.Migration.File do
       # 0001-dbname-create-2019_11_26_170846.exs
 
       # .exs 削除
-      filename_noext = String.slice(filename, 0..-5)
+      filename_noext = String.slice(filename, 0..-5//1)
       parts = String.split(filename_noext, "-")
 
       if length(parts) != 4 do
