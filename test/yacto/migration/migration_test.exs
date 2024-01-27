@@ -370,6 +370,7 @@ defmodule Yacto.Migration.MigrationTest do
         "yacto_migrationtest_item",
         "yacto_migrationtest_manyindex",
         "yacto_migrationtest_unsignedbiginteger",
+        "yacto_migrationtest_virtualfield",
         "yacto_schema_migrations"
       ]
 
@@ -864,5 +865,35 @@ defmodule Yacto.Migration.MigrationTest do
 
       assert expected_fields == actual_fields
     end
+
+    @virtualfield """
+    defmodule Yacto.MigrationTest.VirtualField.Migration0000 do
+      use Ecto.Migration
+
+      def change() do
+        create table("yacto_migrationtest_virtualfield")
+        alter table("yacto_migrationtest_virtualfield") do
+          add(:name, :string, [])
+        end
+        :ok
+      end
+
+      def __migration__(:structure) do
+        %Yacto.Migration.Structure{field_sources: %{id: :id, name: :name}, fields: [:id, :name], source: "yacto_migrationtest_virtualfield", types: %{id: :id, name: :string}}
+      end
+
+      def __migration__(:version) do
+        0
+      end
+    end
+    """
+
+    test "仮想フィールドがマイグレーションファイルに出力されないことを確認する" do
+      {:created, migrate, 0} =
+        Yacto.Migration.GenMigration.generate(Yacto.MigrationTest.VirtualField, nil)
+
+      assert @virtualfield == migrate
+    end
+
   end
 end

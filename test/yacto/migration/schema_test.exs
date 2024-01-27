@@ -20,6 +20,7 @@ defmodule Yacto.Migration.SchemaTest do
 
     schema @auto_source do
       field(:name, :string, meta: [null: false, size: 50, default: "foo", index: true])
+      field(:vname, :string, virtual: true, default: "bar")
       field(:value, :integer, meta: [null: false])
       timestamps()
 
@@ -37,6 +38,11 @@ defmodule Yacto.Migration.SchemaTest do
     }
 
     assert expected == TestMeta.__meta__(:attrs)
+    # virtual: true は attrs には現れないが、フィールドとしては扱える
+    v = %TestMeta{}
+    assert "bar" == v.vname
+    v = %{v | vname: "baz"}
+    assert "baz" == v.vname
 
     assert %{
              {[:name], []} => true,

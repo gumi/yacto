@@ -137,17 +137,19 @@ defmodule Yacto.Schema do
           meta
         end
 
-      for {key, value} <- meta, key in [:null, :size, :default, :precision, :scale] do
-        new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
-        @yacto_attrs Map.put(@yacto_attrs, name, new_value)
-      end
+      if not Keyword.get(opts, :virtual, false) do
+        for {key, value} <- meta, key in [:null, :size, :default, :precision, :scale] do
+          new_value = Map.put(Map.get(@yacto_attrs, name, %{}), key, value)
+          @yacto_attrs Map.put(@yacto_attrs, name, new_value)
+        end
 
-      for {key, value} <- meta, key == :index do
-        @yacto_indices Map.put(@yacto_indices, {[name], []}, value)
-      end
+        for {key, value} <- meta, key == :index do
+          @yacto_indices Map.put(@yacto_indices, {[name], []}, value)
+        end
 
-      for {key, value} <- meta, key == :type do
-        @yacto_types Map.put(@yacto_types, name, value)
+        for {key, value} <- meta, key == :type do
+          @yacto_types Map.put(@yacto_types, name, value)
+        end
       end
 
       @yacto_orig_calls [{Ecto.Schema, :field, [name, type, opts]} | @yacto_orig_calls]

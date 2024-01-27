@@ -142,6 +142,15 @@ defmodule Yacto.MigrationTest.DecimalOption do
   end
 end
 
+defmodule Yacto.MigrationTest.VirtualField do
+  use Yacto.Schema, dbname: :player
+
+  schema @auto_source do
+    field(:name)
+    field(:vname, :string, virtual: true)
+  end
+end
+
 defmodule Yacto.MigrationTest.Repo0 do
   use Ecto.Repo, otp_app: :migrator, adapter: Ecto.Adapters.MyXQL
 end
