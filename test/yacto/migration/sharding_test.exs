@@ -41,8 +41,8 @@ defmodule Yacto.Migration.ShardingTest do
     end
 
     for {repo, config} <- [default_config] ++ player_configs do
-      _ = repo.__adapter__.storage_down(config)
-      :ok = repo.__adapter__.storage_up(config)
+      _ = repo.__adapter__().storage_down(config)
+      :ok = repo.__adapter__().storage_up(config)
     end
 
     Application.put_env(:yacto, :databases, @databases)

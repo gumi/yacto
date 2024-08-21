@@ -11,6 +11,11 @@
 
 ## develop
 
+- [UPDATE] Elixir 1.17 に対応
+- [UPDATE] 依存ライブラリを更新
+  - ecto_sql: 3.11.1 → 3.11.3
+  - ex_doc: 0.31.0 → 0.34.2
+
 ## 2.1.0 (2024-01-27)
 
 - [ADD] Ecto.Schema の `:virtual` オプションに対応

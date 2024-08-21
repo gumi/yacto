@@ -14,7 +14,7 @@ defmodule Yacto.Migration.SchemaMigration do
   @opts [timeout: :infinity, log: false]
 
   def ensure_schema_migrations_table!(repo) do
-    adapter = repo.__adapter__
+    adapter = repo.__adapter__()
     create_migrations_table(adapter, repo)
   end
 
@@ -47,12 +47,12 @@ defmodule Yacto.Migration.SchemaMigration do
   end
 
   def drop(repo) do
-    adapter = repo.__adapter__
+    adapter = repo.__adapter__()
     delete_migrations_table(adapter, repo)
   end
 
   def drop_and_create(repo) do
-    adapter = repo.__adapter__
+    adapter = repo.__adapter__()
     delete_migrations_table(adapter, repo)
     create_migrations_table(adapter, repo)
   end

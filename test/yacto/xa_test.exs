@@ -21,8 +21,8 @@ defmodule Yacto.XATest do
     ]
 
     for {repo, config} <- [{Yacto.XATest.Repo0, config0}, {Yacto.XATest.Repo1, config1}] do
-      _ = repo.__adapter__.storage_down(config)
-      :ok = repo.__adapter__.storage_up(config)
+      _ = repo.__adapter__().storage_down(config)
+      :ok = repo.__adapter__().storage_up(config)
     end
 
     {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.XATest.Repo0, config0})

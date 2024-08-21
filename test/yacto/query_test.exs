@@ -32,8 +32,8 @@ defmodule Yacto.QueryTest do
           {Yacto.QueryTest.Repo.Player0, player0_config},
           {Yacto.QueryTest.Repo.Player1, player1_config}
         ] do
-      _ = repo.__adapter__.storage_down(config)
-      :ok = repo.__adapter__.storage_up(config)
+      _ = repo.__adapter__().storage_down(config)
+      :ok = repo.__adapter__().storage_up(config)
     end
 
     {:ok, _} = ExUnit.Callbacks.start_supervised({Yacto.QueryTest.Repo.Default, default_config})

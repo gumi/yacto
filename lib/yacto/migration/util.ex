@@ -31,7 +31,7 @@ defmodule Yacto.Migration.Util do
 
   def need_gen_migration?(schema) do
     case function_exported?(schema, :gen_migration?, 0) do
-      true -> schema.gen_migration?
+      true -> schema.gen_migration?()
       false -> true
     end
   end

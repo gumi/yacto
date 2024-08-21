@@ -36,8 +36,8 @@ defmodule Yacto.Migration.MigrationTest do
             {Yacto.MigrationTest.Repo0, repo0_config},
             {Yacto.MigrationTest.Repo1, repo1_config}
           ] do
-        _ = repo.__adapter__.storage_down(config)
-        :ok = repo.__adapter__.storage_up(config)
+        _ = repo.__adapter__().storage_down(config)
+        :ok = repo.__adapter__().storage_up(config)
       end
 
       _ = File.rm_rf(Yacto.Migration.Util.get_migration_dir(:yacto))

@@ -125,8 +125,8 @@ defmodule Yacto.Migration.Migrator do
   defp run_maybe_in_transaction(parent, ref, repo, dynamic_repo, _schema, migration, fun) do
     repo.put_dynamic_repo(dynamic_repo)
 
-    if migration.__migration__[:disable_ddl_transaction] ||
-         not repo.__adapter__.supports_ddl_transaction? do
+    if migration.__migration__()[:disable_ddl_transaction] ||
+         not repo.__adapter__().supports_ddl_transaction?() do
       send_and_receive(parent, ref, fun.())
     else
       {:ok, result} =
